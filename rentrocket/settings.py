@@ -140,10 +140,12 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
     'building',
     'city',
+    'content',
+    'inspection',
     'manager',
     'person',
-    'content',
-    'utility',
+    'service',
+    'source',
     
 )
 

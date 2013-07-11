@@ -1,17 +1,47 @@
 from django.db import models
 
+from source.models import Source
 
 class Parcel(models.Model):
     """
     AKA Property, but 'property' is a built in function of Python,
     so avoiding confusion by naming it Parcel instead.
     """
-    id = models.CharField(max_length=10, primary_key=True)
+    ## parcel_id
+    ## string
+    ## Yes
+    ## Local identifier for all parcel footprint that the building sits on.
+    #django should provide this by default
+    #if a city provides it, we will need to override the default
+    #id = models.CharField(max_length=10, primary_key=True)
 
-    address = models.CharField(max_length=200)
+    #buildings have addresses, but not parcels:
+    #address = models.CharField(max_length=200)
+
+    ## Shape
+    ## geometry
+    ## Yes
+    ## This field contains data that describes the boundaries of the lot. It is generated automatically when the shapefile is created and will display a type of polygon or multipolygon.
+    shape = models.TextField()
+
+    #aka feed_source:
+    source = models.ForeignKey(Source)
 
     added = models.DateTimeField('date published')
     updated = models.DateTimeField('date updated')
+
+    #TODO:
+    #isn't it possible that more than one building could be on a parcel,
+    #but only one parcel for any given building?
+    #if so, following is *not* needed here (link happens from the building)
+    #
+    #if not (if building could span multiple parcels),
+    #then we need a different relation between the two
+    ## building_id
+    ## string
+    ## Yes
+    ## Unique identifier for the residential building.  Can correspond to more than one parcel_id or an address range
+
 
 class Building(models.Model):
     """
@@ -23,7 +53,8 @@ class Building(models.Model):
     #aka building_id
     #'id' is a built in function in python,
     #but should be ok to use as an attribute
-    id = models.CharField(max_length=10, primary_key=True)
+    #this may get configured automatically as part of Django:
+    #id = models.CharField(max_length=10, primary_key=True)
 
     parcel = models.ForeignKey(Parcel)
 
@@ -35,7 +66,7 @@ class Building(models.Model):
     #this could also be a property of
     #how many Units are associated with the building
     #(but that may be inaccurate)
-    units = models.IntegerField(default=0)
+    number_of_units = models.IntegerField(default=0)
 
     #Year building was constructed or rebuilt.
     built_year = models.IntegerField()
@@ -60,9 +91,6 @@ class Building(models.Model):
 
     street_type = models.CharField(max_length=10)
 
-    #TODO: ForeignKey:
-    #city = models.CharField(max_length=50)
-
     #State where the property is located.
     #In the U.S. this should be the two-letter code for the state
     state = models.CharField(max_length=10)
@@ -76,6 +104,14 @@ class Building(models.Model):
     #owner_name = models.CharField(max_length=50)
     #owner_mailing_address = models.CharField(max_length=50, blank=True)
 
+    #TODO: ForeignKey:
+    #city = models.CharField(max_length=50)
+    #city = models.ForeignKey(City)
+
+    #aka feed_source:
+    #source = models.ForeignKey(FeedInfo)
+    source = models.ForeignKey(Source)
+
     added = models.DateTimeField('date published')
     updated = models.DateTimeField('date updated')
 
@@ -85,7 +121,7 @@ class Unit(models.Model):
     """
     an indivdual dwelling or unit
     can be part of a larger Building,
-    or a Building might only have one Unit
+    or a Building might only have one Unit (1 to 1)
     """
     building = models.ForeignKey(Building)
 
@@ -103,6 +139,7 @@ class Unit(models.Model):
 
     #TODO:
     #manager = models.ForeignKey(Manager)
+    #manager = models.ForeignKey(Person)
 
     bedrooms = models.IntegerField(default=0)
     bathrooms = models.IntegerField(default=0)
@@ -113,7 +150,11 @@ class Unit(models.Model):
     max_occupants = models.IntegerField(default=0)
     
     #TODO:
-    #foreign keys to photos and floor plans
+    #foreign keys to photos and floor plans (via Content module)
+
+    #allow photos *(more than 1)* to be submitted for the listing
+    #but associate them with the unit
+    #content_set
 
     added = models.DateTimeField('date published')
     updated = models.DateTimeField('date updated')
@@ -162,14 +203,16 @@ class Listing(models.Model):
     #what utilities are included: (to help estimate total cost)
     #TODO:
     #this would also be a good place to collect energy data from users
+    #should create corresponding entries in services fields
 
     #TODO:
     #application (to apply for lease)
     #link to a default one for manager if available
     #otherwise allow one to be attached?
+    #application = models.ForeignKey(Content)
 
     #TODO:
-    #allow photos to be submitted for the listing
+    #allow photos *(more than 1)* to be submitted for the listing
     #but associate them with the unit
 
     added = models.DateTimeField('date published')
