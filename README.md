@@ -20,3 +20,6 @@ Requirements:
 -----------------
 
 sudo pip install geopy
+
+#database migrations
+sudo pip install South

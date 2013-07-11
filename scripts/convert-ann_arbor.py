@@ -23,6 +23,8 @@ Mark any obsolete entries as non-rentals (or remove any old entries?)
 import os, sys, codecs, re
 import csv
 
+import geopy
+
 sys.path.append(os.path.dirname(os.getcwd()))
 
 #http://stackoverflow.com/questions/8047204/django-script-to-access-model-objects-without-using-manage-py-shell
@@ -30,7 +32,8 @@ from rentrocket import settings
 from django.core.management import setup_environ
 setup_environ(settings)
 
-from building.models import Building
+from building.models import Building, Parcel
+from city.models import City
 
 def usage():
     print __doc__
@@ -38,6 +41,9 @@ def usage():
 def read_csv(source):
     #for reading unicode
     #f = codecs.open(source, 'r', encoding='utf-8')
+
+    city_options = City.objects.filter(tag="ann_arbor")
+    print len(city_options)
 
     permit_sub_types = []
     status_types = []
@@ -53,6 +59,7 @@ def read_csv(source):
         print '>, <'.join(reader.next())
         
         for row in reader:
+            cur_building = Building()
             sub_type = row[2]
             if not sub_type in permit_sub_types:
                 #print "adding: %s" % sub_type
@@ -90,14 +97,14 @@ def read_csv(source):
             #print ', '.join(row)
             #print
 
-    print permit_sub_types
-    print status_types
-    print building_nums
+    ## print permit_sub_types
+    ## print status_types
+    ## print building_nums
 
-    print applicants
-    print len(applicants)
-    print managers
-    print len(managers)
+    ## print applicants
+    ## print len(applicants)
+    ## print managers
+    ## print len(managers)
             
 def main():
     #requires that at least one argument is passed in to the script itself

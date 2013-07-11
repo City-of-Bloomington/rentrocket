@@ -27,7 +27,7 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': '../../rentrocket_db.sq3',
+            'NAME': '../rentrocket_db.sq3',
             #'NAME': 'my_db',
             #'USER': 'user',
             #'PASSWORD': 'pass',
@@ -138,6 +138,9 @@ INSTALLED_APPS = (
     # 'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
+
+    'south',
+
     'building',
     'city',
     'content',
@@ -146,6 +149,7 @@ INSTALLED_APPS = (
     'person',
     'service',
     'source',
+
     
 )
 
