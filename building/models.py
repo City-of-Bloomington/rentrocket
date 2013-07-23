@@ -18,6 +18,9 @@ class Parcel(models.Model):
     #buildings have addresses, but not parcels:
     #address = models.CharField(max_length=200)
 
+    #supplied by source
+    custom_id = models.CharField(max_length=30, unique=True)
+
     ## Shape
     ## geometry
     ## Yes
@@ -27,8 +30,8 @@ class Parcel(models.Model):
     #aka feed_source:
     source = models.ForeignKey(Source)
 
-    added = models.DateTimeField('date published')
-    updated = models.DateTimeField('date updated')
+    added = models.DateTimeField('date published', auto_now_add=True)
+    updated = models.DateTimeField('date updated', auto_now=True)
 
     #TODO:
     #isn't it possible that more than one building could be on a parcel,
@@ -58,24 +61,6 @@ class Building(models.Model):
 
     parcel = models.ForeignKey(Parcel)
 
-    #Type of residential property:
-    #( single family, duplex, multi-family, single room occupancy,  etc)
-    #blank=True means not required
-    type = models.CharField(max_length=12, blank=True)
-    
-    #this could also be a property of
-    #how many Units are associated with the building
-    #(but that may be inaccurate)
-    number_of_units = models.IntegerField(default=0)
-
-    #Year building was constructed or rebuilt.
-    built_year = models.IntegerField()
-    #Recorded building square feet 
-    sqft = models.IntegerField()
-
-    #Current assessed property value.
-    value = models.FloatField()
-
     #this is too general to fit with the Home Facts Data Standard
     #address = models.CharField(max_length=200)
 
@@ -100,6 +85,24 @@ class Building(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
 
+    #Type of residential property:
+    #( single family, duplex, multi-family, single room occupancy,  etc)
+    #blank=True means not required
+    type = models.CharField(max_length=12, blank=True)
+    
+    #this could also be a property of
+    #how many Units are associated with the building
+    #(but that may be inaccurate)
+    number_of_units = models.IntegerField(default=0)
+
+    #Year building was constructed or rebuilt.
+    built_year = models.IntegerField()
+    #Recorded building square feet 
+    sqft = models.IntegerField()
+
+    #Current assessed property value.
+    value = models.FloatField(blank=True)
+
     #TODO: ForeignKey:
     #owner_name = models.CharField(max_length=50)
     #owner_mailing_address = models.CharField(max_length=50, blank=True)
@@ -112,8 +115,8 @@ class Building(models.Model):
     #source = models.ForeignKey(FeedInfo)
     source = models.ForeignKey(Source)
 
-    added = models.DateTimeField('date published')
-    updated = models.DateTimeField('date updated')
+    added = models.DateTimeField('date published', auto_now_add=True)
+    updated = models.DateTimeField('date updated', auto_now=True)
 
     
 
@@ -156,8 +159,8 @@ class Unit(models.Model):
     #but associate them with the unit
     #content_set
 
-    added = models.DateTimeField('date published')
-    updated = models.DateTimeField('date updated')
+    added = models.DateTimeField('date published', auto_now_add=True)
+    updated = models.DateTimeField('date updated', auto_now=True)
 
 class Listing(models.Model):
     """
@@ -215,5 +218,13 @@ class Listing(models.Model):
     #allow photos *(more than 1)* to be submitted for the listing
     #but associate them with the unit
 
-    added = models.DateTimeField('date published')
-    updated = models.DateTimeField('date updated')
+    added = models.DateTimeField('date published', auto_now_add=True)
+    updated = models.DateTimeField('date updated', auto_now=True)
+
+
+class Permit(models.Model):
+    """
+    for storing details about the rental permit source
+    """
+
+    pass

@@ -44,6 +44,19 @@ def read_csv(source):
 
     city_options = City.objects.filter(tag="ann_arbor")
     print len(city_options)
+    if not len(city_options):
+        city = City()
+        city.name = "Ann Arbor"
+        city.tag = "ann_arbor"
+        city.save()
+    else:
+        city = city_options[0]
+
+    print city
+
+    #TODO:
+    #setup FeedInfo item
+    #and also create a Source item
 
     permit_sub_types = []
     status_types = []
@@ -60,15 +73,22 @@ def read_csv(source):
         
         for row in reader:
             cur_building = Building()
-            sub_type = row[2]
-            if not sub_type in permit_sub_types:
-                #print "adding: %s" % sub_type
-                permit_sub_types.append(sub_type)
 
             status = row[3]
+            sub_type = row[2]
+            if not status in ['EXPIRED', 'CLOSED']:
+                bldg = Building()
+                bldg.type = sub_type
+                
+
             if not status in status_types:
                 #print "adding: %s" % sub_type
                 status_types.append(status)
+
+
+            if not sub_type in permit_sub_types:
+                #print "adding: %s" % sub_type
+                permit_sub_types.append(sub_type)
 
             building_num = row[8]
             if not building_num in building_nums:
@@ -98,8 +118,8 @@ def read_csv(source):
             #print
 
     ## print permit_sub_types
-    ## print status_types
-    ## print building_nums
+    print status_types
+    print building_nums
 
     ## print applicants
     ## print len(applicants)

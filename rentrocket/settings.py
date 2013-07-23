@@ -4,6 +4,17 @@ import os
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
+
+# Set up relative references with "os"
+BASE_DIR = os.path.abspath(os.path.dirname(__file__)) + os.sep
+
+# Make sure the project is on the PYTHONPATH
+import sys
+if BASE_DIR not in sys.path:
+    sys.path.append(BASE_DIR)
+
+
+
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
     ('Admin', 'admin@rentrocket.org'),
@@ -23,14 +34,18 @@ if (os.getenv('SERVER_SOFTWARE', '').startswith('Google App Engine') or
         }
     }
 else:
-    # Running in development, so use a local MySQL database.
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': '../rentrocket_db.sq3',
-            #'NAME': 'my_db',
-            #'USER': 'user',
-            #'PASSWORD': 'pass',
+            #sqlite3 only works when running with manage.py
+            #will not work when running under app engine:
+            #'ENGINE': 'django.db.backends.sqlite3',
+            #'NAME': '../rentrocket_db.sq3',
+
+            # Running in development, so use a local MySQL database.
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'rentrocket',
+            'USER': 'rentrocket',
+            'PASSWORD': 'greenrentals',
             #'HOST': 'localhost',
         }
     }
@@ -75,18 +90,20 @@ MEDIA_URL = ''
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/var/www/example.com/static/"
-STATIC_ROOT = ''
+STATIC_ROOT = BASE_DIR + '..' + os.sep + 'static'
 
 # URL prefix for static files.
-# Example: "http://example.com/static/", "http://static.example.com/"
+# Example: "http://media.lawrence.com/static/"
 STATIC_URL = '/static/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
-    # Put strings here, like "/home/html/static" or "C:/www/django/static".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
+     # Put strings here, like "/home/html/static" or "C:/www/django/static".
+     # Always use forward slashes, even on Windows.
+     # Don't forget to use absolute paths, not relative paths.
+     BASE_DIR + '_static',
 )
+
 
 # List of finder classes that know how to find static files in
 # various locations.
@@ -119,12 +136,15 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'rentrocket.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'rentrocket.wsgi.application'
+# not needed when using app engine for hosting:
+# WSGI_APPLICATION = 'rentrocket.wsgi.application'
 
 TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
+    # Put strings here, like "/home/html/django_templates"
+    # or "C:/www/django/templates".
+    # Always use forward slashes, even on Windows. 
+    'rentrocket/_templates',
+    #'registration_email/templates',
 )
 
 INSTALLED_APPS = (
