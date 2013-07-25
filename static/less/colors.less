@@ -1,0 +1,128 @@
+// color variables from bootstrap:
+
+// Grays
+// -------------------------
+$black:                 #000;
+$grayDarker:            #222;
+$grayDark:              #333;
+$gray:                  #555;
+$grayLight:             #999;
+$grayLighter:           #eee;
+$white:                 #fff;
+
+
+// Accent colors
+// -------------------------
+$blue:                  #049cdb;
+$blueDark:              #0064cd;
+$green:                 #46a546;
+$red:                   #9d261d;
+$yellow:                #ffc40d;
+$orange:                #f89406;
+$pink:                  #c3325f;
+$purple:                #7a43b6;
+
+// ---------------------------------------------------------------------------
+// Color Palette (Solarized: http://ethanschoonover.com/solarized)
+
+$base03:    #002b36;
+$base02:    #073642;
+$base01:    #586e75;
+$base00:    #657b83;
+$base0:     #839496;
+$base1:     #93a1a1;
+$base2:     #eee8d5;
+$base3:     #fdf6e3;
+$yellow:    #b58900;
+$orange:    #cb4b16;
+$red:       #dc322f;
+$magenta:   #d33682;
+$violet:    #6c71c4;
+$blue:      #268bd2;
+$cyan:      #2aa198;
+$green:     #859900;
+
+// ---------------------------------------------------------------------------
+// Color System
+
+
+$base             : $blue;
+$alt              : $orange;
+$accent           : $red;
+
+$background:        $base3;
+$highlight:         $red;
+$bodycopy:          $base00;
+
+$primary: $base;
+$secondary: $alt;
+$neutral: $base03;
+$highlight: $primary;
+
+
+$grid-background-column-color: rgba(lighten($background,5%),.5);
+
+
+// Applied
+// -------------------------
+//$bodyBackground:        $white;
+//$bodyBackground:        #e4e4e4;
+$bodyBackground:        $background;
+//$textColor:             $grayDark;
+$textColor:             $bodycopy;
+
+// Links
+// -------------------------
+//$linkColor:             #08c; #00e;
+$linkColor:             $red;
+
+// #551a8b; 
+$linkColorVisited:      darken($linkColor, 15%);
+
+//#06e;
+$linkColorHover:        lighten($linkColor, 15%);
+
+// Input placeholder text color
+// -------------------------
+$placeholderText:         $grayLight;
+
+// Hr border color
+// -------------------------
+$hrBorder:                $grayLighter;
+
+
+
+
+// ---------------------------------------------------------------------------
+// originals
+
+//$base             : $base00;
+//$alt              : $red;
+//$accent           : $violet;
+
+//$background:        $base3;
+//$highlight:         $red;
+//$bodycopy:          $base00;
+
+
+//$primary: #13A89E;
+//$secondary: #F1592A;
+//$neutral: black;
+//$highlight: $primary;
+
+// seems easier to just call these directly:
+//5% darker
+//$background-dark-5: darken($background, 5%);
+//$highlight-dark-5: darken($highlight, 5%);
+//$bodycopy-dark-5: darken($bodycopy, 5%);
+
+//10% darker
+//$background-dark-10: darken($background, 10%);
+//$highlight-dark-10: darken($highlight, 10%);
+//$bodycopy-dark-10: darken($bodycopy, 10%);
+
+//20% darker
+//$background-dark-20: darken($background, 20%);
+//$highlight-dark-20: darken($highlight, 20%);
+//$bodycopy-dark-20: darken($bodycopy, 20%);
+

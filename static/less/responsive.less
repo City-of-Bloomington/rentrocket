@@ -1,0 +1,62 @@
+@import 'normalize.less';
+@import 'grid.less';
+
+//////////
+// GRID //
+//////////
+
+// Specify the number of columns and set column and gutter widths
+@columns: 12;
+@column-width: 60;
+@gutter-width: 20;
+
+// Remove the definition below for a pixel-based layout
+@total-width: 100%;
+
+
+////////////
+// LAYOUT //
+////////////
+
+// header
+header {
+  width: 100%;
+  text-align: center;
+  background-color: #00a0b0;
+}
+header .logo {
+  color: #fdf6e3;
+}
+header p.logo {
+  color: #002b36;
+  text-decoration: none;
+}
+header a.home_link {
+  text-decoration: none;
+}
+header img {
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto 0;
+}
+header#top {
+	margin-bottom: 1em;
+}
+
+
+
+// main column & sidebar
+#maincolumn {
+	.column(9);
+}
+#sidebar {
+	.column(3);
+}
+
+@media screen and (max-width: 720px) {
+	#maincolumn,
+	#sidebar {
+		.column(12);
+		margin-bottom: 1em;
+	}
+}

@@ -4,11 +4,6 @@ runtime: python27
 api_version: 1
 threadsafe: true
 
-handlers:
-
-- url: /.*
-  script: main.application
-  
 libraries:
 
 - name: django
@@ -16,3 +11,17 @@ libraries:
   
 env_variables:
   DJANGO_SETTINGS_MODULE: 'rentrocket.settings'
+
+handlers:
+
+- url: /static
+  static_dir: static
+  expiration: '0'
+
+- url: /static/admin
+  static_dir: static/admin
+  expiration: '0'
+
+- url: /.*
+  script: main.application
+  

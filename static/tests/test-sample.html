@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Refactored date examples</title>
+ 
+
+  <!-- includes loadCSS.  -->
+  <script src="js/common.js">
+
+  <!-- http://code.jquery.com/ -->
+  <!-- might be able to get this (remote or local) with require.js -->
+
+  <script src="http://code.jquery.com/qunit/qunit-1.11.0.js"></script>
+  <link rel="stylesheet" href="http://code.jquery.com/qunit/qunit-1.11.0.css">
+  <script>if(typeof QUnit === 'undefined') { document.write('<script src="js/lib/qunit-1.11.0.js"><\/script>');loadCSS("css/qunit-1.11.0.css"); }</script>
+
+  
+  <!-- http://qunitjs.com/intro/ -->
+  <script src="prettydate.js"></script>
+ 
+  <script>
+  test("prettydate basics", function() {
+    var now = "2008/01/28 22:25:00";
+    equal(prettyDate(now, "2008/01/28 22:24:30"), "just now");
+    equal(prettyDate(now, "2008/01/28 22:23:30"), "1 minute ago");
+    equal(prettyDate(now, "2008/01/28 21:23:30"), "1 hour ago");
+    equal(prettyDate(now, "2008/01/27 22:23:30"), "Yesterday");
+    equal(prettyDate(now, "2008/01/26 22:23:30"), "2 days ago");
+    equal(prettyDate(now, "2007/01/26 22:23:30"), undefined);
+  });
+  </script>
+</head>
+<body>
+ 
+<div id="qunit"></div>
+ 
+</body>
+</html>

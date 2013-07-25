@@ -23,7 +23,7 @@ def index(request):
     
     ## #render_to_response does what above (commented) section does
     ## #return render_to_response('general/index.html', {'user': request.user})
-    ## return render(request, 'general/index.html', { 'form': form, } )
+    return render(request, 'index.html', {  } )
 
-    return HttpResponse("Hello, world. You're at the building index.")
+    #return HttpResponse("Hello, world. You're at the building index.")
 

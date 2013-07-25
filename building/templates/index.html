@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+
+{% block title %}Rent Rocket: Welcome!{% endblock %}
+
+{% block content %}
+
+<p>Rent Rocket strives to show you the total cost of renting an apartment.  When you know what is included, we hope you'll be better prepared to choose an energy efficient home.</p>
+
+{% if user.is_authenticated %}
+    <p>Welcome back, {{ user.username }}. <a href="logout">Log out.</a></p>
+{% else %}
+    {#<p>Please <a href="login">log in</a> or <a href="{% url registration.views.register %}">sign up</a>. </p>#}
+{% endif %}
+
+BUILDING CONTENT GOES HERE!
+
+{% endblock %} {# content #}
