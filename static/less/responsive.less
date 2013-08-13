@@ -1,5 +1,7 @@
 @import 'normalize.less';
 @import 'grid.less';
+@import 'colors.less';
+
 
 //////////
 // GRID //
@@ -18,45 +20,59 @@
 // LAYOUT //
 ////////////
 
+html {
+     height: 100%;
+}
+
+body {
+     height: 100%;
+     background-color: @background;
+}
+
 // header
 header {
-  width: 100%;
-  text-align: center;
-  background-color: #00a0b0;
+    width: 100%;
+    text-align: center;
+    background-color: @header;
 }
 header .logo {
-  color: #fdf6e3;
+//  color: @header;
 }
 header p.logo {
-  color: #002b36;
-  text-decoration: none;
+    color: #002b36;
+    text-decoration: none;
 }
 header a.home_link {
-  text-decoration: none;
+    text-decoration: none;
 }
 header img {
-  max-width: 800px;
-  width: 100%;
-  margin: 0 auto 0;
+    max-width: 800px;
+    width: 100%;
+    margin: 0 auto 0;
 }
 header#top {
-	margin-bottom: 1em;
+    margin-bottom: 1em;
+}
+
+footer {
+    text-align: center;
+    .column(12);
 }
 
 
 
 // main column & sidebar
 #maincolumn {
-	.column(9);
+    .column(9);
 }
 #sidebar {
-	.column(3);
+    .column(3);
 }
 
 @media screen and (max-width: 720px) {
-	#maincolumn,
-	#sidebar {
-		.column(12);
-		margin-bottom: 1em;
-	}
+    #maincolumn,
+    #sidebar {
+	.column(12);
+	margin-bottom: 1em;
+    }
 }

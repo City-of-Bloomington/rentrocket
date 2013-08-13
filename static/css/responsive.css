@@ -356,13 +356,17 @@ body:after {
 body:after {
   clear: both;
 }
+html {
+  height: 100%;
+}
+body {
+  height: 100%;
+  background-color: #fdf6e3;
+}
 header {
   width: 100%;
   text-align: center;
-  background-color: #00a0b0;
-}
-header .logo {
-  color: #fdf6e3;
+  background-color: #859900;
 }
 header p.logo {
   color: #002b36;
@@ -378,6 +382,13 @@ header img {
 }
 header#top {
   margin-bottom: 1em;
+}
+footer {
+  text-align: center;
+  display: inline;
+  float: left;
+  width: 97.91666666666666%;
+  margin: 0 1.0416666666666665%;
 }
 #maincolumn {
   display: inline;

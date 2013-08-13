@@ -10,16 +10,9 @@
     {#<p>Please <a href="login">log in</a> or <a href="{% url registration.views.register %}">sign up</a>. </p>#}
 {% endif %}
 
-{% if buildings %}
-    <ul>
-    {% for building in buildings %}
-        <li><a href="/building/{{ building.id }}/">{{ poll.question }}</a></li>
-    {% endfor %}
-    </ul>
-{% else %}
-    <p>No buildings are available.</p>
-{% endif %}
+<p>Rent Rocket strives to show you the total cost of renting an apartment.  When you know what is included, we hope you'll be better prepared to choose an energy efficient home.</p>
 
-BUILDING CONTENT GOES HERE!
+MAIN PAGE GOES HERE!
 
 {% endblock %} {# content #}
+

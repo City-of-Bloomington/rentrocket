@@ -11,10 +11,15 @@ class Migration(SchemaMigration):
         # Adding model 'Parcel'
         db.create_table(u'building_parcel', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('custom_id', self.gf('django.db.models.fields.CharField')(unique=True, max_length=30)),
             ('shape', self.gf('django.db.models.fields.TextField')()),
+            ('from_st', self.gf('django.db.models.fields.CharField')(max_length=12)),
+            ('to_st', self.gf('django.db.models.fields.CharField')(max_length=12, blank=True)),
+            ('street', self.gf('django.db.models.fields.CharField')(max_length=50)),
+            ('street_type', self.gf('django.db.models.fields.CharField')(max_length=10)),
             ('source', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['source.Source'])),
-            ('added', self.gf('django.db.models.fields.DateTimeField')()),
-            ('updated', self.gf('django.db.models.fields.DateTimeField')()),
+            ('added', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
+            ('updated', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
         ))
         db.send_create_signal(u'building', ['Parcel'])
 
@@ -22,22 +27,20 @@ class Migration(SchemaMigration):
         db.create_table(u'building_building', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('parcel', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['building.Parcel'])),
-            ('type', self.gf('django.db.models.fields.CharField')(max_length=12, blank=True)),
-            ('number_of_units', self.gf('django.db.models.fields.IntegerField')(default=0)),
-            ('built_year', self.gf('django.db.models.fields.IntegerField')()),
-            ('sqft', self.gf('django.db.models.fields.IntegerField')()),
-            ('value', self.gf('django.db.models.fields.FloatField')()),
-            ('from_st', self.gf('django.db.models.fields.CharField')(max_length=12)),
-            ('to_st', self.gf('django.db.models.fields.CharField')(max_length=12, blank=True)),
-            ('street', self.gf('django.db.models.fields.CharField')(max_length=50)),
-            ('street_type', self.gf('django.db.models.fields.CharField')(max_length=10)),
+            ('address', self.gf('django.db.models.fields.CharField')(max_length=200)),
             ('state', self.gf('django.db.models.fields.CharField')(max_length=10)),
             ('postal_code', self.gf('django.db.models.fields.CharField')(max_length=10)),
             ('latitude', self.gf('django.db.models.fields.FloatField')()),
             ('longitude', self.gf('django.db.models.fields.FloatField')()),
+            ('type', self.gf('django.db.models.fields.CharField')(max_length=12, blank=True)),
+            ('number_of_units', self.gf('django.db.models.fields.IntegerField')(default=0)),
+            ('built_year', self.gf('django.db.models.fields.IntegerField')()),
+            ('sqft', self.gf('django.db.models.fields.IntegerField')()),
+            ('value', self.gf('django.db.models.fields.FloatField')(blank=True)),
+            ('city', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['city.City'])),
             ('source', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['source.Source'])),
-            ('added', self.gf('django.db.models.fields.DateTimeField')()),
-            ('updated', self.gf('django.db.models.fields.DateTimeField')()),
+            ('added', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
+            ('updated', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
         ))
         db.send_create_signal(u'building', ['Building'])
 
@@ -51,8 +54,8 @@ class Migration(SchemaMigration):
             ('bathrooms', self.gf('django.db.models.fields.IntegerField')(default=0)),
             ('square_feet', self.gf('django.db.models.fields.IntegerField')(default=0)),
             ('max_occupants', self.gf('django.db.models.fields.IntegerField')(default=0)),
-            ('added', self.gf('django.db.models.fields.DateTimeField')()),
-            ('updated', self.gf('django.db.models.fields.DateTimeField')()),
+            ('added', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
+            ('updated', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
         ))
         db.send_create_signal(u'building', ['Unit'])
 
@@ -70,10 +73,16 @@ class Migration(SchemaMigration):
             ('deposit', self.gf('django.db.models.fields.FloatField')()),
             ('description', self.gf('django.db.models.fields.TextField')()),
             ('pets', self.gf('django.db.models.fields.CharField')(max_length=200)),
-            ('added', self.gf('django.db.models.fields.DateTimeField')()),
-            ('updated', self.gf('django.db.models.fields.DateTimeField')()),
+            ('added', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
+            ('updated', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
         ))
         db.send_create_signal(u'building', ['Listing'])
+
+        # Adding model 'Permit'
+        db.create_table(u'building_permit', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+        ))
+        db.send_create_signal(u'building', ['Permit'])
 
 
     def backwards(self, orm):
@@ -89,13 +98,17 @@ class Migration(SchemaMigration):
         # Deleting model 'Listing'
         db.delete_table(u'building_listing')
 
+        # Deleting model 'Permit'
+        db.delete_table(u'building_permit')
+
 
     models = {
         u'building.building': {
             'Meta': {'object_name': 'Building'},
-            'added': ('django.db.models.fields.DateTimeField', [], {}),
+            'added': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            'address': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
             'built_year': ('django.db.models.fields.IntegerField', [], {}),
-            'from_st': ('django.db.models.fields.CharField', [], {'max_length': '12'}),
+            'city': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['city.City']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'latitude': ('django.db.models.fields.FloatField', [], {}),
             'longitude': ('django.db.models.fields.FloatField', [], {}),
@@ -105,17 +118,14 @@ class Migration(SchemaMigration):
             'source': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['source.Source']"}),
             'sqft': ('django.db.models.fields.IntegerField', [], {}),
             'state': ('django.db.models.fields.CharField', [], {'max_length': '10'}),
-            'street': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
-            'street_type': ('django.db.models.fields.CharField', [], {'max_length': '10'}),
-            'to_st': ('django.db.models.fields.CharField', [], {'max_length': '12', 'blank': 'True'}),
             'type': ('django.db.models.fields.CharField', [], {'max_length': '12', 'blank': 'True'}),
-            'updated': ('django.db.models.fields.DateTimeField', [], {}),
-            'value': ('django.db.models.fields.FloatField', [], {})
+            'updated': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
+            'value': ('django.db.models.fields.FloatField', [], {'blank': 'True'})
         },
         u'building.listing': {
             'Meta': {'object_name': 'Listing'},
             'active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'added': ('django.db.models.fields.DateTimeField', [], {}),
+            'added': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'available_end': ('django.db.models.fields.DateTimeField', [], {}),
             'available_start': ('django.db.models.fields.DateTimeField', [], {}),
             'cost': ('django.db.models.fields.FloatField', [], {}),
@@ -127,19 +137,28 @@ class Migration(SchemaMigration):
             'lease_type': ('django.db.models.fields.CharField', [], {'default': "'Standard'", 'max_length': '200'}),
             'pets': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
             'unit': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['building.Unit']"}),
-            'updated': ('django.db.models.fields.DateTimeField', [], {})
+            'updated': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'})
         },
         u'building.parcel': {
             'Meta': {'object_name': 'Parcel'},
-            'added': ('django.db.models.fields.DateTimeField', [], {}),
+            'added': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            'custom_id': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'}),
+            'from_st': ('django.db.models.fields.CharField', [], {'max_length': '12'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'shape': ('django.db.models.fields.TextField', [], {}),
             'source': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['source.Source']"}),
-            'updated': ('django.db.models.fields.DateTimeField', [], {})
+            'street': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
+            'street_type': ('django.db.models.fields.CharField', [], {'max_length': '10'}),
+            'to_st': ('django.db.models.fields.CharField', [], {'max_length': '12', 'blank': 'True'}),
+            'updated': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'})
+        },
+        u'building.permit': {
+            'Meta': {'object_name': 'Permit'},
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'})
         },
         u'building.unit': {
             'Meta': {'object_name': 'Unit'},
-            'added': ('django.db.models.fields.DateTimeField', [], {}),
+            'added': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'address': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
             'bathrooms': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'bedrooms': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
@@ -148,7 +167,15 @@ class Migration(SchemaMigration):
             'max_occupants': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'number': ('django.db.models.fields.CharField', [], {'max_length': '10'}),
             'square_feet': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
-            'updated': ('django.db.models.fields.DateTimeField', [], {})
+            'updated': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'})
+        },
+        u'city.city': {
+            'Meta': {'object_name': 'City'},
+            'added': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            'tag': ('django.db.models.fields.CharField', [], {'default': "'<django.db.models.fields.charfield>'", 'unique': 'True', 'max_length': '200'}),
+            'updated': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'})
         },
         u'person.person': {
             'Meta': {'object_name': 'Person'},

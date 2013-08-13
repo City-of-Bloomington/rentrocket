@@ -27,6 +27,15 @@ field type reference:
 https://docs.djangoproject.com/en/1.5/ref/models/fields/#django.db.models.CharField
 
 
+rm -rf building/migrations
+rm -rf city/migrations
+rm -rf content/migrations
+rm -rf inspection/migrations
+rm -rf manager/migrations
+rm -rf person/migrations
+rm -rf service/migrations
+rm -rf source/migrations
+
 ./manage.py schemamigration building --initial
 ./manage.py schemamigration city --initial
 ./manage.py schemamigration content --initial

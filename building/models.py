@@ -1,6 +1,7 @@
 from django.db import models
 
 from source.models import Source
+from city.models import City
 
 class Parcel(models.Model):
     """
@@ -26,6 +27,20 @@ class Parcel(models.Model):
     ## Yes
     ## This field contains data that describes the boundaries of the lot. It is generated automatically when the shapefile is created and will display a type of polygon or multipolygon.
     shape = models.TextField()
+
+
+    #Lowest numerical value of the street number
+    #if the building has an address range or only building street number.
+    from_st = models.CharField(max_length=12)
+
+    #Highest numerical value of the street number
+    #if the building has an address range.
+    to_st = models.CharField(max_length=12, blank=True)
+
+    street = models.CharField(max_length=50)
+
+    street_type = models.CharField(max_length=10)
+
 
     #aka feed_source:
     source = models.ForeignKey(Source)
@@ -62,19 +77,9 @@ class Building(models.Model):
     parcel = models.ForeignKey(Parcel)
 
     #this is too general to fit with the Home Facts Data Standard
-    #address = models.CharField(max_length=200)
-
-    #Lowest numerical value of the street number
-    #if the building has an address range or only building street number.
-    from_st = models.CharField(max_length=12)
-
-    #Highest numerical value of the street number
-    #if the building has an address range.
-    to_st = models.CharField(max_length=12, blank=True)
-
-    street = models.CharField(max_length=50)
-
-    street_type = models.CharField(max_length=10)
+    #split version can be kept at the parcel level...
+    #will only be one street number per building
+    address = models.CharField(max_length=200)
 
     #State where the property is located.
     #In the U.S. this should be the two-letter code for the state
@@ -109,7 +114,7 @@ class Building(models.Model):
 
     #TODO: ForeignKey:
     #city = models.CharField(max_length=50)
-    #city = models.ForeignKey(City)
+    city = models.ForeignKey(City)
 
     #aka feed_source:
     #source = models.ForeignKey(FeedInfo)

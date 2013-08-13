@@ -3,6 +3,9 @@ from django.http import HttpResponse
 from django.http import Http404
 from django.shortcuts import render
 
+from models import Building, Unit, Listing
+
+from city.models import City, to_tag
 
 #from django.shortcuts import render_to_response, get_object_or_404
 
@@ -23,7 +26,17 @@ def index(request):
     
     ## #render_to_response does what above (commented) section does
     ## #return render_to_response('general/index.html', {'user': request.user})
-    return render(request, 'index.html', {  } )
+
+    #buildings = Building.objects.all().order_by('-pub_date')[:5]
+    #buildings = Building.objects.all()
+
+    city = City.objects.filter(tag=to_tag("Ann Arbor"))
+    
+    buildings = Building.objects.filter(city=city)
+    context = {'buildings': buildings}
+#    return render(request, 'polls/index.html', context)
+
+    return render(request, 'index.html', context )
 
     #return HttpResponse("Hello, world. You're at the building index.")
 
