@@ -62,3 +62,11 @@ rm -rf source/migrations
 ./manage.py migrate person
 ./manage.py migrate service
 ./manage.py migrate source
+
+Database initialization:
+----------------------------------
+
+can remove all tables with a tool like Sequel Pro
+
+then 
+python manage.py syncdb

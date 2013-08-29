@@ -25,4 +25,7 @@ def home(request):
     ## #return render_to_response('general/index.html', {'user': request.user})
     ## return render(request, 'general/index.html', { 'form': form, } )
 
-    return HttpResponse("Hello, world. You're at the poll index.")
+    #return HttpResponse("Hello, world. You're at the poll index.")
+    context = {}
+    return render(request, 'home.html', context )
+

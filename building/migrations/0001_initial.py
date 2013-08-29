@@ -17,7 +17,6 @@ class Migration(SchemaMigration):
             ('to_st', self.gf('django.db.models.fields.CharField')(max_length=12, blank=True)),
             ('street', self.gf('django.db.models.fields.CharField')(max_length=50)),
             ('street_type', self.gf('django.db.models.fields.CharField')(max_length=10)),
-            ('source', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['source.Source'])),
             ('added', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
             ('updated', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
         ))
@@ -34,10 +33,11 @@ class Migration(SchemaMigration):
             ('longitude', self.gf('django.db.models.fields.FloatField')()),
             ('type', self.gf('django.db.models.fields.CharField')(max_length=12, blank=True)),
             ('number_of_units', self.gf('django.db.models.fields.IntegerField')(default=0)),
-            ('built_year', self.gf('django.db.models.fields.IntegerField')()),
-            ('sqft', self.gf('django.db.models.fields.IntegerField')()),
-            ('value', self.gf('django.db.models.fields.FloatField')(blank=True)),
+            ('built_year', self.gf('django.db.models.fields.IntegerField')(default=0)),
+            ('sqft', self.gf('django.db.models.fields.IntegerField')(default=0)),
+            ('value', self.gf('django.db.models.fields.FloatField')(default=0)),
             ('city', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['city.City'])),
+            ('geocoder', self.gf('django.db.models.fields.CharField')(max_length=10)),
             ('source', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['source.Source'])),
             ('added', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
             ('updated', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
@@ -107,8 +107,9 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'Building'},
             'added': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'address': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
-            'built_year': ('django.db.models.fields.IntegerField', [], {}),
+            'built_year': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'city': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['city.City']"}),
+            'geocoder': ('django.db.models.fields.CharField', [], {'max_length': '10'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'latitude': ('django.db.models.fields.FloatField', [], {}),
             'longitude': ('django.db.models.fields.FloatField', [], {}),
@@ -116,11 +117,11 @@ class Migration(SchemaMigration):
             'parcel': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['building.Parcel']"}),
             'postal_code': ('django.db.models.fields.CharField', [], {'max_length': '10'}),
             'source': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['source.Source']"}),
-            'sqft': ('django.db.models.fields.IntegerField', [], {}),
+            'sqft': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'state': ('django.db.models.fields.CharField', [], {'max_length': '10'}),
             'type': ('django.db.models.fields.CharField', [], {'max_length': '12', 'blank': 'True'}),
             'updated': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'value': ('django.db.models.fields.FloatField', [], {'blank': 'True'})
+            'value': ('django.db.models.fields.FloatField', [], {'default': '0'})
         },
         u'building.listing': {
             'Meta': {'object_name': 'Listing'},
@@ -146,7 +147,6 @@ class Migration(SchemaMigration):
             'from_st': ('django.db.models.fields.CharField', [], {'max_length': '12'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'shape': ('django.db.models.fields.TextField', [], {}),
-            'source': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['source.Source']"}),
             'street': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
             'street_type': ('django.db.models.fields.CharField', [], {'max_length': '10'}),
             'to_st': ('django.db.models.fields.CharField', [], {'max_length': '12', 'blank': 'True'}),
@@ -175,7 +175,9 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
             'tag': ('django.db.models.fields.CharField', [], {'default': "'<django.db.models.fields.charfield>'", 'unique': 'True', 'max_length': '200'}),
-            'updated': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'})
+            'type': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
+            'updated': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
+            'url': ('django.db.models.fields.CharField', [], {'max_length': '100', 'blank': 'True'})
         },
         u'person.person': {
             'Meta': {'object_name': 'Person'},
@@ -186,10 +188,9 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'FeedInfo'},
             'added': ('django.db.models.fields.DateTimeField', [], {}),
             'building_id_definition': ('django.db.models.fields.TextField', [], {}),
+            'city': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['city.City']"}),
             'contact_email': ('django.db.models.fields.CharField', [], {'max_length': '100', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'municipality_name': ('django.db.models.fields.CharField', [], {'max_length': '20'}),
-            'municipality_url': ('django.db.models.fields.CharField', [], {'max_length': '100', 'blank': 'True'}),
             'parcel_id_definition': ('django.db.models.fields.TextField', [], {}),
             'version': ('django.db.models.fields.CharField', [], {'max_length': '12'})
         },

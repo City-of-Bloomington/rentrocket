@@ -1,3 +1,5 @@
+import json
+
 from django.template import Context, loader
 from django.http import HttpResponse
 from django.http import Http404
@@ -39,4 +41,33 @@ def index(request):
     return render(request, 'index.html', context )
 
     #return HttpResponse("Hello, world. You're at the building index.")
+
+
+def map(request, lat, lng, zoom):
+    
+    buildings = Building.objects.filter(city=city)
+    context = {'buildings': buildings}
+
+    return render(request, 'index.html', context )
+
+def lookup(request, lat1, lng1, lat2, lng2, type, limit=20):
+    """
+    this is a json request to lookup buildings within a given area
+    should return json results that are easy to parse and show on a map
+    """
+    
+    bq = Building.objects.all()
+    bq.filter(latitude>=float(lat1))
+    bq.filter(longitude>=float(lng1))
+    bq.filter(latitude<=float(lat2))
+    bq.filter(longitude<=float(lng2))
+    all_bldgs = []
+    for building in bq[:limit]:
+        all_bldgs.append(building.to_dict())
+        
+    bldg_dict = {'buildings': all_bldgs}
+
+    print bldg_dict
+    
+    return HttpResponse(json.dumps(bldg_dict), content_type="application/json")
 

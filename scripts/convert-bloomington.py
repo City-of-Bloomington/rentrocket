@@ -34,14 +34,25 @@ setup_environ(settings)
 
 from building.models import Building, Parcel
 from city.models import City, to_tag
+from source.models import FeedInfo, Source
+from person.models import Person
 
 def usage():
     print __doc__
-    
 
-def read_csv(source):
+conversions = { 
+
+                }
+
+#for storing fixes for addresses:
+conversions = { "3111 S LEONARD SPRINGS RD": '',
+
+                }
+
+
+def read_csv(source_csv):
     city_options = City.objects.filter(tag="bloomington")
-    print len(city_options)
+    print "Number of cities available: %s" % len(city_options)
     if not len(city_options):
         city = City()
         city.name = "Bloomington"
@@ -52,12 +63,44 @@ def read_csv(source):
 
     print city
 
-    #TODO:
-    #setup FeedInfo item
-    #and also create a Source item
+    feed_date = "2013-08-29"
+
+    feeds = FeedInfo.objects.filter(city=city).filter(added=feed_date)
+    if feeds.exists():
+        feed = feeds[0]
+        print "Already had feed: %s, %s" % (feed.city, feed.added)
+    else:
+        feed = FeedInfo()
+        feed.city = city
+        feed.added = feed_date
+        feed.version = "0.1"
+        feed.save()
+        print "Created new feed: %s" % feed.city
+
+    people = Person.objects.filter(name="Blank")
+    if people.exists():
+        person = people[0]
+        print "Already had person: %s" % (person.name)
+    else:
+        person = Person()
+        person.name = "Blank"
+        person.save()
+        print "Created new person: %s" % person.name
+
+    sources = Source.objects.filter(feed=feed)
+    if sources.exists():
+        feed_source = sources[0]
+        print "Already had source: %s, %s" % (feed_source.feed.city, feed_source.feed.added)
+    else:
+        feed_source = Source()
+        feed_source.feed = feed
+        feed_source.person = person
+        feed_source.save()
+        print "Created new source: %s" % feed_source.feed.city
+
 
     cache_file = "%s.json" % city.tag
-    cache_destination = os.path.join(os.path.dirname(source), cache_file)
+    cache_destination = os.path.join(os.path.dirname(source_csv), cache_file)
     #keep a local copy of data we've processed...
     #this should help with subsequent calls
     #to make sure we don't need to duplicate calls to remote geolocation APIs:
@@ -73,8 +116,9 @@ def read_csv(source):
 
     #geocoder helper:
     geo = Geo()
-    
-    with codecs.open(source, 'rb', encoding='utf-8') as csvfile:
+
+    skips = 0
+    with codecs.open(source_csv, 'rb', encoding='utf-8') as csvfile:
         #reader = csv.reader(csvfile, delimiter=' ', quotechar='|')
         reader = csv.reader(csvfile)
 
@@ -87,41 +131,114 @@ def read_csv(source):
             print "Looking at row: %s" % count
             
             #could exit out early here, if needed
-            if count > 10:
+            if count > 1000:
+                #exit()
                 pass
             
             address = row[1]
             print address
 
-            if locations.has_key(address.upper()):
-                location = locations[address.upper()]
+            bldg_id = row[0]
+            print bldg_id
+
+            if conversions.has_key(address.upper()):
+                address = conversions[address.upper()]
+
+            #make sure it's not one we're skipping:
+            if not address:
+                print "SKIPPING ITEM: %s" % row[1]
+                skips += 1
             else:
-                location = Location()
+                if locations.has_key(address.upper()):
+                    location = locations[address.upper()]
+                else:
+                    location = Location()
 
-            #do some geocoding, as needed:
-            search = "%s, Bloomington IN" % address.upper()
+                #temporarily just want to look at google again
+                location.sources = ["google"]
 
-            for source in location.sources:
-                geo.lookup(search, source, location)
+                #do some geocoding, as needed:
+                search = "%s, Bloomington IN" % address.upper()
 
-            location.address_alt = search
-            locations[address.upper()] = location
+                any_updated = False
+                for geo_source in location.sources:
+                    update = geo.lookup(search, geo_source, location, force=True)
+                    if update:
+                        any_updated = True
 
-            #and check if a previous building object in the db exists
-            #CREATE A NEW BUILDING OBJECT HERE
-            #cur_building = Building()
-            bldg = Building()
+                location.sources = ["google", "bing", "usgeo", "geonames", "openmq", "mq"]
 
-            #back it up for later
-            local_cache['buildings'] = {}
-            for key, value in locations.items():
-                local_cache['buildings'][key] = value.to_dict()
+                if not hasattr(location, "address_alt") or not location.address_alt:
+                    location.address_alt = search
+                    locations[address.upper()] = location
+                    any_updated = True
 
-            #enable this when downloading GPS coordinates...
-            #the rest of the time it slows things down
-            #save_json(cache_destination, local_cache)
+                match = False
+                #find an address to use
+                for geo_source in location.sources:
+                    if not match:
+                        source_list = location.get_source(geo_source)
+                        if len(source_list) and source_list[0]['place'] and source_list[0]['place'] != 'Bloomington, IN, USA':
+                            print "using: %s to check: %s" % (geo_source, source_list[0]['place'])
+                            match = True
 
-            print
+                            #TODO: process this a bit more...
+                            #probably don't want city and zip here:
+                            cur_address = source_list[0]
+
+                            cid = "bloomington-%s" % bldg_id 
+
+                            parcels = Parcel.objects.filter(custom_id=cid)
+                            if parcels.exists():
+                                parcel = parcels[0]
+                                print "Already had parcel: %s" % parcel.custom_id
+                            else:
+                                parcel = Parcel()
+                                parcel.custom_id = cid
+                                parcel.save()
+                                print "Created new parcel: %s" % parcel.custom_id
+
+
+                            buildings = Building.objects.filter(city=city)
+                            buildings.filter(address=cur_address)
+
+                            #check if a previous building object in the db exists
+                            if buildings.exists():
+                                bldg = buildings[0]
+                                print "Already had: %s" % bldg.address
+                            else:
+                                #if not, 
+                                #CREATE A NEW BUILDING OBJECT HERE
+                                #cur_building = Building()
+                                bldg = Building()
+
+                                bldg.address = source_list[0]['place']
+                                bldg.latitude = float(source_list[0]['lat'])
+                                bldg.longitude = float(source_list[0]['lng'])
+
+                                bldg.parcel = parcel
+                                bldg.geocoder = geo_source
+                                bldg.source = feed_source
+
+                                bldg.city = city
+
+                                bldg.save()
+
+
+                                print "Created new building: %s" % bldg.address
+                        else:
+                            print "Skipping: %s with value: %s" % (geo_source, source_list[0]['place'])
+                
+                if any_updated:
+                    #back it up for later
+                    #enable this when downloading GPS coordinates...
+                    #the rest of the time it slows things down
+                    local_cache['buildings'] = {}
+                    for key, value in locations.items():
+                        local_cache['buildings'][key] = value.to_dict()
+                    save_json(cache_destination, local_cache)
+
+                print
 
     save_results(locations, 'bloomington.tsv')
 

@@ -16,6 +16,7 @@
     <link rel="shortcut icon" href="/static/favicon.png" />
     <link rel="icon" href="/static/favicon.png" />
 
+    <meta name="google-site-verification" content="YQdKDkFDVcu1XnsULhWh0JeywgVohrmoiwp6Wv6_OSA" />
     <!-- Stylesheets -->
     <!--
     <link rel="stylesheet" href="responsive.less" type="text/less" media="screen" />
@@ -47,7 +48,6 @@
     
     <!-- Main Body -->
     <article id="maincolumn">
-      <h2>Main</h2>
 
       <div id="content">
 	{% block content %}{% endblock %}
@@ -57,7 +57,7 @@
     
     <!-- Sidebar -->
     <section id="sidebar">
-      <h2>Sidebar</h2>
+	{% block sidebar %}{% endblock %}
     </section>
     
     <footer class="contentinfo" role="contentinfo">
@@ -69,20 +69,17 @@
     <script>window.jQuery || document.write('<script src="/static/js/libs/jquery-1.7.1.min.js"><\/script>')</script>
 
     <!-- these should all be minified and combined before a production release -->
-    <script src="/static/js/libs/util.js"></script>
-    <script src="/static/js/plugins.js"></script>
-    <script src="/static/js/script.js"></script>
-    
-    <script src="/static/js/nav.js"></script>
-    
+
     <script type="text/javascript">window.JSON || document.write('<script src="/static/js/lib/json2.js"><\/script>')</script>
     
     <script type="text/javascript" src="/static/js/lib/require.js"></script>
+
+    {% block script %}
     <script type="text/javascript">
       //this allows require.js to be in a different directory (lib)
       //than main custom code
       require.config({
-		baseUrl: 'js',
+		baseUrl: 'static/js',
 		paths: {
 			'jquery' : 'lib/jquery-1.7.1',
 	                'lodash' : 'lib/lodash',
@@ -91,6 +88,7 @@
       });
       require(['main'], function(main) {});
     </script>
+    {% endblock %}
 
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){

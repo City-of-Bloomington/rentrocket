@@ -4,14 +4,30 @@ from geopy import geocoders, distance
 
 def save_results(locations, destination="test.tsv"):
     #destination = "test.tsv"
+    match_tallies = {}
+
+    closest_tallies = {}
+    furthest_tallies = {}
+    
     print "Saving: %s results to %s" % (len(locations), destination)
     with codecs.open(destination, 'w', encoding='utf-8') as out:
         #print locations.values()[0].make_header()
         out.write(locations.values()[0].make_header())
         for key, location in locations.items():
+            for source in location.sources:
+                #if hasattr(location, source) and getattr(location, source)[0]['place']:
+                source_list = location.get_source(source)
+                if len(source_list) and source_list[0]['place']:
+                    if match_tallies.has_key(source):
+                        match_tallies[source] += 1
+                    else:
+                        match_tallies[source] = 1
+                        
             location.compare_points()
             #print location.make_row()
             out.write(location.make_row())
+
+    print match_tallies
     exit()
     
 class Location(object):
@@ -20,14 +36,29 @@ class Location(object):
 
     making an object to help with processing results consistently
     """
-    def __init__(self, dictionary={}):
+    def __init__(self, dictionary={}, sources=None):
         """
         http://stackoverflow.com/questions/1305532/convert-python-dict-to-object
         """
         self.__dict__.update(dictionary)
 
-        self.sources = ["google", "bing", "usgeo", "geonames", "openmq", "mq"]
+        if sources:
+            self.sources = sources
+        else:
+            self.sources = ["google", "bing", "usgeo", "geonames", "openmq", "mq"]
 
+
+    def get_source(self, source):
+        """
+        wrap hasattr/getattr combination
+        if we have something, return it,
+        otherwise return empty list
+        """
+        if hasattr(self, source):
+            return getattr(self, source)
+        else:
+            return []
+        
     def to_dict(self):
         """
         http://stackoverflow.com/questions/61517/python-dictionary-from-an-objects-fields
@@ -42,8 +73,14 @@ class Location(object):
         #find only points with something in them
         options = {}
         for source in self.sources:
-            if hasattr(self, source) and getattr(self, source)['place']:
-                options[source] = getattr(self, source)
+            #this does the same thing as the next 2 lines,
+            #but is not as easy to read
+            #if hasattr(self, source) and getattr(self, source)[0]['place']:
+            source_list = self.get_source(source)
+            if len(source_list) and source_list[0]['place']:
+
+                #options[source] = getattr(self, source)[0]
+                options[source] = source_list[0]
 
         d = distance.distance
 
@@ -141,14 +178,23 @@ class Location(object):
         row = []
         found_address = False
         for source in self.sources:
-            if hasattr(self, source) and getattr(self, source)['place']:
-                cur = getattr(self, source)
+            source_list = self.get_source(source)
+            if len(source_list) and source_list[0]['place']:
+            #if hasattr(self, source) and getattr(self, source)[0]['place']:
+            #    cur = getattr(self, source)[0]
+                cur = source_list[0]
                 ll = "%s, %s" % (cur['lat'], cur['lng'])
                 #pick out the first address that has a value
                 if not found_address:
                     self.address = cur['place']
                     row.insert(0, '')
                     row.insert(0, self.address)
+
+                    #this should always be set... if not, investigate why:
+                    if not hasattr(self, 'address_alt'):
+                        print self.to_dict()
+                        exit()
+
                     row.insert(0, self.address_alt)
                     found_address = True
             else:
@@ -206,7 +252,7 @@ class Geo(object):
         #mediawiki = geocoders.MediaWiki("http://wiki.case.edu/%s")
 
 
-    def lookup(self, address, source="google", location=None):
+    def lookup(self, address, source="google", location=None, force=False):
         """
         look up the specified address using the designated source
         if location dictionary is specified (for local caching)
@@ -215,109 +261,68 @@ class Geo(object):
         return results either way
         """
 
+        updated = False
+        
         if not location is None:
             self.location = location
         else:
             self.location = Location()
 
-        if not hasattr(location, source):
-            print "Looking for: %s in %s" % (address, source)
-            try:
+        #if we already have any value for source (even None)
+        #won't look again unless force is set True
+        if (not hasattr(location, source)) or force:
+            do_query = False
+            if hasattr(location, source):
+                previous_result = getattr(location, source)
+                if previous_result[0]['place'] is None:
+                    do_query = True
+            else:
+                do_query = True
+
+            if do_query:
+                print "Looking for: %s in %s" % (address, source)
+            
+
                 coder = getattr(self, source)
-                place, (lat, lng) = coder.geocode(address)  
-                print "Result was: %s" % place
-                print "lat: %s, long: %s" % (lat, lng)
-                setattr(location, source, {'place': place, 'lat': lat, 'lng': lng})
-                #local_cache_cur[source] = {'place': place, 'lat': lat, 'lng': lng} 
-            except:
-                setattr(location, source, {'place': None, 'lat': None, 'lng': None})
-                #local_cache_cur[source] = {'place': None, 'lat': None, 'lng': None}
+
+                if hasattr(location, source):
+                    result = getattr(location, source)
+                else:
+                    result = []
+
+                #Be very careful when enabling try/except here:
+                #can hide limit errors with a geocoder.
+                #good to do at the last phase
+                
+                #try:
+                for place, (lat, lng) in coder.geocode(address, exactly_one=False):
+
+                    #clear out any old "None" entries:
+                    for item in result[:]:
+                        if item['place'] is None:
+                            result.remove(item)
+
+                    result.append({'place': place, 'lat': lat, 'lng': lng})
+                    setattr(location, source, result)
+
+                    print location.to_dict()
+
+                    updated = True
+                        
+                    #print "Result was: %s" % place
+                    #print "lat: %s, long: %s" % (lat, lng)
+                    #setattr(location, source, {'place': place, 'lat': lat, 'lng': lng})
+
+                ## except:
+                ##     print "Error with lookup!"
+                ##     result.append({'place': None, 'lat': None, 'lng': None})
+                ##     setattr(location, source, result)
+
 
         else:
             print "Already have %s results for: %s" % (source, address)
 
-
-
-        ## if not local_cache_cur.has_key('google'):
-        ##     print "Looking for: %s in Google" % search
-        ##     place, (lat, lng) = google.geocode(search)  
-
-        ##     print "Result was: %s" % place
-        ##     print "lat: %s, long: %s" % (lat, lng)
-        ##     local_cache_cur['google'] = {'place': place, 'lat': lat, 'lng': lng}
-        ## else:
-        ##     print "Already have google results for: %s" % address
-
-        ## ## if not local_cache_cur.has_key('yahoo'):
-        ## ##     print "Looking for: %s in Yahoo" % search
-        ## ##     place, (lat, lng) = yahoo.geocode(search)  
-        ## ##     print "Result was: %s" % place
-        ## ##     print "lat: %s, long: %s" % (lat, lng)
-        ## ##     local_cache_cur['yahoo'] = {'place': place, 'lat': lat, 'lng': lng}
-        ## ## else:
-        ## ##     print "Already have yahoo results for: %s" % address
-
-        ## #usgeo = geocoders.GeocoderDotUS() 
-        ## #geonames = geocoders.GeoNames()
-        ## #bing = geocoders.Bing()
-        ## #openmq = geocoders.OpenMapQuest()
-        ## #mq = geocoders.MapQuest()
-
-        ## if not local_cache_cur.has_key('usgeo'):
-        ##     print "Looking for: %s in Usgeo" % search
-        ##     try:
-        ##         place, (lat, lng) = usgeo.geocode(search)  
-        ##         print "Result was: %s" % place
-        ##         print "lat: %s, long: %s" % (lat, lng)
-        ##         local_cache_cur['usgeo'] = {'place': place, 'lat': lat, 'lng': lng}
-        ##     except:
-        ##         local_cache_cur['usgeo'] = {'place': None, 'lat': None, 'lng': None}
-
-        ## else:
-        ##     print "Already have usgeo results for: %s" % address
-
-        ## if not local_cache_cur.has_key('geonames'):
-        ##     print "Looking for: %s in Geonames" % search
-        ##     try:
-        ##         place, (lat, lng) = geonames.geocode(search)  
-        ##         print "Result was: %s" % place
-        ##         print "lat: %s, long: %s" % (lat, lng)
-        ##         local_cache_cur['geonames'] = {'place': place, 'lat': lat, 'lng': lng}
-        ##     except:
-        ##         local_cache_cur['geonames'] = {'place': None, 'lat': None, 'lng': None}
-
-        ## else:
-        ##     print "Already have geonames results for: %s" % address
-
-        ## if not local_cache_cur.has_key('bing'):
-        ##     print "Looking for: %s in Bing" % search
-        ##     place, (lat, lng) = bing.geocode(search)  
-        ##     print "Result was: %s" % place
-        ##     print "lat: %s, long: %s" % (lat, lng)
-        ##     local_cache_cur['bing'] = {'place': place, 'lat': lat, 'lng': lng}
-        ## else:
-        ##     print "Already have bing results for: %s" % address
-
-        ## if not local_cache_cur.has_key('openmq'):
-        ##     print "Looking for: %s in Openmq" % search
-        ##     place, (lat, lng) = openmq.geocode(search)  
-        ##     print "Result was: %s" % place
-        ##     print "lat: %s, long: %s" % (lat, lng)
-        ##     local_cache_cur['openmq'] = {'place': place, 'lat': lat, 'lng': lng}
-        ## else:
-        ##     print "Already have openmq results for: %s" % address
-
-        ## #got multiple results here
-        ## #could re-enable if others start getting multiple results
-        ## ## if not local_cache_cur.has_key('mq'):
-        ## ##     print "Looking for: %s in Mq" % search
-        ## ##     place, (lat, lng) = mq.geocode(search)  
-        ## ##     print "Result was: %s" % place
-        ## ##     print "lat: %s, long: %s" % (lat, lng)
-        ## ##     local_cache_cur['mq'] = {'place': place, 'lat': lat, 'lng': lng}
-        ## ## else:
-        ## ##     print "Already have mq results for: %s" % address
-
+        return updated
 
     
 

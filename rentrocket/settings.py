@@ -29,8 +29,8 @@ if (os.getenv('SERVER_SOFTWARE', '').startswith('Google App Engine') or
     DATABASES = {
         'default': {
             'ENGINE': 'google.appengine.ext.django.backends.rdbms',
-            'INSTANCE': 'my_project:instance1',
-            'NAME': 'my_db',
+            'INSTANCE': 'rent-rocket:rent-rocket-db',
+            'NAME': 'main_db',
         }
     }
 else:
@@ -90,7 +90,9 @@ MEDIA_URL = ''
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/var/www/example.com/static/"
-STATIC_ROOT = BASE_DIR + '..' + os.sep + 'static'
+STATIC_ROOT = BASE_DIR + '..' + os.sep + 'static' + os.sep + 'auto'
+
+print STATIC_ROOT
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
@@ -98,10 +100,11 @@ STATIC_URL = '/static/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
-     # Put strings here, like "/home/html/static" or "C:/www/django/static".
-     # Always use forward slashes, even on Windows.
-     # Don't forget to use absolute paths, not relative paths.
-     BASE_DIR + 'static',
+    # Put strings here, like "/home/html/static" or "C:/www/django/static".
+    # Always use forward slashes, even on Windows.
+    # Don't forget to use absolute paths, not relative paths.
+    #BASE_DIR + 'static',
+    BASE_DIR + '..' + os.sep + 'static' + os.sep + 'manual',
 )
 
 

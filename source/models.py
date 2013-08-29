@@ -1,6 +1,8 @@
 from django.db import models
 
 from person.models import Person
+from city.models import City
+
 #from manager.models import Manager
 
 
@@ -11,6 +13,7 @@ class FeedInfo(models.Model):
     Adapted from House Facts Data Standard:
     https://docs.google.com/a/codeforamerica.org/document/d/1mEvxQbJFr3l5tcEAqkPdl2qBVTsKWbLnE3xlfkCcf2g/edit?pli=1#
     """
+    city = models.ForeignKey(City)
 
     #Date this feed was generated in YYYY-MM-DD format
     #aka feed_date
@@ -21,19 +24,12 @@ class FeedInfo(models.Model):
     #aka feed_version
     version = models.CharField(max_length=12)
 
-    #Name of the municipality providing this feed.
-    #For example 'San Francisco' or 'Multnomah County'
-    municipality_name = models.CharField(max_length=20)
-
     #Describes how the municipality defines or creates the variable building_id
     #(convention for defining  building_id).
     building_id_definition = models.TextField()
 
     #Describes how the municipality defines or creates the variable parcel_id
     parcel_id_definition = models.TextField()
-
-    #URL of the publishing municipality's website
-    municipality_url = models.CharField(max_length=100, blank=True)
 
     #Email address of the person to contact regarding invalid data in this feed
     contact_email = models.CharField(max_length=100, blank=True)

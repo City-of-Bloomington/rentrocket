@@ -41,10 +41,6 @@ class Parcel(models.Model):
 
     street_type = models.CharField(max_length=10)
 
-
-    #aka feed_source:
-    source = models.ForeignKey(Source)
-
     added = models.DateTimeField('date published', auto_now_add=True)
     updated = models.DateTimeField('date updated', auto_now=True)
 
@@ -101,12 +97,12 @@ class Building(models.Model):
     number_of_units = models.IntegerField(default=0)
 
     #Year building was constructed or rebuilt.
-    built_year = models.IntegerField()
+    built_year = models.IntegerField(default=0)
     #Recorded building square feet 
-    sqft = models.IntegerField()
+    sqft = models.IntegerField(default=0)
 
     #Current assessed property value.
-    value = models.FloatField(blank=True)
+    value = models.FloatField(default=0)
 
     #TODO: ForeignKey:
     #owner_name = models.CharField(max_length=50)
@@ -116,13 +112,22 @@ class Building(models.Model):
     #city = models.CharField(max_length=50)
     city = models.ForeignKey(City)
 
+    #google, bing, etc
+    geocoder  = models.CharField(max_length=10)
+
     #aka feed_source:
-    #source = models.ForeignKey(FeedInfo)
     source = models.ForeignKey(Source)
 
     added = models.DateTimeField('date published', auto_now_add=True)
     updated = models.DateTimeField('date updated', auto_now=True)
 
+    def to_dict(self):
+        """
+        return a simple dictionary representation of the building
+        """
+
+        result = {'address': self.address, 'lat': self.latitude, 'lng': self.longitude}
+        return result
     
 
 class Unit(models.Model):

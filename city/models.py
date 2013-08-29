@@ -31,9 +31,20 @@ class City(models.Model):
     """
     Details to define a specific City
     """
+    #Name of the municipality providing this feed.
+    #For example 'San Francisco' or 'Multnomah County'
+    #municipality_name = models.CharField(max_length=20)
+
     name = models.CharField(max_length=200)
+
+    #URL of the publishing municipality's website
+    url = models.CharField(max_length=100, blank=True)
+
     #this is what we'll use to look up a city:
     tag = models.CharField(max_length=200, unique=True, default=to_tag(str(name)))
+
+    #in case we want to represent other types of municipalities, not just cities
+    type = models.CharField(max_length=50)
 
     added = models.DateTimeField('date published', auto_now_add=True)
     updated = models.DateTimeField('date updated', auto_now=True)
