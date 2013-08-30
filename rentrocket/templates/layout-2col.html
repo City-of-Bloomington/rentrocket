@@ -45,10 +45,20 @@
       </a>
     </header>
     
-    <div id="content">
-      {% block content %}{% endblock %}
-    </div>
+    <!-- Main Body -->
+    <article id="maincolumn">
+
+      <div id="content">
+	{% block content %}{% endblock %}
+      </div>
 	
+    </article>
+    
+    <!-- Sidebar -->
+    <section id="sidebar">
+	{% block sidebar %}{% endblock %}
+    </section>
+    
     <footer class="contentinfo" role="contentinfo">
       {# http://stackoverflow.com/questions/5651763/django-want-to-print-the-date-time-for-today #}
       <p>Rent Rocket - {% now "Y" %}</p>

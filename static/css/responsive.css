@@ -390,6 +390,9 @@ footer {
   width: 97.91666666666666%;
   margin: 0 1.0416666666666665%;
 }
+#content {
+  height: 100%;
+}
 #maincolumn {
   display: inline;
   float: left;

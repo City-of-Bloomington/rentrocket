@@ -22,6 +22,11 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
+# URL prefix for static files.
+# Example: "http://media.lawrence.com/static/"
+STATIC_URL = '/static/'
+
+
 #https://developers.google.com/appengine/docs/python/cloud-sql/django
 if (os.getenv('SERVER_SOFTWARE', '').startswith('Google App Engine') or
     os.getenv('SETTINGS_MODE') == 'prod'):
@@ -33,6 +38,7 @@ if (os.getenv('SERVER_SOFTWARE', '').startswith('Google App Engine') or
             'NAME': 'main_db',
         }
     }
+
 else:
     DATABASES = {
         'default': {
@@ -49,6 +55,22 @@ else:
             #'HOST': 'localhost',
         }
     }
+
+    # Absolute path to the directory static files should be collected to.
+    # Don't put anything in this directory yourself; store your static files
+    # in apps' "static/" subdirectories and in STATICFILES_DIRS.
+    # Example: "/var/www/example.com/static/"
+    STATIC_ROOT = BASE_DIR + '..' + os.sep + 'static' + os.sep + 'auto'
+
+    # Additional locations of static files
+    STATICFILES_DIRS = (
+        # Put strings here, like "/home/html/static" or "C:/www/django/static".
+        # Always use forward slashes, even on Windows.
+        # Don't forget to use absolute paths, not relative paths.
+        #BASE_DIR + 'static',
+        BASE_DIR + '..' + os.sep + 'static' + os.sep + 'manual',
+    )
+
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
@@ -86,26 +108,6 @@ MEDIA_ROOT = ''
 # Examples: "http://example.com/media/", "http://media.example.com/"
 MEDIA_URL = ''
 
-# Absolute path to the directory static files should be collected to.
-# Don't put anything in this directory yourself; store your static files
-# in apps' "static/" subdirectories and in STATICFILES_DIRS.
-# Example: "/var/www/example.com/static/"
-STATIC_ROOT = BASE_DIR + '..' + os.sep + 'static' + os.sep + 'auto'
-
-print STATIC_ROOT
-
-# URL prefix for static files.
-# Example: "http://media.lawrence.com/static/"
-STATIC_URL = '/static/'
-
-# Additional locations of static files
-STATICFILES_DIRS = (
-    # Put strings here, like "/home/html/static" or "C:/www/django/static".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-    #BASE_DIR + 'static',
-    BASE_DIR + '..' + os.sep + 'static' + os.sep + 'manual',
-)
 
 
 # List of finder classes that know how to find static files in

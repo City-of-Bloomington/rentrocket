@@ -141,6 +141,7 @@ def read_csv(source_csv):
             bldg_id = row[0]
             print bldg_id
 
+            #check if this is one we want to skip
             if conversions.has_key(address.upper()):
                 address = conversions[address.upper()]
 
@@ -184,8 +185,9 @@ def read_csv(source_csv):
 
                             #TODO: process this a bit more...
                             #probably don't want city and zip here:
-                            cur_address = source_list[0]
+                            cur_address = source_list[0]['place']
 
+                            
                             cid = "bloomington-%s" % bldg_id 
 
                             parcels = Parcel.objects.filter(custom_id=cid)
@@ -199,8 +201,7 @@ def read_csv(source_csv):
                                 print "Created new parcel: %s" % parcel.custom_id
 
 
-                            buildings = Building.objects.filter(city=city)
-                            buildings.filter(address=cur_address)
+                            buildings = Building.objects.filter(city=city).filter(address=cur_address)
 
                             #check if a previous building object in the db exists
                             if buildings.exists():

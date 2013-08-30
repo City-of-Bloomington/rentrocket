@@ -45,29 +45,30 @@ def index(request):
 
 def map(request, lat, lng, zoom):
     
-    buildings = Building.objects.filter(city=city)
-    context = {'buildings': buildings}
+    #buildings = Building.objects.filter(city=city)
+    context = {'lat': lat,
+               'lng': lng,
+               'zoom': zoom,
+               }
 
-    return render(request, 'index.html', context )
+    return render(request, 'map.html', context )
 
-def lookup(request, lat1, lng1, lat2, lng2, type, limit=20):
+def lookup(request, lat1, lng1, lat2, lng2, type="rental", limit=100):
     """
     this is a json request to lookup buildings within a given area
     should return json results that are easy to parse and show on a map
+
+    http://stackoverflow.com/questions/2428092/creating-a-json-response-using-django-and-python
     """
     
-    bq = Building.objects.all()
-    bq.filter(latitude>=float(lat1))
-    bq.filter(longitude>=float(lng1))
-    bq.filter(latitude<=float(lat2))
-    bq.filter(longitude<=float(lng2))
+    bq = Building.objects.all().filter(latitude__gte=float(lat1)).filter(longitude__gte=float(lng1)).filter(latitude__lte=float(lat2)).filter(longitude__lte=float(lng2))
     all_bldgs = []
     for building in bq[:limit]:
         all_bldgs.append(building.to_dict())
         
-    bldg_dict = {'buildings': all_bldgs}
+    bldg_dict = {'buildings': all_bldgs, 'total': len(bq)}
 
-    print bldg_dict
+    #print bldg_dict
     
     return HttpResponse(json.dumps(bldg_dict), content_type="application/json")
 
