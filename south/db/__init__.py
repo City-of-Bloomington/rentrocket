@@ -10,7 +10,8 @@ engine_modules = {
     'django.db.backends.postgresql_psycopg2': 'postgresql_psycopg2',
     'django.db.backends.sqlite3': 'sqlite3',
     'django.db.backends.mysql': 'mysql',
-    'mysql_oursql.standard': 'mysql',
+    'google.appengine.ext.django.backends.rdbms': 'mysql',
+     'mysql_oursql.standard': 'mysql',
     'django.db.backends.oracle': 'oracle',
     'sql_server.pyodbc': 'sql_server.pyodbc', #django-pyodbc
     'sqlserver_ado': 'sql_server.pyodbc', #django-mssql

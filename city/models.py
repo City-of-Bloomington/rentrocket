@@ -44,7 +44,15 @@ class City(models.Model):
     tag = models.CharField(max_length=200, unique=True, default=to_tag(str(name)))
 
     #in case we want to represent other types of municipalities, not just cities
-    type = models.CharField(max_length=50)
+    type = models.CharField(max_length=50, default="city")
+
+    #State where the property is located.
+    #In the U.S. this should be the two-letter code for the state
+    state = models.CharField(max_length=2)
+
+    #where to center the map when choosing this location
+    latitude = models.FloatField()
+    longitude = models.FloatField()
 
     added = models.DateTimeField('date published', auto_now_add=True)
     updated = models.DateTimeField('date updated', auto_now=True)

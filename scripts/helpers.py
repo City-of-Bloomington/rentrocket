@@ -1,6 +1,77 @@
-import os, json, codecs, re
+import sys, os, json, codecs, re
 
 from geopy import geocoders, distance
+
+sys.path.append(os.path.dirname(os.getcwd()))
+
+#http://stackoverflow.com/questions/8047204/django-script-to-access-model-objects-without-using-manage-py-shell
+from rentrocket import settings
+from django.core.management import setup_environ
+setup_environ(settings)
+
+from building.models import Building, Parcel
+
+def make_building(location, bldg_id, city, feed_source):
+    """
+    add the building to the database
+    """
+
+    match = False
+    #find an address to use
+    for geo_source in location.sources:
+        if not match:
+            source_list = location.get_source(geo_source)
+            if len(source_list) and source_list[0]['place'] and source_list[0]['place'] != 'Bloomington, IN, USA':
+                print "using: %s to check: %s" % (geo_source, source_list[0]['place'])
+                match = True
+
+                #TODO: process this a bit more...
+                #probably don't want city and zip here:
+                cur_address = source_list[0]['place']
+
+
+                cid = "%s-%s" % (city.tag, bldg_id)
+
+                parcels = Parcel.objects.filter(custom_id=cid)
+                if parcels.exists():
+                    parcel = parcels[0]
+                    print "Already had parcel: %s" % parcel.custom_id
+                else:
+                    parcel = Parcel()
+                    parcel.custom_id = cid
+                    parcel.save()
+                    print "Created new parcel: %s" % parcel.custom_id
+
+
+                buildings = Building.objects.filter(city=city).filter(address=cur_address)
+
+                #check if a previous building object in the db exists
+                if buildings.exists():
+                    bldg = buildings[0]
+                    print "Already had: %s" % bldg.address
+                else:
+                    #if not, 
+                    #CREATE A NEW BUILDING OBJECT HERE
+                    #cur_building = Building()
+                    bldg = Building()
+
+                    bldg.address = source_list[0]['place']
+                    bldg.latitude = float(source_list[0]['lat'])
+                    bldg.longitude = float(source_list[0]['lng'])
+
+                    bldg.parcel = parcel
+                    bldg.geocoder = geo_source
+                    bldg.source = feed_source
+
+                    bldg.city = city
+
+                    bldg.save()
+
+
+                    print "Created new building: %s" % bldg.address
+            else:
+                print "Skipping: %s with value: %s" % (geo_source, source_list[0]['place'])
+    
 
 def save_results(locations, destination="test.tsv"):
     #destination = "test.tsv"
@@ -25,7 +96,8 @@ def save_results(locations, destination="test.tsv"):
                         
             location.compare_points()
             #print location.make_row()
-            out.write(location.make_row())
+            if location.bldg_units == '1, 1':
+                out.write(location.make_row())
 
     print match_tallies
     exit()
@@ -47,6 +119,8 @@ class Location(object):
         else:
             self.sources = ["google", "bing", "usgeo", "geonames", "openmq", "mq"]
 
+        self.units_bdrms = ''
+        self.bldg_units = ''
 
     def get_source(self, source):
         """
@@ -143,7 +217,7 @@ class Location(object):
         """
         return a row representation of the header (for CSV output)
         """
-        header = [ 'search', 'address', '' ]
+        header = [ 'search', 'address', 'bldg_units', 'units_bdrms', '' ]
         header.extend( self.sources )
         header.extend( [ '', 'closest', 'closest_amt', 'furthest', 'furthest_amt', '' ] )
         header.extend( [ '', 'tclosest', 'tclosest_amt', 'tfurthest', 'tfurthest_amt', '' ] )
@@ -186,8 +260,12 @@ class Location(object):
                 ll = "%s, %s" % (cur['lat'], cur['lng'])
                 #pick out the first address that has a value
                 if not found_address:
+                    #insert these in reverse order:
                     self.address = cur['place']
                     row.insert(0, '')
+                    row.insert(0, self.units_bdrms)
+                    row.insert(0, self.bldg_units)
+
                     row.insert(0, self.address)
 
                     #this should always be set... if not, investigate why:
@@ -204,6 +282,8 @@ class Location(object):
         #couldn't find an address anywhere:
         if not found_address:
             row.insert(0, '')
+            row.insert(0, self.units_bdrms)
+            row.insert(0, self.bldg_units)
             row.insert(0, '')
             row.insert(0, self.address_alt)
             print "ERROR LOCATING: %s" % self.address_alt
@@ -246,7 +326,7 @@ class Geo(object):
         self.geonames = geocoders.GeoNames()
         self.bing = geocoders.Bing('AnFGlcOgRppf5ZSLF8wxXXN2_E29P-W9CMssWafE1RC9K9eXhcAL7nqzTmjwzMQD')
         self.openmq = geocoders.OpenMapQuest()
-        self.mq = geocoders.MapQuest()
+        self.mq = geocoders.MapQuest('Fmjtd%7Cluub2hu7nl%2C20%3Do5-9uzg14')
 
         #skipping mediawiki, seems less complete?
         #mediawiki = geocoders.MediaWiki("http://wiki.case.edu/%s")
@@ -295,23 +375,26 @@ class Geo(object):
                 #good to do at the last phase
                 
                 #try:
-                for place, (lat, lng) in coder.geocode(address, exactly_one=False):
+                options = coder.geocode(address, exactly_one=False)
+                if options:
+                    print options
+                    for place, (lat, lng) in options:
 
-                    #clear out any old "None" entries:
-                    for item in result[:]:
-                        if item['place'] is None:
-                            result.remove(item)
+                        #clear out any old "None" entries:
+                        for item in result[:]:
+                            if item['place'] is None:
+                                result.remove(item)
 
-                    result.append({'place': place, 'lat': lat, 'lng': lng})
-                    setattr(location, source, result)
+                        result.append({'place': place, 'lat': lat, 'lng': lng})
+                        setattr(location, source, result)
 
-                    print location.to_dict()
+                        print location.to_dict()
 
-                    updated = True
-                        
-                    #print "Result was: %s" % place
-                    #print "lat: %s, long: %s" % (lat, lng)
-                    #setattr(location, source, {'place': place, 'lat': lat, 'lng': lng})
+                        updated = True
+
+                        #print "Result was: %s" % place
+                        #print "lat: %s, long: %s" % (lat, lng)
+                        #setattr(location, source, {'place': place, 'lat': lat, 'lng': lng})
 
                 ## except:
                 ##     print "Error with lookup!"

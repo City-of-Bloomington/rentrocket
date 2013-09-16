@@ -43,7 +43,7 @@ def index(request):
     #return HttpResponse("Hello, world. You're at the building index.")
 
 
-def map(request, lat, lng, zoom):
+def map(request, lat=39.166537, lng=-86.531754, zoom=14):
     
     #buildings = Building.objects.filter(city=city)
     context = {'lat': lat,

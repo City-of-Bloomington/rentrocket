@@ -1,10 +1,6 @@
 # Django settings for rentrocket project.
 import os
 
-DEBUG = True
-TEMPLATE_DEBUG = DEBUG
-
-
 # Set up relative references with "os"
 BASE_DIR = os.path.abspath(os.path.dirname(__file__)) + os.sep
 
@@ -13,33 +9,48 @@ import sys
 if BASE_DIR not in sys.path:
     sys.path.append(BASE_DIR)
 
-
-
 ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
     ('Admin', 'admin@rentrocket.org'),
 )
 
 MANAGERS = ADMINS
 
+#STATIC_ROOT = 'static'
+
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = '/static/'
 
+#FORCE_PROD_DB = True
 
+#SETTINGS_MODE='prod' ./manage.py syncdb
 #https://developers.google.com/appengine/docs/python/cloud-sql/django
 if (os.getenv('SERVER_SOFTWARE', '').startswith('Google App Engine') or
     os.getenv('SETTINGS_MODE') == 'prod'):
+    #or
+    #FORCE_PROD_DB):
     # Running on production App Engine, so use a Google Cloud SQL database.
+    DEBUG = False
+    TEMPLATE_DEBUG = DEBUG
+
     DATABASES = {
         'default': {
             'ENGINE': 'google.appengine.ext.django.backends.rdbms',
             'INSTANCE': 'rent-rocket:rent-rocket-db',
-            'NAME': 'main_db',
+            'NAME': 'rentrocket',
         }
     }
 
+    # Absolute path to the directory static files should be collected to.
+    # Don't put anything in this directory yourself; store your static files
+    # in apps' "static/" subdirectories and in STATICFILES_DIRS.
+    # Example: "/var/www/example.com/static/"
+    STATIC_ROOT = BASE_DIR + '..' + os.sep + 'static'
+
 else:
+    DEBUG = True
+    TEMPLATE_DEBUG = DEBUG
+
     DATABASES = {
         'default': {
             #sqlite3 only works when running with manage.py
@@ -68,7 +79,7 @@ else:
         # Always use forward slashes, even on Windows.
         # Don't forget to use absolute paths, not relative paths.
         #BASE_DIR + 'static',
-        BASE_DIR + '..' + os.sep + 'static' + os.sep + 'manual',
+        BASE_DIR + '..' + os.sep + 'static',
     )
 
 

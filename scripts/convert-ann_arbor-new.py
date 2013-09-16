@@ -44,20 +44,18 @@ conversions = {
                 }
 
 #for storing fixes for addresses:
-conversions = { "3111 S LEONARD SPRINGS RD": '',
-                #otherwise, this gets coded as:
-                #140 Willis Street, De Kalb, MO 64440, USA
-                "1600 N Willis Lot 140 ST": "1600 N Willis ST, Lot 140",
+conversions = {
+    
                 }
 
 
-def read_csv(source_csv):
-    city_options = City.objects.filter(tag="bloomington")
+def read_csv(source_csv, city_name, city_tag):
+    city_options = City.objects.filter(tag=city_tag)
     print "Number of cities available: %s" % len(city_options)
     if not len(city_options):
         raise ValueError, "CITY NOT FOUND! run make_cities.py first"
         ## city = City()
-        ## city.name = "Bloomington"
+        ## city.name = city_name
         ## city.tag = to_tag(city.name)
         ## city.save()
     else:
@@ -65,7 +63,7 @@ def read_csv(source_csv):
 
     print city
 
-    feed_date = "2013-08-29"
+    feed_date = "2013-09-10"
 
     feeds = FeedInfo.objects.filter(city=city).filter(added=feed_date)
     if feeds.exists():
@@ -77,7 +75,7 @@ def read_csv(source_csv):
         feed.added = feed_date
         feed.version = "0.1"
         feed.save()
-        print "Created new feed: %s" % feed.city
+        print "Created new feed: %s" % feed.city.name
 
     people = Person.objects.filter(name="Blank")
     if people.exists():
@@ -98,7 +96,7 @@ def read_csv(source_csv):
         feed_source.feed = feed
         feed_source.person = person
         feed_source.save()
-        print "Created new source: %s" % feed_source.feed.city
+        print "Created new source: %s" % feed_source.feed.city.name
 
 
     cache_file = "%s.json" % city.tag
@@ -137,41 +135,66 @@ def read_csv(source_csv):
                 #exit()
                 pass
             
-            address = row[1]
-            print address
-
+            #type of building (eg: sf attached, duplex, etc)
+            permit_id = row[0]
             bldg_id = row[0]
             print bldg_id
 
-            bldg_units = row[9]
-            print bldg_units
 
-            units_bdrms = row[10]
-            print units_bdrms
+            #should always be "RENTAL" (don't need to track this one)
+            permit_type = row[1]
+            if not permit_type == "RENTAL" and not permit_type == "MECHANICAL":
+                raise ValueError, "Unexpected permit type: %s in row: %s" % (
+                    permit_type, row)
+            
+            sub_type = row[2]
+            
+            #can use this to filter out non-rental or obsolete entries
+            #don't need to track otherwise:
+            status = row[3]
+            parcel_id = row[4]
+            address = row[5]
 
+            #should be fixed per source:
+            ss_city = row[6]
+            if not ( (ss_city.lower() == city_name.lower()) or (ss_city == '') ):
+                raise ValueError, "Unexpected city: %s" % (ss_city)
+
+            sqft = row[7]
+            number_of_buildings = row[8]
+            applicant_name = row[9]
+            number_of_stories = row[10]
+            number_of_units = row[11]
+            
             #check if this is one we want to skip
             if conversions.has_key(address.upper()):
                 address = conversions[address.upper()]
 
-            #make sure it's not one we're skipping:
-            if not address:
-                print "SKIPPING ITEM: %s" % row[1]
-                skips += 1
-            else:
-                if locations.has_key(address.upper()):
-                    location = locations[address.upper()]
+            if (not status in ['EXPIRED', 'CLOSED']) and (permit_type in ['RENTAL']):
+
+                #make sure it's not one we're skipping:
+                if not address:
+                    print "SKIPPING ITEM: %s" % row[1]
+                    skips += 1
                 else:
-                    location = Location()
+                    #check if we've started processing any results for this row
+                    if locations.has_key(address.upper()):
+                        location = locations[address.upper()]
+                    else:
+                        location = Location()
 
                 #temporarily just want to look at google again
                 location.sources = ["google"]
+                #location.sources = ["google", "bing", "usgeo", "geonames", "openmq"]
+
 
                 #do some geocoding, as needed:
-                search = "%s, Bloomington IN" % address.upper()
+                search = "%s, %s %s" % (address.upper(), city_name, city.state)
 
                 any_updated = False
                 for geo_source in location.sources:
                     update = geo.lookup(search, geo_source, location, force=True)
+                    #update = geo.lookup(search, geo_source, location, force=False)
                     if update:
                         any_updated = True
 
@@ -181,8 +204,8 @@ def read_csv(source_csv):
                     any_updated = True
 
                 location.address_alt = search
-                location.bldg_units = bldg_units
-                location.units_bdrms = units_bdrms
+                #location.bldg_units = bldg_units
+                #location.units_bdrms = units_bdrms
                 locations[address.upper()] = location
 
                 #handle the database storage
@@ -199,7 +222,8 @@ def read_csv(source_csv):
 
                 print
 
-    save_results(locations, 'bloomington-filtered.tsv')
+    destination = '%s.tsv' % city_tag
+    save_results(locations, destination)
 
 def main():
     #requires that at least one argument is passed in to the script itself
@@ -225,4 +249,4 @@ def main():
         
 if __name__ == '__main__':
     #main()
-    read_csv('/c/clients/green_rentals/cities/bloomington/data/Bloomington_rental.csv')
+    read_csv('/c/clients/green_rentals/cities/ann_arbor/data/AnnArbor_RentalPermits_Export_06.25.2013.csv', "Ann Arbor", "ann_arbor")

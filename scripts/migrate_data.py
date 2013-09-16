@@ -1,8 +1,8 @@
 import os, json, codecs, re
 from helpers import save_json, load_json, Location, Geo, save_results
 
-def update_json(source):
-    cache_file = "%s.json" % "bloomington"
+def update_json(source, city_tag):
+    cache_file = "%s.json" % city_tag
     cache_destination = os.path.join(os.path.dirname(source), cache_file)
 
     local_cache = load_json(cache_destination, create=True)
@@ -37,4 +37,5 @@ def update_json(source):
 
 if __name__ == '__main__':
     #main()
-    update_json('/c/clients/green_rentals/cities/bloomington/data/Bloomington_rental.csv')
+    #update_json('/c/clients/green_rentals/cities/bloomington/data/Bloomington_rental.csv')
+    update_json('/c/clients/green_rentals/cities/ann_arbor/data/ann_arbor.json', "ann_arbor")
