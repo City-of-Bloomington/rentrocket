@@ -9,19 +9,106 @@ from rentrocket import settings
 from django.core.management import setup_environ
 setup_environ(settings)
 
-from building.models import Building, Parcel
+from building.models import Building, Parcel, BuildingPerson
+from person.models import Person
 
-def make_building(location, bldg_id, city, feed_source):
+def parse_person(text):
+    """
+    take a string representing all details of a person
+    and try to parse out the different details for that person...
+
+    usually it's a comma separated string,
+    but sometimes names have commas in them
+
+    instead, look for the start of the address,
+    either a number or a PO variation
+    """
+
+    name = ''
+    address = ''
+    phone = ''
+    remainder = ''
+
+    print "Parsing: %s" % text
+
+    phone = re.compile("(\d{3})\W*(\d{3})\W*(\d{4})\W*(\w*)")
+    m = phone.search(text)
+    if m:
+        #print dir(m)
+        #print len(m.groups())
+        
+        phone1 = m.group(1)
+        parts = text.split(phone1)
+
+        #update text so it only contains part without phone number:
+        text = parts[0]
+        full_phone = phone1+parts[1]
+        print "Phone found: %s" % full_phone
+        
+
+    filler='.*?'	# Non-greedy match on filler
+    po_box='( P\\.O\\. | P O | PO )'	
+
+    rg = re.compile(po_box,re.IGNORECASE|re.DOTALL)
+    m = rg.search(text)
+    if m:
+        csv1=m.group(1)
+        print "PO BOX MATCH: ("+csv1+")"+"\n"
+        print text
+
+        parts = text.split(csv1)
+        
+        #name = m.group(0)
+        name = parts[0]
+        #IndexError: no such group
+        #address = m.group(1) + m.group(2)
+        address = m.group(1) + parts[1]
+
+    else:
+        re2='(\\d+)'	# Integer Number 1
+
+        rg = re.compile(re2,re.IGNORECASE|re.DOTALL)
+        m = rg.search(text)
+        if m:
+            int1 = m.group(1)
+            print "NUMBER MATCH: (" + int1 + ")"
+
+            parts = text.split(int1)
+
+            #name = m.group(0)
+            name = parts[0]
+            #IndexError: no such group
+            #address = m.group(1) + m.group(2)
+            address = m.group(1) + parts[1]
+
+    address = address.strip()
+    name = name.strip()
+
+    print "name: %s" % name
+    print "address: %s" % address
+    print ""
+
+    if name[-1] == ',':
+        name = name[:-1]
+
+    if address[-1] == ',':
+        address = address[:-1]
+
+
+    return (name, address, phone, remainder)
+
+def make_building(location, bldg_id, city, feed_source, parcel_id=None, bldg_type=None, no_units=None, sqft=None):
     """
     add the building to the database
     """
 
+    full_city = '%s, IN, USA' % city.name
     match = False
     #find an address to use
     for geo_source in location.sources:
         if not match:
             source_list = location.get_source(geo_source)
-            if len(source_list) and source_list[0]['place'] and source_list[0]['place'] != 'Bloomington, IN, USA':
+            if len(source_list) and source_list[0]['place'] and source_list[0]['place'] != full_city:
                 print "using: %s to check: %s" % (geo_source, source_list[0]['place'])
                 match = True
 
@@ -30,7 +117,12 @@ def make_building(location, bldg_id, city, feed_source):
                 cur_address = source_list[0]['place']
 
 
-                cid = "%s-%s" % (city.tag, bldg_id)
+                if parcel_id == None:
+                    cid = "%s-%s" % (city.tag, bldg_id)
+                else:
+                    cid = parcel_id
+
+                print "Checking parcel id: %s" % (cid)
 
                 parcels = Parcel.objects.filter(custom_id=cid)
                 if parcels.exists():
@@ -45,6 +137,7 @@ def make_building(location, bldg_id, city, feed_source):
 
                 buildings = Building.objects.filter(city=city).filter(address=cur_address)
 
+                bldg = None
                 #check if a previous building object in the db exists
                 if buildings.exists():
                     bldg = buildings[0]
@@ -64,13 +157,67 @@ def make_building(location, bldg_id, city, feed_source):
                     bldg.source = feed_source
 
                     bldg.city = city
+                    bldg.state = city.state
+
+                    if bldg_type:
+                        bldg.type = bldg_type
+                    if no_units:
+                        bldg.number_of_units = no_units
+                    if sqft:
+                        bldg.sqft = sqft
 
                     bldg.save()
 
 
                     print "Created new building: %s" % bldg.address
+
+                return bldg
             else:
                 print "Skipping: %s with value: %s" % (geo_source, source_list[0]['place'])
+
+def make_person(name, building, relation, address=None, city=None):
+
+    #now associate applicant with building:
+
+    #first find/make person
+    people = Person.objects.filter(city=city).filter(name=name)
+    person = None
+    #check if a previous building object in the db exists
+    if people.exists():
+        person = people[0]
+        print "Already had Person: %s" % person.name
+    else:
+        #if not, 
+        #CREATE A NEW PERSON OBJECT HERE
+        person = Person()
+
+        person.name = name
+        if city:
+            person.city = city
+
+        if address:
+            person.address = address
+            
+        person.save()
+
+    #then find/make association:
+    bpeople = BuildingPerson.objects.filter(building=building).filter(person=person)
+    bperson = None
+    #check if a previous building_person object in the db exists
+    if bpeople.exists():
+        bperson = bpeople[0]
+        print "Already had BuildingPerson: %s with: %s" % (bperson.person.name, bperson.building.address)
+    else:
+        #if not, 
+        #CREATE A NEW BUILDING PERSON OBJECT HERE
+        bperson = BuildingPerson()
+
+        bperson.person = person
+        bperson.building = building
+        bperson.relation = relation
+        bperson.save()
+
+    return (person, bperson)
     
 
 def save_results(locations, destination="test.tsv"):
@@ -377,24 +524,34 @@ class Geo(object):
                 #try:
                 options = coder.geocode(address, exactly_one=False)
                 if options:
-                    print options
-                    for place, (lat, lng) in options:
-
-                        #clear out any old "None" entries:
-                        for item in result[:]:
-                            if item['place'] is None:
-                                result.remove(item)
-
+                    if isinstance(options[0], unicode):
+                        (place, (lat, lng)) = options
                         result.append({'place': place, 'lat': lat, 'lng': lng})
                         setattr(location, source, result)
 
                         print location.to_dict()
 
                         updated = True
+                    else:
+                        
+                        print options
+                        for place, (lat, lng) in options:
 
-                        #print "Result was: %s" % place
-                        #print "lat: %s, long: %s" % (lat, lng)
-                        #setattr(location, source, {'place': place, 'lat': lat, 'lng': lng})
+                            #clear out any old "None" entries:
+                            for item in result[:]:
+                                if item['place'] is None:
+                                    result.remove(item)
+
+                            result.append({'place': place, 'lat': lat, 'lng': lng})
+                            setattr(location, source, result)
+
+                            print location.to_dict()
+
+                            updated = True
+
+                            #print "Result was: %s" % place
+                            #print "lat: %s, long: %s" % (lat, lng)
+                            #setattr(location, source, {'place': place, 'lat': lat, 'lng': lng})
 
                 ## except:
                 ##     print "Error with lookup!"

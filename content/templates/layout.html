@@ -44,14 +44,16 @@
 	</div>
       </a>
     </header>
+
+    {% load navigation %}
+
+    {% make_nav %}
     
-    <div id="content">
-      {% block content %}{% endblock %}
-    </div>
+    {% block content %}{% endblock %}
 	
     <footer class="contentinfo" role="contentinfo">
       {# http://stackoverflow.com/questions/5651763/django-want-to-print-the-date-time-for-today #}
-      <p>Rent Rocket - {% now "Y" %}</p>
+      <p>&copy; RentRocket.org - {% now "Y" %}</p>
     </footer>
     
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>

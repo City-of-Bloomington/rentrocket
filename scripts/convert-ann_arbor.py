@@ -51,19 +51,6 @@ from city.models import City, to_tag
 
 def usage():
     print __doc__
-
-## def save_results(locations):
-##     destination = "test.tsv"
-##     print "Saving: %s results to %s" % (len(locations, destination))
-##     with codecs.open(destination, 'w', encoding='utf-8') as out:
-##         #print locations.values()[0].make_header()
-##         out.write(locations.values()[0].make_header())
-##         for key, location in locations.items():
-##             location.compare_points()
-##             #print location.make_row()
-##             out.write(location.make_row())
-##     exit()
-    
     
 def read_csv(source):
     #for reading unicode

@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}Rent Rocket: Welcome{% endblock %}
+{% block title %}Rent Rocket: Map{% endblock %}
 
 {% block content %}
 
@@ -10,17 +10,11 @@
 {#<p>Please <a href="login">log in</a> or <a href="{% url registration.views.register %}">sign up</a>. </p>#}
 {% endif %}
 
-{% if buildings %}
-<ul>
-  {% for building in buildings %}
-  <li><a href="/building/{{ building.id }}/">{{ poll.question }}</a></li>
-  {% endfor %}
-</ul>
-{% else %}
-<p>No buildings are available.</p>
-{% endif %}
+<div class="page">
 
-BUILDING CONTENT GOES HERE!
+{{ result }}
+
+</div>
 
 {% endblock %} {# content #}
     
@@ -29,7 +23,7 @@ BUILDING CONTENT GOES HERE!
   //this allows require.js to be in a different directory (lib)
   //than main custom code
   require.config({
-    baseUrl: 'static/js',
+    baseUrl: '/static/js',
     paths: {
       'jquery' : 'lib/jquery-1.7.1',
       'lodash' : 'lib/lodash',

@@ -55,6 +55,7 @@ rm -rf source/migrations
 ./manage.py schemamigration source --auto
 
 ./manage.py migrate building
+
 ./manage.py migrate city
 ./manage.py migrate content
 ./manage.py migrate inspection

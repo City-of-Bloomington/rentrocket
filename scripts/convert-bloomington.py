@@ -23,7 +23,7 @@ Mark any obsolete entries as non-rentals (or remove any old entries?)
 import os, sys, codecs
 import csv
 
-from helpers import save_json, load_json, Location, Geo, save_results, make_building
+from helpers import save_json, load_json, Location, Geo, save_results, make_building, make_person, parse_person
 
 sys.path.append(os.path.dirname(os.getcwd()))
 
@@ -39,6 +39,35 @@ from person.models import Person
 def usage():
     print __doc__
 
+def special_cases(text):
+    #these are not parsed correctly due to numbers in the names,
+    #or no numbers in the address
+    #manually fixing here:
+    options = {
+        "14th & College Holdings, Llc, 807 N. Walnut St, Bloomington, IN 47404": ("14th & College Holdings, Llc", "807 N. Walnut St, Bloomington, IN 47404"),
+        "926 West 2nd Llc, 910 South Rogers St, Bloomington, IN 47403": ("926 West 2nd Llc", "910 South Rogers St, Bloomington, IN 47403"),
+        "16th & Dunn Holdings, Llc, 1128 S. College Mall Road, Bloomington, IN 47401": ("16th & Dunn Holdings, Llc", "1128 S. College Mall Road, Bloomington, IN 47401"),
+        "916 South Rogers Llc, 910 S. Rogers Street, Bloomington, IN 47403": ("916 South Rogers Llc", "910 S. Rogers Street, Bloomington, IN 47403"),
+        "Toney, Kenneth & Susan, , Bloomington, IN": ("Toney, Kenneth & Susan", "Bloomington, IN"),
+        "Lee, Young Soon, , South Korea, Park, Hong Bae, , South Korea": ("Lee, Young Soon & Park, Hong Bae", "South Korea"),
+        "10-29 Llc, 7788 N Stinesville Rd., Gosport, IN 47433": ("10-29 Llc", "7788 N Stinesville Rd., Gosport, IN 47433"),
+        "349 S. College, Llc, 345 S. College Ave. #103, Bloomington, IN 47403": ("349 S. College, Llc", "345 S. College Ave. #103, Bloomington, IN 47403"),
+        "900 W. 3rd Street Llc, 910 S. Rogers Street, Bloomington, IN 47403": ("900 W. 3rd Street Llc", "910 S. Rogers Street, Bloomington, IN 47403"),
+        "606 Building Company, 1149 Linden Drive, Bloomington, IN 47408": ("606 Building Company", "1149 Linden Drive, Bloomington, IN 47408"),
+        "Salazar, Julio, , Bogota,Columbia": ("Salazar, Julio", "Bogota,Columbia"),
+        "711 Holding Company, 44 S. Franklin Street, Bloomfield, IN 47424": ("711 Holding Company", "44 S. Franklin Street, Bloomfield, IN 47424"),
+        "317 West 16th Llc, 910 S. Rogers Street, Bloomington, IN 47403": ("317 West 16th Llc", "910 S. Rogers Street, Bloomington, IN 47403"),
+        "2nd And Fess, Llc, 300 N. Meridian St. Ste. 1100, Indianapolis, IN 46204": ("2nd And Fess, Llc", "300 N. Meridian St. Ste. 1100, Indianapolis, IN 46204"),
+        "1st Amended Alex & Marta Liberman Revocable Trust, 20277 Via Sansovino, Porter Ranch, CA 91326": ("1st Amended Alex & Marta Liberman Revocable Trust", "20277 Via Sansovino, Porter Ranch, CA 91326"), 
+
+        }
+
+    if options.has_key(text):
+        return options[text]
+    else:
+        return None
+
+    
 conversions = { 
 
                 }
@@ -137,11 +166,18 @@ def read_csv(source_csv):
                 #exit()
                 pass
             
+            bldg_id = row[0]
+            print bldg_id
+
             address = row[1]
             print address
 
-            bldg_id = row[0]
-            print bldg_id
+            owner = row[2]
+
+            #skip this:
+            ownder_contact = row[3]
+
+            agent = row[4]
 
             bldg_units = row[9]
             print bldg_units
@@ -186,7 +222,32 @@ def read_csv(source_csv):
                 locations[address.upper()] = location
 
                 #handle the database storage
-                make_building(location, bldg_id, city, feed_source)
+                bldg = make_building(location, bldg_id, city, feed_source)
+
+                #owner_details = parse_person(owner)
+                if owner:
+                    result = special_cases(owner)
+                    if result:
+                        (owner_name, owner_address) = result
+                    else:
+                        (owner_name, owner_address, owner_phone, remainder) = parse_person(owner)
+                        ## print "owner name: %s" % owner_name
+                        ## print "owner address: %s" % owner_address
+                        ## print ""
+
+                        if owner_name:
+                            (person, bldg_person) = make_person(owner_name, bldg, "Owner", address=owner_address)
+
+                if agent and agent != "No Agent":
+                    #agent_details = parse_person(agent)
+                    (agent_name, agent_address, agent_phone, remainder) = parse_person(agent)
+                    ## print "agent name: %s" % agent_name
+                    ## print "agent address: %s" % agent_address
+                    ## print ""
+
+                    if agent_name:
+                        (person, bldg_person) = make_person(agent_name, bldg, "Agent", address=agent_address, city=city)                
+
                 
                 if any_updated:
                     #back it up for later

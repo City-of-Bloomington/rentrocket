@@ -1,0 +1,27 @@
+<div class="nav">
+<ul>
+<li class="nav-item">
+
+<form action="/city/change" method="post">{% csrf_token %}
+{{ form.choice }}
+</form>
+
+</li>
+
+{% for item in items %}
+<li class="nav-item">
+  {% if item.0 %}
+  <a href="{{item.0}}" class="nav-link">
+  {% endif %}
+
+  {{ item.1 }}
+
+  {% if item.0 %}
+  </a>
+  {% endif %}
+
+</li>
+{% endfor %}
+
+</ul>
+</div>

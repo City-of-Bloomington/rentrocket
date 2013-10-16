@@ -42,7 +42,7 @@ cities = [ ['Bloomington', 'IN', '', ''],
 for city_simple in cities:
     city_name = city_simple[0]
     city_state = city_simple[1]
-    city_tag = to_tag(city_name)
+    city_tag = to_tag("%s_%s" % (city_name, city_state))
 
     city_options = City.objects.filter(tag=city_tag)
     print "Number of cities available: %s" % len(city_options)
@@ -55,8 +55,12 @@ for city_simple in cities:
     city.tag = city_tag
     city.state = city_state
 
-    if saved_cities.has_key(city_tag) and saved_cities[city_tag][2] and saved_cities[city_tag][3]:
-        print saved_cities[city_tag]
+    if saved_cities.has_key(city_tag) and saved_cities[city_tag]['lat'] and saved_cities[city_tag]['lng']:
+        city_dict = saved_cities[city_tag]
+        print city_dict
+        
+        city.latitude = city_dict['lat']
+        city.longitude = city_dict['lng']
     else:
         
         location = Location()
@@ -80,8 +84,10 @@ for city_simple in cities:
             city.longitude = result[0]['lng']
 
         location.sources = ["google", "bing", "usgeo", "geonames", "openmq", "mq"]
+        
+        saved_cities[city_tag] = {"name":city.name, "state":city.state, "tag":city.tag, "lat":city.latitude, "lng":city.longitude}
 
-
+        save_json(cache_destination, saved_cities)
     
     city.save()
 

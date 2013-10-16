@@ -11,7 +11,9 @@ from django.conf import settings
 urlpatterns = patterns('',
     # Examples:
     url(r'^building/', include('building.urls')),
-    url(r'^$', 'rentrocket.views.home', name='home'),
+    url(r'^city/', include('city.urls')),
+    url(r'^about$', 'content.views.about', name='about'),
+    url(r'^$', 'content.views.home', name='home'),
     # url(r'^rentrocket/', include('rentrocket.foo.urls')),
 
     # Uncomment the admin/doc line below to enable admin documentation:

@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+
+{% block title %}RentRocket.org: About{% endblock %}
+
+{% block content %}
+
+{% if user.is_authenticated %}
+    <p>Welcome back, {{ user.username }}. <a href="logout">Log out.</a></p>
+{% else %}
+    {#<p>Please <a href="login">log in</a> or <a href="{% url registration.views.register %}">sign up</a>. </p>#}
+{% endif %}
+
+
+<div class="page">
+<h1 class="centered">ABOUT</h1>
+<p>RentRocket.org was funded through an Innovation Fund received from the Urban Sustainability Network and the Global Philanthropy Partnership. In addition to helping tenants find awesome places to live, RentRocket.org aims to:</p>
+
+<ol><li><p>help renters consider environmental impact (including utility usage and costs, energy efficiency and access to transit and recycling facilities) when making rental housing decisions, and</li>
+<li>help landlords both grasp the value of environmental investments and to share their environmental achievements. </li>
+</ol>
+
+<p>Initial partners in the project include these 14 cities: </p>
+<p>Albany (NY), Austin (TX), Ann Arbor (MI), Berkeley (CA), Bloomington (IN), Burlington (VT), Columbia (MO), Dearborn (MI), Evanston (IL), Fayetteville (AR), Iowa City (IA), Lawrence (KS), Madison (WI), and Oklahoma City (OK). </p>
+
+<div class="centered">
+<img src="/static/img/cities.png">
+</div>
+
+<h3 class="centered">TIMELINE</h3>
+
+<p class="P1">The current grant will run through February of 2014, and then we’ll be looking for additional partners to help us move the project forward.  We hope to have a basic prototype for 2-3 of the partner cities by then.</p>
+
+<h3 class="centered">WANT TO GET INVOLVED?</h3>
+
+<p>This effort will involve tenants, landlords, local policy makers, web and app developers, government agencies, utilities and many others.  In particular, we need help crowdsourcing data – energy data, apartment data, etc.  We’d love to hear from you!</p>
+<p class="P1">FOR MORE INFORMATION, EMAIL <a href="mailto:sustain@bloomington.in.gov"><span class="Internet_20_link">sustain@bloomington.in.gov</span></a>.</p>
+
+<br>
+</div>
+{% endblock %} {# content #}
+

@@ -23,7 +23,7 @@ Mark any obsolete entries as non-rentals (or remove any old entries?)
 import os, sys, codecs
 import csv
 
-from helpers import save_json, load_json, Location, Geo, save_results, make_building
+from helpers import save_json, load_json, Location, Geo, save_results, make_building, make_person
 
 sys.path.append(os.path.dirname(os.getcwd()))
 
@@ -147,7 +147,7 @@ def read_csv(source_csv, city_name, city_tag):
                 raise ValueError, "Unexpected permit type: %s in row: %s" % (
                     permit_type, row)
             
-            sub_type = row[2]
+            bldg_type = row[2]
             
             #can use this to filter out non-rental or obsolete entries
             #don't need to track otherwise:
@@ -157,6 +157,12 @@ def read_csv(source_csv, city_name, city_tag):
 
             #should be fixed per source:
             ss_city = row[6]
+
+            bldg_sf = row[7]
+            no_bldgs = row[8]
+            applicant_name = row[9]
+            no_stories = row[10]
+            no_units = row[11]
             if not ( (ss_city.lower() == city_name.lower()) or (ss_city == '') ):
                 raise ValueError, "Unexpected city: %s" % (ss_city)
 
@@ -200,6 +206,8 @@ def read_csv(source_csv, city_name, city_tag):
 
                 location.sources = ["google", "bing", "usgeo", "geonames", "openmq", "mq"]
 
+                #this is the case for brand new searches
+                #(which are updated in a different sense)
                 if not hasattr(location, "address_alt") or not location.address_alt:
                     any_updated = True
 
@@ -209,7 +217,10 @@ def read_csv(source_csv, city_name, city_tag):
                 locations[address.upper()] = location
 
                 #handle the database storage
-                make_building(location, bldg_id, city, feed_source)
+                bldg = make_building(location, bldg_id, city, feed_source, parcel_id, bldg_type, no_units, bldg_sf)
+
+                if applicant_name:
+                    (person, bldg_person) = make_person(applicant_name, bldg, "Permit Applicant")
                 
                 if any_updated:
                     #back it up for later

@@ -3,11 +3,11 @@ import json
 from django.template import Context, loader
 from django.http import HttpResponse
 from django.http import Http404
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
 from models import Building, Unit, Listing
 
-from city.models import City, to_tag
+from city.models import City, to_tag, all_cities
 
 #from django.shortcuts import render_to_response, get_object_or_404
 
@@ -42,6 +42,23 @@ def index(request):
 
     #return HttpResponse("Hello, world. You're at the building index.")
 
+def city_map(request, city_tag):
+    #city = City.objects.filter(tag=city_tag)
+    city = all_cities.get(city_tag, None)
+
+    #default
+    zoom = 14
+    
+    if not city:
+        url = "/city/new"
+        return redirect(url)
+    else:
+        context = {'lat': city['lat'],
+                   'lng': city['lng'],
+                   'zoom': zoom,
+                   }
+
+        return render(request, 'map.html', context )
 
 def map(request, lat=39.166537, lng=-86.531754, zoom=14):
     

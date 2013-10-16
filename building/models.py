@@ -2,6 +2,7 @@ from django.db import models
 
 from source.models import Source
 from city.models import City
+from person.models import Person
 
 class Parcel(models.Model):
     """
@@ -20,7 +21,7 @@ class Parcel(models.Model):
     #address = models.CharField(max_length=200)
 
     #supplied by source
-    custom_id = models.CharField(max_length=30, unique=True)
+    custom_id = models.CharField(max_length=50, unique=True)
 
     ## Shape
     ## geometry
@@ -77,6 +78,8 @@ class Building(models.Model):
     #will only be one street number per building
     address = models.CharField(max_length=200)
 
+    city = models.ForeignKey(City)
+
     #State where the property is located.
     #In the U.S. this should be the two-letter code for the state
     state = models.CharField(max_length=2)
@@ -89,7 +92,7 @@ class Building(models.Model):
     #Type of residential property:
     #( single family, duplex, multi-family, single room occupancy,  etc)
     #blank=True means not required
-    type = models.CharField(max_length=12, blank=True)
+    type = models.CharField(max_length=30, blank=True)
     
     #this could also be a property of
     #how many Units are associated with the building
@@ -104,13 +107,20 @@ class Building(models.Model):
     #Current assessed property value.
     value = models.FloatField(default=0)
 
+    #cache this locally (similar to GPS)
+    walk_score = models.IntegerField(default=0)
+
+    #once we have energy data,
+    #we will want to summarize the results here
+    #so that we can use this to color code appropriately
+    energy_score = models.IntegerField(default=0)
+
+    #this should be a separate object/table for many to many join
+    #aka BuildingPerson
+    #that specifies the relationship of a person to a building
     #TODO: ForeignKey:
     #owner_name = models.CharField(max_length=50)
     #owner_mailing_address = models.CharField(max_length=50, blank=True)
-
-    #TODO: ForeignKey:
-    #city = models.CharField(max_length=50)
-    city = models.ForeignKey(City)
 
     #google, bing, etc
     geocoder  = models.CharField(max_length=10)
@@ -152,12 +162,12 @@ class Unit(models.Model):
 
     #TODO:
     #manager = models.ForeignKey(Manager)
-    #manager = models.ForeignKey(Person)
+    #owner = models.ForeignKey(Person)
 
     bedrooms = models.IntegerField(default=0)
     bathrooms = models.IntegerField(default=0)
 
-    square_feet = models.IntegerField(default=0)
+    sqft = models.IntegerField(default=0)
 
     #number of adults (can be used to help calculate cost per resident)
     max_occupants = models.IntegerField(default=0)
@@ -231,6 +241,18 @@ class Listing(models.Model):
     added = models.DateTimeField('date published', auto_now_add=True)
     updated = models.DateTimeField('date updated', auto_now=True)
 
+
+class BuildingPerson(models.Model):
+    """
+    for storing relations between people and Buildings (and optionally Units)
+    """
+
+    building = models.ForeignKey(Building)
+    person = models.ForeignKey(Person)
+    #this is optional... may not be related to a single unit
+    unit = models.ForeignKey(Unit, blank=True, null=True)
+    #owner? renter? property manager? etc
+    relation = models.CharField(max_length=50, default="Unknown")
 
 class Permit(models.Model):
     """
