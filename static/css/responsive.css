@@ -54,6 +54,8 @@ html {
   /* 1 */
 
   -webkit-text-size-adjust: 100%;
+  /* 2 */
+
   -ms-text-size-adjust: 100%;
   /* 2 */
 
@@ -380,6 +382,52 @@ header img {
   width: 100%;
   margin: 0 auto 0;
 }
+.nav {
+  display: inline-block;
+}
+.inset {
+  width: 200px;
+  padding: 30px;
+  background: rgba(255, 255, 255, 0.65);
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+  border-radius: 5px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 20px;
+  text-align: center;
+}
+.inset .header {
+  margin-bottom: 10px;
+}
+.remember-forgot-section {
+  width: 94%;
+  text-align: left;
+  margin: 8px auto;
+  font-size: 10px;
+}
+.forgot {
+  float: right;
+  margin-top: 2px;
+}
+.account_info {
+  width: 80%
+    padding: 30px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 20px;
+  text-align: center;
+}
+.email_box {
+  width: 400px;
+  padding: 30px;
+  background: rgba(255, 255, 255, 0.65);
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+  border-radius: 5px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 20px;
+  text-align: center;
+}
 a:link {
   padding: 0px 0px;
   margin: 0;
@@ -417,6 +465,9 @@ a, 	  display:block;
 }
 li.nav-item:hover {
   text-decoration: none;
+}
+.footnote {
+  margin-top: 15px;
 }
 footer {
   text-align: center;

@@ -41,6 +41,6 @@ def make_nav(context):
     ## c = Context({'items': nav_items, 'form': select_form})
     ## return t.render(c)
 
-    return { 'items': nav_items, 'form': select_form }
+    return { 'items': nav_items, 'form': select_form, 'user': request.user }
 
 register.inclusion_tag('navigation.html', takes_context=True)(make_nav)

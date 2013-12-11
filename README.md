@@ -9,6 +9,7 @@ python manage.py runserver 8080
 Requirements:
 -----------------
 
+(copied these to local project directory, so they should be available)
 sudo pip install geopy
 
 #for database migrations
@@ -54,8 +55,8 @@ rm -rf source/migrations
 ./manage.py schemamigration service --auto
 ./manage.py schemamigration source --auto
 
-./manage.py migrate building
 
+./manage.py migrate building
 ./manage.py migrate city
 ./manage.py migrate content
 ./manage.py migrate inspection
@@ -63,6 +64,11 @@ rm -rf source/migrations
 ./manage.py migrate person
 ./manage.py migrate service
 ./manage.py migrate source
+
+
+./manage.py migrate allauth.socialaccount
+./manage.py migrate allauth.socialaccount.providers.facebook
+./manage.py migrate allauth.socialaccount.providers.twitter
 
 Database initialization:
 ----------------------------------

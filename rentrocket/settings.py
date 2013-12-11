@@ -47,6 +47,10 @@ if (os.getenv('SERVER_SOFTWARE', '').startswith('Google App Engine') or
     # Example: "/var/www/example.com/static/"
     STATIC_ROOT = BASE_DIR + '..' + os.sep + 'static'
 
+    # https://docs.djangoproject.com/en/dev/topics/email/
+    #https://bitbucket.org/andialbrecht/appengine_emailbackends/overview
+    EMAIL_BACKEND = 'appengine_emailbackend.EmailBackend'
+
 else:
     DEBUG = True
     TEMPLATE_DEBUG = DEBUG
@@ -82,6 +86,9 @@ else:
         BASE_DIR + '..' + os.sep + 'static',
     )
 
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
@@ -97,7 +104,8 @@ TIME_ZONE = 'America/New_York'
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'en-us'
 
-SITE_ID = 1
+#this needs to be the same as the one in the database:
+SITE_ID = 2
 
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
@@ -172,7 +180,28 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.tz",
     "django.contrib.messages.context_processors.messages",
     "django.core.context_processors.request",
+    "allauth.account.context_processors.account",
+    "allauth.socialaccount.context_processors.socialaccount",
+    
 )
+
+AUTHENTICATION_BACKENDS = (
+    # Needed to login by username in Django admin, regardless of `allauth`
+    "django.contrib.auth.backends.ModelBackend",
+
+    # `allauth` specific authentication methods, such as login by e-mail
+    "allauth.account.auth_backends.AuthenticationBackend",
+)
+
+LOGIN_REDIRECT_URL = '/'
+SOCIALACCOUNT_QUERY_EMAIL = True
+
+# EMAIL_BACKEND configuration moved above
+
+
+#http://stackoverflow.com/questions/18780729/django-allauth-verifying-email-only-on-non-social-signup
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 
 INSTALLED_APPS = (
     'django.contrib.auth',
@@ -182,7 +211,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Uncomment the next line to enable the admin:
-    # 'django.contrib.admin',
+    'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 
@@ -196,6 +225,36 @@ INSTALLED_APPS = (
     'person',
     'service',
     'source',
+
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    # ... include the providers you want to enable:
+    #'allauth.socialaccount.providers.angellist',
+    #'allauth.socialaccount.providers.bitly',
+    #'allauth.socialaccount.providers.dropbox',
+
+#    'allauth.socialaccount.providers.facebook',
+
+    #'allauth.socialaccount.providers.github',
+
+#    'allauth.socialaccount.providers.google',
+
+    #'allauth.socialaccount.providers.instagram',
+
+#    'allauth.socialaccount.providers.linkedin',
+
+    #'allauth.socialaccount.providers.openid',
+    #'allauth.socialaccount.providers.persona',
+    #'allauth.socialaccount.providers.soundcloud',
+    #'allauth.socialaccount.providers.stackexchange',
+    #'allauth.socialaccount.providers.twitch',
+
+#    'allauth.socialaccount.providers.twitter',
+
+    #'allauth.socialaccount.providers.vimeo',
+    #'allauth.socialaccount.providers.vk',
+    #'allauth.socialaccount.providers.weibo',
 
     
 )

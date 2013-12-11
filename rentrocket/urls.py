@@ -2,14 +2,18 @@ from django.conf.urls import patterns, include, url
 from django.conf import settings
 
 # Uncomment the next two lines to enable the admin:
-# from django.contrib import admin
-# admin.autodiscover()
+from django.contrib import admin
+admin.autodiscover()
 
 
 #first argument to patterns tells the prefix for the module callback parameter
 #here we use '' to keep things generic
 urlpatterns = patterns('',
-    # Examples:
+    url(r'^admin/', include(admin.site.urls)),
+    url(r'^login', 'allauth.account.views.login', name='login'),
+    url(r'^logout', 'django.contrib.auth.views.logout', {'next_page': '/'}, name='logout'),
+                           
+    url(r'^accounts/', include('allauth.urls')),
     url(r'^building/', include('building.urls')),
     url(r'^city/', include('city.urls')),
     url(r'^about$', 'content.views.about', name='about'),
@@ -20,7 +24,6 @@ urlpatterns = patterns('',
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     # Uncomment the next line to enable the admin:
-    # url(r'^admin/', include(admin.site.urls)),
 )
 
 

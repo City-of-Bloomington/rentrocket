@@ -1,0 +1,23 @@
+
+*2013.10.30 12:07:29 
+install Python 2.7.x
+on windows, be sure to add the following to your system path
+C:\Python27\;C:\Python27\Scripts\
+
+install Setuptools, install pip
+
+install MySQL server
+http://dev.mysql.com/downloads/mysql/#downloads
+http://dev.mysql.com/downloads/installer/5.6.html
+
+install MySQLdb
+sudo pip install MySQL-python
+
+windows:
+http://www.lfd.uci.edu/~gohlke/pythonlibs/#mysql-python
+
+install Google App Engine
+https://developers.google.com/appengine/downloads#Google_App_Engine_SDK_for_Python
+
+(this might be available as part of app engine:)
+pip install django 

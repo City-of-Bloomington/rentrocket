@@ -4,12 +4,6 @@
 
 {% block content %}
 
-{% if user.is_authenticated %}
-<p>Welcome back, {{ user.username }}. <a href="logout">Log out.</a></p>
-{% else %}
-{#<p>Please <a href="login">log in</a> or <a href="{% url registration.views.register %}">sign up</a>. </p>#}
-{% endif %}
-
 <div id="map-canvas" style="width: 100%; height: 100%"></div>
 
 {% endblock %} {# content #}
