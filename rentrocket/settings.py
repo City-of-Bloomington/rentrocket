@@ -25,8 +25,7 @@ STATIC_URL = '/static/'
 
 #SETTINGS_MODE='prod' ./manage.py syncdb
 #https://developers.google.com/appengine/docs/python/cloud-sql/django
-if (os.getenv('SERVER_SOFTWARE', '').startswith('Google App Engine') or
-    os.getenv('SETTINGS_MODE') == 'prod'):
+if (os.getenv('SERVER_SOFTWARE', '').startswith('Google App Engine')):
     #or
     #FORCE_PROD_DB):
     # Running on production App Engine, so use a Google Cloud SQL database.
@@ -35,9 +34,10 @@ if (os.getenv('SERVER_SOFTWARE', '').startswith('Google App Engine') or
 
     DATABASES = {
         'default': {
-            'ENGINE': 'google.appengine.ext.django.backends.rdbms',
-            'INSTANCE': 'rent-rocket:rent-rocket-db',
+            'ENGINE': 'django.db.backends.mysql',
+            'HOST': '/cloudsql/rent-rocket:rent-rocket-db',
             'NAME': 'rentrocket',
+            'USER': 'root',
         }
     }
 
@@ -50,6 +50,23 @@ if (os.getenv('SERVER_SOFTWARE', '').startswith('Google App Engine') or
     # https://docs.djangoproject.com/en/dev/topics/email/
     #https://bitbucket.org/andialbrecht/appengine_emailbackends/overview
     EMAIL_BACKEND = 'appengine_emailbackend.EmailBackend'
+
+    #this needs to be the same as the one in the database:
+    SITE_ID = 2
+
+elif os.getenv('SETTINGS_MODE') == 'prod':
+    # Running in development, but want to access the Google Cloud SQL instance
+    # in production.
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'HOST': '173.194.111.70',
+            'NAME': 'rentrocket',
+            'USER': 'root',
+            #must add password in manually: (do not commit)
+            'PASSWORD': '',            
+        }
+    }
 
 else:
     DEBUG = True
@@ -88,6 +105,9 @@ else:
 
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+    #this needs to be the same as the one in the database:
+    SITE_ID = 2
+
 
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
@@ -103,9 +123,6 @@ TIME_ZONE = 'America/New_York'
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'en-us'
-
-#this needs to be the same as the one in the database:
-SITE_ID = 2
 
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
@@ -195,7 +212,7 @@ AUTHENTICATION_BACKENDS = (
 
 LOGIN_REDIRECT_URL = '/'
 SOCIALACCOUNT_QUERY_EMAIL = True
-
+DEFAULT_FROM_EMAIL = "rentrocket@gmail.com"
 # EMAIL_BACKEND configuration moved above
 
 

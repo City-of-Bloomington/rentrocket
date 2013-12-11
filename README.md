@@ -77,3 +77,20 @@ can remove all tables with a tool like Sequel Pro
 
 then 
 python manage.py syncdb
+
+
+Production:
+-------------------
+
+SETTINGS_MODE='prod' ./manage.py migrate building
+SETTINGS_MODE='prod' ./manage.py migrate city
+SETTINGS_MODE='prod' ./manage.py migrate content
+SETTINGS_MODE='prod' ./manage.py migrate inspection
+SETTINGS_MODE='prod' ./manage.py migrate manager
+SETTINGS_MODE='prod' ./manage.py migrate person
+SETTINGS_MODE='prod' ./manage.py migrate service
+SETTINGS_MODE='prod' ./manage.py migrate source
+SETTINGS_MODE='prod' ./manage.py migrate allauth.socialaccount
+
+SETTINGS_MODE='prod' ./manage.py migrate allauth.socialaccount.providers.facebook
+SETTINGS_MODE='prod' ./manage.py migrate allauth.socialaccount.providers.twitter

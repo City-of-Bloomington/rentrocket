@@ -8,6 +8,8 @@ libraries:
 
 - name: django
   version: "1.4"
+- name: MySQLdb
+  version: "latest"
   
 env_variables:
   DJANGO_SETTINGS_MODULE: 'rentrocket.settings'
