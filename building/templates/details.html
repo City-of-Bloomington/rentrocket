@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+
+{% block title %}Rent Rocket: {{ building.address }} {% endblock %}
+
+{% block content %}
+
+{% if user.is_authenticated %}
+<p>Welcome back, {{ user.username }}. <a href="logout">Log out.</a></p>
+{% else %}
+{#<p>Please <a href="login">log in</a> or <a href="{% url registration.views.register %}">sign up</a>. </p>#}
+{% endif %}
+
+{{ building.address }}
+BUILDING CONTENT GOES HERE!
+
+{% endblock %} {# content #}
+    
+{% block script %}
+<script type="text/javascript">
+  //this allows require.js to be in a different directory (lib)
+  //than main custom code
+  require.config({
+    baseUrl: 'static/js',
+    paths: {
+      'jquery' : 'lib/jquery-1.7.1',
+      'lodash' : 'lib/lodash',
+      'ko'     : 'lib/knockout-2.2.1.js'
+      }
+    });
+  require(['main'], function(main) {});
+</script>
+{% endblock %}
