@@ -13,8 +13,8 @@ urlpatterns = patterns(
     url(r'(?P<bldg_tag>\w+)/(?P<city_tag>\w+)/edit$', views.edit),
     url(r'(?P<bldg_tag>\w+)/(?P<city_tag>\w+)/json/$', views.send_json),
     url(r'(?P<bldg_tag>\w+)/(?P<city_tag>\w+)/json$', views.send_json),
-    #url(r'(?P<bldg_tag>\w+)/(?P<city_tag>\w+)/$', views.details, name='details)
-    url(r'(?P<bldg_tag>\w+)/(?P<city_tag>\w+)$', views.details, name='details')
+    #url(r'(?P<bldg_tag>\w+)/(?P<city_tag>\w+)/$', views.details, name='details),
+    url(r'(?P<bldg_tag>\w+)/(?P<city_tag>\w+)$', views.details, name='details'),
     #url(r'^$', views.index, name='index')
     url(r'^$', views.map, name='building_index')
 )

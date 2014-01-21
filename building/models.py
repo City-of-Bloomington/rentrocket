@@ -141,7 +141,7 @@ class Building(models.Model):
         profile = '<a href="%s">%s</a>' % (self.url(), self.address)
         #result = {'address': self.address, 'lat': self.latitude, 'lng': self.longitude}
         result = {'address': self.address, 'lat': self.latitude, 'lng': self.longitude, 'profile': profile}
-         return result
+        return result
 
     def url(self):
         return "/building/" + self.tag() + '/' + self.city.tag
