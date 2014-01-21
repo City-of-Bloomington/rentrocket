@@ -107,6 +107,8 @@ else:
 
     #this needs to be the same as the one in the database:
     SITE_ID = 2
+    #after a database reset, this is the only one available
+    #SITE_ID = 1
 
 
 

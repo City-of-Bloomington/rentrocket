@@ -1,15 +1,25 @@
 import sys, os, json, codecs, re
 
-from geopy import geocoders, distance
-
 sys.path.append(os.path.dirname(os.getcwd()))
 
-#http://stackoverflow.com/questions/8047204/django-script-to-access-model-objects-without-using-manage-py-shell
-from rentrocket import settings
-from django.core.management import setup_environ
-setup_environ(settings)
+from geopy import geocoders, distance
 
-from building.models import Building, Parcel, BuildingPerson
+#http://stackoverflow.com/questions/8047204/django-script-to-access-model-objects-without-using-manage-py-shell
+#from rentrocket import settings
+#from django.core.management import setup_environ
+#setup_environ(settings)
+
+#pre django 1.4 approach:
+#from rentrocket import settings as rrsettings
+#from django.core.management import setup_environ
+#setup_environ(settings)
+
+#from django.conf import settings
+#settings.configure(rrsettings)
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "rentrocket.settings")
+
+from building.models import Building, Parcel, BuildingPerson, Unit
 from person.models import Person
 
 def parse_person(text):
@@ -114,6 +124,10 @@ def make_building(location, bldg_id, city, feed_source, parcel_id=None, bldg_typ
 
                 #TODO: process this a bit more...
                 #probably don't want city and zip here:
+
+                #keeping city and zip minimizes chance for overlap
+                #especially since this is used as a key
+                #can always take it out on display, if necessary
                 cur_address = source_list[0]['place']
 
 
@@ -174,6 +188,31 @@ def make_building(location, bldg_id, city, feed_source, parcel_id=None, bldg_typ
                 return bldg
             else:
                 print "Skipping: %s with value: %s" % (geo_source, source_list[0]['place'])
+
+def make_unit(apt_num, building):
+    #check for existing:
+    units = Unit.objects.filter(building=building).filter(number=apt_num)
+    unit = None
+    #check if a previous building object in the db exists
+    if units.exists():
+        unit = units[0]
+        print "Already had Unit: %s" % unit.address
+    else:
+        #if not, 
+        #CREATE A NEW UNIT OBJECT HERE
+        unit = Unit()
+        unit.building = building
+        unit.number = apt_num
+        unit.address = building.address + ", " + apt_num
+
+        ## bedrooms
+        ## bathrooms
+        ## sqft
+        ## max_occupants
+        unit.save()
+        print "Created new unit: %s" % unit.number
+
+    return unit
 
 def make_person(name, building, relation, address=None, city=None):
 
@@ -243,8 +282,10 @@ def save_results(locations, destination="test.tsv"):
                         
             location.compare_points()
             #print location.make_row()
-            if location.bldg_units == '1, 1':
-                out.write(location.make_row())
+
+            # this was used to filter units with 1, 1 out separately
+            #if location.bldg_units == '1, 1':
+            #    out.write(location.make_row())
 
     print match_tallies
     exit()
@@ -266,8 +307,13 @@ class Location(object):
         else:
             self.sources = ["google", "bing", "usgeo", "geonames", "openmq", "mq"]
 
-        self.units_bdrms = ''
-        self.bldg_units = ''
+        #*2014.01.08 09:01:16
+        #this was only needed for csv exporting
+        #but these valued should be passed in to make_building
+        #this is not provided by any geolocation service,
+        #so it doesn't make sense to track here:
+        #self.units_bdrms = ''
+        #self.bldg_units = ''
 
     def get_source(self, source):
         """
@@ -364,7 +410,8 @@ class Location(object):
         """
         return a row representation of the header (for CSV output)
         """
-        header = [ 'search', 'address', 'bldg_units', 'units_bdrms', '' ]
+        #header = [ 'search', 'address', 'bldg_units', 'units_bdrms', '' ]
+        header = [ 'search', 'address', '' ]
         header.extend( self.sources )
         header.extend( [ '', 'closest', 'closest_amt', 'furthest', 'furthest_amt', '' ] )
         header.extend( [ '', 'tclosest', 'tclosest_amt', 'tfurthest', 'tfurthest_amt', '' ] )
@@ -410,8 +457,8 @@ class Location(object):
                     #insert these in reverse order:
                     self.address = cur['place']
                     row.insert(0, '')
-                    row.insert(0, self.units_bdrms)
-                    row.insert(0, self.bldg_units)
+                    #row.insert(0, self.units_bdrms)
+                    #row.insert(0, self.bldg_units)
 
                     row.insert(0, self.address)
 
@@ -429,8 +476,8 @@ class Location(object):
         #couldn't find an address anywhere:
         if not found_address:
             row.insert(0, '')
-            row.insert(0, self.units_bdrms)
-            row.insert(0, self.bldg_units)
+            #row.insert(0, self.units_bdrms)
+            #row.insert(0, self.bldg_units)
             row.insert(0, '')
             row.insert(0, self.address_alt)
             print "ERROR LOCATING: %s" % self.address_alt

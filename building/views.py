@@ -1,4 +1,4 @@
-import json
+import json, re
 
 from django.template import Context, loader
 from django.http import HttpResponse
@@ -42,23 +42,21 @@ def index(request):
 
     #return HttpResponse("Hello, world. You're at the building index.")
 
-def city_map(request, city_tag):
-    #city = City.objects.filter(tag=city_tag)
-    city = all_cities.get(city_tag, None)
+def update(request, bldg_tag, city_tag):
+    pass
+ 
+def edit(request, bldg_tag, city_tag):
+    pass
 
-    #default
-    zoom = 14
-    
-    if not city:
-        url = "/city/new"
-        return redirect(url)
-    else:
-        context = {'lat': city['lat'],
-                   'lng': city['lng'],
-                   'zoom': zoom,
-                   }
+def send_json(request, bldg_tag, city_tag):
+    pass
 
-        return render(request, 'map.html', context )
+def details(request, bldg_tag, city_tag):
+    city = City.objects.filter(tag=city_tag)    
+    address = re.sub('_', ' ', bldg_tag)
+    buildings = Building.objects.filter(city=city).filter(address=address)
+    context = {'building': buildings[0]}
+    return render(request, 'details.html', context)
 
 def map(request, lat=39.166537, lng=-86.531754, zoom=14):
     

@@ -38,7 +38,16 @@ var RRMap = function(args) {
 		    title: building.address
 		});
 
-		self.update_info(building.address, marker)
+		//not sure if this is the best place to generate the view
+		//self.pop_up_content = 
+		//could pass it in as part of json request
+		//
+		// building is a json object that gets returned by ajax request
+		// generated in building.models.Building.to_dict()
+		// collected in building.views.lookup()
+
+		//self.update_info(building.address, marker)
+		self.update_info(building.profile, marker)
 		self.markers.push(marker)
 	    }
 
@@ -53,6 +62,8 @@ var RRMap = function(args) {
 
     //http://stackoverflow.com/questions/11467070/how-to-set-a-popup-on-markers-with-google-maps-api
     //https://developers.google.com/maps/documentation/javascript/overlays#InfoWindows
+
+    //update_info gets called during showMarkers() function above:
     self.update_info = function (content, marker) {
 	google.maps.event.addListener(marker, 'click', function() {
 	    self.infowindow.setContent(content);

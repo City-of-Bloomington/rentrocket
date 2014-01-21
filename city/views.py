@@ -61,7 +61,7 @@ def change(request, city_tag=None):
         #look latest city up from session (either just set, or previously):
         stored = request.session.get('city', None)
         if stored:
-            url = "/building/%s" % stored['tag']
+            url = "/city/%s" % stored['tag']
             return redirect(url)
 
         else:
@@ -81,6 +81,23 @@ def resources(request, city_tag):
         url = "/city/new" 
         return redirect(url)
         
+def city_map(request, city_tag="bloomington_in"):
+    #city = City.objects.filter(tag=city_tag)
+    city = all_cities.get(city_tag, None)
+
+    #default
+    zoom = 14
+    
+    if not city:
+        url = "/city/new"
+        return redirect(url)
+    else:
+        context = {'lat': city['lat'],
+                   'lng': city['lng'],
+                   'zoom': zoom,
+                   }
+
+        return render(request, 'map.html', context )
 
 def new_city(request):
     """
@@ -89,7 +106,7 @@ def new_city(request):
     context = {'result':"New city..."}
     return render(request, 'change_city.html', context )
 
-def city(request, city_tag):
+def city(request, city_tag="bloomington_in"):
     city = City.objects.filter(tag=city_tag)
 
     result = ""

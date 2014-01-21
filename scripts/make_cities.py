@@ -3,9 +3,11 @@ import sys, os
 sys.path.append(os.path.dirname(os.getcwd()))
 
 #http://stackoverflow.com/questions/8047204/django-script-to-access-model-objects-without-using-manage-py-shell
-from rentrocket import settings
-from django.core.management import setup_environ
-setup_environ(settings)
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "rentrocket.settings")
+
+## from rentrocket import settings
+## from django.core.management import setup_environ
+## setup_environ(settings)
 
 from city.models import City, to_tag
 

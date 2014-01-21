@@ -3,6 +3,7 @@ from django.db import models
 from source.models import Source
 from city.models import City
 from person.models import Person
+from rentrocket.helpers import to_tag
 
 class Parcel(models.Model):
     """
@@ -134,10 +135,19 @@ class Building(models.Model):
     def to_dict(self):
         """
         return a simple dictionary representation of the building
+        this is used by ajax calls to get a representation of the building
+        (via views.lookup)
         """
+        profile = '<a href="%s">%s</a>' % (self.url(), self.address)
+        #result = {'address': self.address, 'lat': self.latitude, 'lng': self.longitude}
+        result = {'address': self.address, 'lat': self.latitude, 'lng': self.longitude, 'profile': profile}
+         return result
 
-        result = {'address': self.address, 'lat': self.latitude, 'lng': self.longitude}
-        return result
+    def url(self):
+        return "/building/" + self.tag() + '/' + self.city.tag
+
+    def tag(self):
+        return to_tag(self.address) 
     
 
 class Unit(models.Model):

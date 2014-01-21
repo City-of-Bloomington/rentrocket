@@ -1,5 +1,5 @@
 from django.db import models
-import re
+from rentrocket.helpers import to_tag
 
 #rather than do a lookup for some of these items
 #just reference a local cache...
@@ -15,30 +15,6 @@ all_cities = {"albany_ny": {"lat": 42.6525793, "state": "NY", "tag": "albany_ny"
 
 
 #feed info moved to source.models.FeedInfo
-
-def to_tag(item):
-    """
-    take any string and convert it to an acceptable tag
-
-    tags should not contain spaces or special characters
-    numbers, lowercase letters only
-    underscores can be used, but they will be converted to spaces in some cases
-    """
-    #item = self.name.lower()
-    item = item.lower()
-    #get rid of trailing and leading blank spaces:
-    item = item.strip()
-    item = re.sub(' ', '_', item)
-    item = re.sub("/", '_', item)
-    item = re.sub("\\\\'", '', item)
-    item = re.sub("\\'", '', item)
-    item = re.sub("'", '', item)
-
-    #todo:
-    # filter any non alphanumeric characters
-
-    return item
-
 
 class City(models.Model):
     """

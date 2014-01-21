@@ -22,6 +22,10 @@ Database synchronization:
 
 python manage.py syncdb
 
+#https://docs.djangoproject.com/en/dev/howto/initial-data/#where-django-finds-f
+#may need to do this manually... good way to verify it works if values not show
+python manage.py loaddata rentrocket/fixtures/initial_data.json
+
 python manage.py sql place
 
 field type reference:
@@ -67,6 +71,10 @@ rm -rf source/migrations
 
 
 ./manage.py migrate allauth.socialaccount
+
+python ./scripts/make_cities.py
+
+#if enabled: (not currently)
 ./manage.py migrate allauth.socialaccount.providers.facebook
 ./manage.py migrate allauth.socialaccount.providers.twitter
 
@@ -92,5 +100,9 @@ SETTINGS_MODE='prod' ./manage.py migrate service
 SETTINGS_MODE='prod' ./manage.py migrate source
 SETTINGS_MODE='prod' ./manage.py migrate allauth.socialaccount
 
+
 SETTINGS_MODE='prod' ./manage.py migrate allauth.socialaccount.providers.facebook
 SETTINGS_MODE='prod' ./manage.py migrate allauth.socialaccount.providers.twitter
+
+
+SETTINGS_MODE='prod' 

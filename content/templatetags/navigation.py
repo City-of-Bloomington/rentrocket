@@ -29,8 +29,10 @@ def make_nav(context):
 
     if stored:
         #show any navigation items that are city specific
-        nav_items.append( ('/building/%s' % stored['tag'], "Map") )
-        nav_items.append( ('/city/resources/%s' % stored['tag'], "Resources") )
+        #nav_items.append( ('/building/%s' % stored['tag'], "Map") )
+        #nav_items.append( ('/city/resources/%s' % stored['tag'], "Resources") )
+        nav_items.append( ('/city/%s' % stored['tag'], "Map") )
+        nav_items.append( ('/city/%s/resources' % stored['tag'], "Resources") )
 
         select_form.fields['choice'].initial = stored['tag']
     
