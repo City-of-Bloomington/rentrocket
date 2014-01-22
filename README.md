@@ -6,19 +6,12 @@ Rent Rocket is a web based application for crowdsourcing energy usage in rental 
 Rent Rocket uses the following tools and resources to implement the application:
 
 http://www.python.org/
-
 https://www.djangoproject.com/
-
 https://developers.google.com/appengine/?csw=1
-
 http://www.mysql.com/
-
 https://developers.google.com/maps/documentation/javascript/
-
 https://code.google.com/p/geopy/
-
 http://www.rentrocket.org/building/bloomington_in
-
 http://git-scm.com/
 
 
@@ -38,7 +31,7 @@ Development Server:
 
 For starting a local development server:
 
-   /path/to/google_appengine/dev_appserver.py rentrocket
+     /path/to/google_appengine/dev_appserver.py rentrocket
 
 Where rentrocket is your local copy of this repository. 
 
@@ -47,12 +40,12 @@ Database synchronization:
 
 A development server won't do much until the database schema is in place and initial data has been created.  This is done with:
 
-   python manage.py syncdb
+     python manage.py syncdb
 
 https://docs.djangoproject.com/en/dev/howto/initial-data/#where-django-finds-fixtures
 may need to do this manually... good way to verify it works if values not shown
 
-   python manage.py loaddata rentrocket/fixtures/initial_data.json
+     python manage.py loaddata rentrocket/fixtures/initial_data.json
 
 field type reference:
 https://docs.djangoproject.com/en/1.5/ref/models/fields/#django.db.models.CharField
