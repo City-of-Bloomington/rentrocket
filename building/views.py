@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.http import Http404
 from django.shortcuts import render, redirect
 
-from models import Building, Unit, Listing
+from models import Building, Unit, Listing, BuildingPerson
 
 from city.models import City, to_tag, all_cities
 
@@ -55,7 +55,27 @@ def details(request, bldg_tag, city_tag):
     city = City.objects.filter(tag=city_tag)    
     address = re.sub('_', ' ', bldg_tag)
     buildings = Building.objects.filter(city=city).filter(address=address)
-    context = {'building': buildings[0]}
+    building = buildings[0]
+    
+    if not building.units.count():
+        #must have a building with no associated units...
+        #may only have one unit
+        #or others may have been incorrectly created as separate buildings
+        #either way we can start by making a new unit here
+        #(and then merging in any others manually)
+
+        unit = Unit()
+        unit.building = building
+        unit.number = ''
+        unit.address = building.address 
+
+        ## bedrooms
+        ## bathrooms
+        ## sqft
+        ## max_occupants
+        unit.save()
+        
+    context = { 'building': building }
     return render(request, 'details.html', context)
 
 def map(request, lat=39.166537, lng=-86.531754, zoom=14):

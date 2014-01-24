@@ -2,6 +2,12 @@
 
 {% block title %}Rent Rocket: {{ building.address }} {% endblock %}
 
+{% block custom_css %}
+    <link rel="stylesheet" href="/static/css/building.css" type="text/css" media="screen" />
+{% endblock %}
+
+
+
 {% block content %}
 
 {% if user.is_authenticated %}
@@ -10,7 +16,63 @@
 {#<p>Please <a href="login">log in</a> or <a href="{% url registration.views.register %}">sign up</a>. </p>#}
 {% endif %}
 
-<h2>{{ building.address }}</h2>
+<div class="leftcolumn">
+<h2>{{ building.address }}</h2> 
+
+{% if building.units.count != 1 %}
+<h3>Units ( {{ building.units.count }} ):</h3>
+{% endif %}
+
+{% for unit in building.units.all %}
+{% if building.units.count != 1 %}
+<h4>{{ unit.number }}</h3>
+{% endif %}
+
+Bedrooms: {{ unit.bedrooms }}<br>
+Bathrooms: {{ unit.bathrooms }}<br>
+Square Feet: {{ unit.sqft }}<br>
+Maximum Occupants: {{ unit.max_occupants }}<br>
+
+<ul class="actions">
+  
+  <li class="action"><form class="button_link" action="/service/add/{{ unit.tag }}/{{ building.tag }}/{{ building.city.tag }}"><button type="submit"><img src="/static/img/up.png" class="icon"> Upload Energy Data</button></form></li>
+  <li class="action"><form class="button_link" action="/listing/add/{{ unit.tag }}/{{ building.tag }}/{{ building.city.tag }}"><button type="submit"><img src="/static/img/plus.png" class="icon"> Add a Rental Listing</button></form></li>
+</ul>
+
+<br>
+{% endfor %}
+
+{% if building.units.count == 1 %}
+<a href="#">Merge with another building (popup explanation)</a>
+{% endif %}
+
+<div style="float:right"><form class="button_link" action="/unit/edit/{{ unit.tag }}/{{ building.tag }}/{{ building.city.tag }}"><button type="submit"><img src="/static/img/edit.png" class="icon"> Edit Details</button></form></div>
+
+
+</div>
+
+<div class="rightcolumn">
+
+  <div id="image_box">
+    <ul id="image_nav">
+      <li class="image_nav_li" data-bind="click: view_street_view"><a class="image_nav_link" href="#">street view</a></li>
+      <li class="image_nav_li" data-bind="click: view_map"><a class="image_nav_link" href="#">map</a></li>
+      <li class="image_nav_li" data-bind="click: view_photos"><a class="image_nav_link" href="#">photos</a></li>
+    </ul>
+
+    <div id="street_view" data-bind="if: viewing() === 'street_view'">
+      <img src="http://maps.googleapis.com/maps/api/streetview?size=300x300&location={{ building.address|urlencode }},{{ building.city.name }},{{ building.state }}&sensor=false">
+    </div>
+    <div id="street_view" data-bind="if: viewing() === 'map'">
+      <img src="http://maps.googleapis.com/maps/api/staticmap?center={{building.latitude}},{{building.longitude}}&zoom=15&size=300x300&markers={{building.latitude}},{{building.longitude}}&sensor=false">
+    </div>
+    <div id="street_view" data-bind="if: viewing() === 'photos'">
+      <img src="/static/img/no-available-image.png" width="300" height="300">
+    </div>
+
+  </div>
+  
+</div>
 
 {% endblock %} {# content #}
     
@@ -19,13 +81,13 @@
   //this allows require.js to be in a different directory (lib)
   //than main custom code
   require.config({
-    baseUrl: 'static/js',
+    baseUrl: '/static/js',
     paths: {
       'jquery' : 'lib/jquery-1.7.1',
       'lodash' : 'lib/lodash',
-      'ko'     : 'lib/knockout-2.2.1.js'
+      'ko'     : 'lib/knockout-2.2.1'
       }
     });
-  require(['main'], function(main) {});
+  require(['building'], function(building) {});
 </script>
 {% endblock %}

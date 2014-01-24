@@ -52,13 +52,10 @@ audio:not([controls]) {
 html {
   font-family: sans-serif;
   /* 1 */
-
   -webkit-text-size-adjust: 100%;
   /* 2 */
-
   -ms-text-size-adjust: 100%;
   /* 2 */
-
 }
 /**
  * Remove default margin.
@@ -213,10 +210,8 @@ fieldset {
 legend {
   border: 0;
   /* 1 */
-
   padding: 0;
   /* 2 */
-
 }
 /**
  * 1. Correct font family not being inherited in all browsers.
@@ -229,13 +224,10 @@ select,
 textarea {
   font-family: inherit;
   /* 1 */
-
   font-size: 100%;
   /* 2 */
-
   margin: 0;
   /* 3 */
-
 }
 /**
  * Address Firefox 4+ setting `line-height` on `input` using `!important` in
@@ -268,10 +260,8 @@ input[type="reset"],
 input[type="submit"] {
   -webkit-appearance: button;
   /* 2 */
-
   cursor: pointer;
   /* 3 */
-
 }
 /**
  * Re-set default cursor for disabled elements.
@@ -288,10 +278,8 @@ input[type="checkbox"],
 input[type="radio"] {
   box-sizing: border-box;
   /* 1 */
-
   padding: 0;
   /* 2 */
-
 }
 /**
  * 1. Address `appearance` set to `searchfield` in Safari 5 and Chrome.
@@ -301,11 +289,9 @@ input[type="radio"] {
 input[type="search"] {
   -webkit-appearance: textfield;
   /* 1 */
-
   -moz-box-sizing: content-box;
   -webkit-box-sizing: content-box;
   /* 2 */
-
   box-sizing: content-box;
 }
 /**
@@ -331,10 +317,8 @@ input::-moz-focus-inner {
 textarea {
   overflow: auto;
   /* 1 */
-
   vertical-align: top;
   /* 2 */
-
 }
 /* ==========================================================================
    Tables
@@ -382,8 +366,36 @@ header img {
   width: 100%;
   margin: 0 auto 0;
 }
+#nav-wrap {
+  width: 100%;
+  text-align: center;
+}
 .nav {
   display: inline-block;
+  margin: 0px;
+  margin-top: .5em;
+  margin-bottom: .5em;
+  padding: 0px;
+}
+a.nav-link:link,
+a.nav-link:visited {
+  text-decoration: none;
+  font-size: 20px;
+  color: #859900;
+  /*
+a, 	  display:block; 
+	  background: #EFE9ED;*/
+}
+/*Style for the nav menu */
+.nav-item {
+  float: left;
+  text-align: center;
+  list-style: none;
+  padding-right: 14px;
+  padding-left: 14px;
+}
+li.nav-item:hover {
+  text-decoration: none;
 }
 .inset {
   width: 200px;
@@ -428,44 +440,6 @@ header img {
   margin-top: 20px;
   text-align: center;
 }
-a:link {
-  padding: 0px 0px;
-  margin: 0;
-}
-a:visited {
-  padding: 0px 0px;
-  margin: 0;
-}
-/*Style for the nav menu */
-.nav-item {
-  /*
-	position: relative;
-	margin: -18px 0 10px auto;
-	width: 750px;
-	*/
-
-}
-a.nav-link:link,
-a.nav-link:visited {
-  text-decoration: none;
-  font-size: 20px;
-  color: #859900;
-  /*
-a, 	  display:block; 
-	  background: #EFE9ED;*/
-
-}
-.nav-item {
-  float: left;
-  text-align: center;
-  list-style: none;
-  padding-right: 14px;
-  padding-left: 14px;
-  padding-bottom: 15px;
-}
-li.nav-item:hover {
-  text-decoration: none;
-}
 .footnote {
   margin-top: 15px;
 }
@@ -487,24 +461,33 @@ footer {
   text-align: center;
   width: 100%;
 }
-#maincolumn {
+.leftcolumn {
   display: inline;
   float: left;
-  width: 72.91666666666666%;
+  width: 47.91666666666667%;
   margin: 0 1.0416666666666665%;
 }
-#sidebar {
+.rightcolumn {
   display: inline;
   float: left;
-  width: 22.916666666666664%;
+  width: 47.91666666666667%;
   margin: 0 1.0416666666666665%;
 }
 @media screen and (max-width: 720px) {
-  #maincolumn,
+  .leftcolumn,
+  .rightcolumn,
   .nav-item {
     width: 100%;
+    display: inline;
+    float: left;
+    width: 97.91666666666666%;
+    margin: 0 1.0416666666666665%;
   }
   .nav-item {
     float: none;
+    display: block;
+  }
+  .nav {
+    display: block;
   }
 }

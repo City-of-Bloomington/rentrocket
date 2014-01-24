@@ -79,6 +79,9 @@ class Building(models.Model):
     #will only be one street number per building
     address = models.CharField(max_length=200)
 
+    #TODO:
+    #tag = models.CharField(max_length=200)
+    
     city = models.ForeignKey(City)
 
     #State where the property is located.
@@ -129,6 +132,9 @@ class Building(models.Model):
     #aka feed_source:
     source = models.ForeignKey(Source)
 
+    #visible = models.BooleanField(default=True)
+
+
     added = models.DateTimeField('date published', auto_now_add=True)
     updated = models.DateTimeField('date updated', auto_now=True)
 
@@ -156,7 +162,7 @@ class Unit(models.Model):
     can be part of a larger Building,
     or a Building might only have one Unit (1 to 1)
     """
-    building = models.ForeignKey(Building)
+    building = models.ForeignKey(Building, related_name="units")
 
     address = models.CharField(max_length=200)
 
@@ -169,10 +175,6 @@ class Unit(models.Model):
     #is building sufficient to store this in?
     #latitude = models.FloatField()
     #longitude = models.FloatField()
-
-    #TODO:
-    #manager = models.ForeignKey(Manager)
-    #owner = models.ForeignKey(Person)
 
     bedrooms = models.IntegerField(default=0)
     bathrooms = models.IntegerField(default=0)
@@ -192,6 +194,13 @@ class Unit(models.Model):
     added = models.DateTimeField('date published', auto_now_add=True)
     updated = models.DateTimeField('date updated', auto_now=True)
 
+    #TODO:
+    #this should be stored to assist with lookups
+    #same goes for Building
+    def tag(self):
+        return to_tag(self.number) 
+    
+
 class Listing(models.Model):
     """
     An option to lease, rent, or sublease a specific Unit
@@ -208,8 +217,15 @@ class Listing(models.Model):
     #TODO:
     #person = models.ForeignKey(Person)
 
+    #TODO:
+    #even though the building is available by way of the Unit
+    #it may be easier to look at building
+    #especially when limiting search results on a map
+    #building = models.ForeignKey(Building, related_name="listings")
+    
+
     #the unit available
-    unit = models.ForeignKey(Unit)
+    unit = models.ForeignKey(Unit, related_name="listings")
 
     #sublease, standard?
     lease_type = models.CharField(max_length=200, default="Standard")
@@ -257,13 +273,17 @@ class BuildingPerson(models.Model):
     for storing relations between people and Buildings (and optionally Units)
     """
 
-    building = models.ForeignKey(Building)
+    building = models.ForeignKey(Building, related_name="people")
     person = models.ForeignKey(Person)
     #this is optional... may not be related to a single unit
     unit = models.ForeignKey(Unit, blank=True, null=True)
     #owner? renter? property manager? etc
     relation = models.CharField(max_length=50, default="Unknown")
 
+    #TODO:
+    #allow renters to toggle whether their profile shows up on building details
+    #visible = models.BooleanField(default=True)
+    
 class Permit(models.Model):
     """
     for storing details about the rental permit source

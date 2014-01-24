@@ -54,8 +54,41 @@ header#top {
     //margin-bottom: 1em;
 }
 
+#nav-wrap {
+    width: 100%;
+    text-align: center;
+}
+
 .nav {
     display: inline-block;
+    margin: 0px;
+    margin-top: .5em;
+    margin-bottom: .5em;
+    padding: 0px;
+}
+
+a.nav-link:link, a.nav-link:visited	{
+	text-decoration: none;
+	font-size: 20px;
+	color: @header;
+	/*
+a, 	  display:block; 
+	  background: #EFE9ED;*/
+	}
+/*Style for the nav menu */
+.nav-item {
+    float: left;
+    text-align: center; 
+    list-style: none; 
+    padding-right: 14px; 
+    padding-left: 14px; 
+    //padding-bottom: 15px;
+
+}
+
+li.nav-item:hover	{
+    //background: #EFE9ED;
+    text-decoration: none;
 }
 
 .inset {
@@ -108,54 +141,7 @@ header#top {
 }
 
 
-a:link	{
-	padding: 0px 0px; 
-	margin:0; 
-	}
-
-a:visited {
-	padding: 0px 0px; 
-	margin:0; 
-	}
-
-/*Style for the nav menu */
-.nav-item {
-	/*
-	position: relative;
-	margin: -18px 0 10px auto;
-	width: 750px;
-	*/
-	//line-height: 2em;
-	}
 	
-.nav-item ul { 
-} 
-
-a.nav-link:link, a.nav-link:visited	{
-	text-decoration: none;
-	font-size: 20px;
-	color: @header;
-	/*
-a, 	  display:block; 
-	  background: #EFE9ED;*/
-	}
-
-.nav-item {
-    float: left;
-    text-align: center; 
-    list-style: none; 
-    padding-right: 14px; 
-    padding-left: 14px; 
-    padding-bottom: 15px;
-
-}
-
-
-li.nav-item:hover	{
-    //background: #EFE9ED;
-    text-decoration: none;
-}
-
 
 .footnote {
     margin-top: 15px;
@@ -184,22 +170,29 @@ footer {
 
 
 // main column & sidebar
-#leftcolumn {
+.leftcolumn {
     .column(6);
 }
-#rightcolumn {
+.rightcolumn {
     .column(6);
 }
 
 @media screen and (max-width: 720px) {
-    #maincolumn,
+    .leftcolumn,
+    .rightcolumn,
     .nav-item {
 	//margin-bottom: 1em;
 	width: 100%;
+	.column(12);
     }
     
     .nav-item {
 	float: none;
+	display: block;
     }
     
+    .nav {
+	display: block;
+    }
+
 }

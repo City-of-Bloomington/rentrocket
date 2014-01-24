@@ -6,12 +6,19 @@ Rent Rocket is a web based application for crowdsourcing energy usage in rental 
 Rent Rocket uses the following tools and resources to implement the application:
 
 http://www.python.org/
+
 https://www.djangoproject.com/
+
 https://developers.google.com/appengine/?csw=1
+
 http://www.mysql.com/
+
 https://developers.google.com/maps/documentation/javascript/
+
 https://code.google.com/p/geopy/
+
 http://www.rentrocket.org/building/bloomington_in
+
 http://git-scm.com/
 
 
@@ -81,11 +88,9 @@ https://docs.djangoproject.com/en/1.5/ref/models/fields/#django.db.models.CharFi
 Database reset:
 ----------------------------------
 
-can remove all tables with a tool like Sequel Pro
+Remove existing tables with a tool like Sequel Pro.  Then resync as above:
 
-then:
-
-   python manage.py syncdb
+    python manage.py syncdb
 
 
 Production:
