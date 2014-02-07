@@ -15,3 +15,4 @@ class Person(models.Model):
     #latitude = models.FloatField()
     #longitude = models.FloatField()
 
+    email = models.CharField(max_length=200, blank=True)

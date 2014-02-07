@@ -242,7 +242,7 @@ INSTALLED_APPS = (
     'inspection',
     'manager',
     'person',
-    'service',
+    'utility',
     'source',
 
     'allauth',
@@ -277,6 +277,19 @@ INSTALLED_APPS = (
 
     
 )
+
+
+#for making file uploads work with Django on Google app engine.
+#need the following settings, assembled from:
+#https://docs.djangoproject.com/en/dev/topics/http/file-uploads/
+#http://stackoverflow.com/questions/16034059/getting-google-app-engine-blob-info-in-django-view
+FILE_UPLOAD_HANDLERS = ("content.custom_upload.BlobstoreFileUploadHandler", )
+
+#these are the original (default) settings:
+#("django.core.files.uploadhandler.MemoryFileUploadHandler",
+# "django.core.files.uploadhandler.TemporaryFileUploadHandler",)
+
+
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

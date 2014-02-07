@@ -10,12 +10,6 @@
 
 {% block content %}
 
-{% if user.is_authenticated %}
-<p>Welcome back, {{ user.username }}. <a href="logout">Log out.</a></p>
-{% else %}
-{#<p>Please <a href="login">log in</a> or <a href="{% url registration.views.register %}">sign up</a>. </p>#}
-{% endif %}
-
 <div class="leftcolumn">
 <h2>{{ building.address }}</h2> 
 
@@ -35,7 +29,7 @@ Maximum Occupants: {{ unit.max_occupants }}<br>
 
 <ul class="actions">
   
-  <li class="action"><form class="button_link" action="/service/add/{{ unit.tag }}/{{ building.tag }}/{{ building.city.tag }}"><button type="submit"><img src="/static/img/up.png" class="icon"> Upload Energy Data</button></form></li>
+  <li class="action"><form class="button_link" action="/utility/upload/{{ building.city.state }}/{{ building.city.name_tag }}/{{ building.tag }}/{{ unit.tag }}"><button type="submit"><img src="/static/img/up.png" class="icon"> Upload Energy Data</button></form></li>
   <li class="action"><form class="button_link" action="/listing/add/{{ unit.tag }}/{{ building.tag }}/{{ building.city.tag }}"><button type="submit"><img src="/static/img/plus.png" class="icon"> Add a Rental Listing</button></form></li>
 </ul>
 
@@ -78,16 +72,6 @@ Maximum Occupants: {{ unit.max_occupants }}<br>
     
 {% block script %}
 <script type="text/javascript">
-  //this allows require.js to be in a different directory (lib)
-  //than main custom code
-  require.config({
-    baseUrl: '/static/js',
-    paths: {
-      'jquery' : 'lib/jquery-1.7.1',
-      'lodash' : 'lib/lodash',
-      'ko'     : 'lib/knockout-2.2.1'
-      }
-    });
   require(['building'], function(building) {});
 </script>
 {% endblock %}

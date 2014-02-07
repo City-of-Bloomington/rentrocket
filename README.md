@@ -63,7 +63,7 @@ https://docs.djangoproject.com/en/1.5/ref/models/fields/#django.db.models.CharFi
     ./manage.py schemamigration inspection --auto
     ./manage.py schemamigration manager --auto
     ./manage.py schemamigration person --auto
-    ./manage.py schemamigration service --auto
+    ./manage.py schemamigration utility --auto
     ./manage.py schemamigration source --auto
 
 
@@ -73,7 +73,7 @@ https://docs.djangoproject.com/en/1.5/ref/models/fields/#django.db.models.CharFi
     ./manage.py migrate inspection
     ./manage.py migrate manager
     ./manage.py migrate person
-    ./manage.py migrate service
+    ./manage.py migrate utility
     ./manage.py migrate source
 
     ./manage.py migrate allauth.socialaccount
@@ -102,7 +102,7 @@ Production:
     SETTINGS_MODE='prod' ./manage.py migrate inspection
     SETTINGS_MODE='prod' ./manage.py migrate manager
     SETTINGS_MODE='prod' ./manage.py migrate person
-    SETTINGS_MODE='prod' ./manage.py migrate service
+    SETTINGS_MODE='prod' ./manage.py migrate utility
     SETTINGS_MODE='prod' ./manage.py migrate source
     SETTINGS_MODE='prod' ./manage.py migrate allauth.socialaccount
 
@@ -125,7 +125,7 @@ Shouldn't need to do this often / ever:
     rm -rf inspection/migrations
     rm -rf manager/migrations
     rm -rf person/migrations
-    rm -rf service/migrations
+    rm -rf utility/migrations
     rm -rf source/migrations
 
     ./manage.py schemamigration building --initial
@@ -134,7 +134,7 @@ Shouldn't need to do this often / ever:
     ./manage.py schemamigration inspection --initial
     ./manage.py schemamigration manager --initial
     ./manage.py schemamigration person --initial
-    ./manage.py schemamigration service --initial
+    ./manage.py schemamigration utility --initial
     ./manage.py schemamigration source --initial
 
 

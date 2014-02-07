@@ -168,7 +168,7 @@ class Unit(models.Model):
 
     #should be able to use this with the building.address (property)
     #to arrive at the unit.address:
-    number = models.CharField(max_length=10)
+    number = models.CharField(max_length=20)
 
     #store these locally for looking up nearby features
     #gps = models.CharField(max_length=200)

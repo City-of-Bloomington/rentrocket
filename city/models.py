@@ -44,3 +44,11 @@ class City(models.Model):
 
     added = models.DateTimeField('date published', auto_now_add=True)
     updated = models.DateTimeField('date updated', auto_now=True)
+
+    def name_tag(self):
+        """
+        sometimes we only need the city name as a tag
+        (e.g. energy data uploads)
+        vs the standard tag of cityname_state
+        """
+        return to_tag(str(self.name))

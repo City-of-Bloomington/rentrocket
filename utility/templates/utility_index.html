@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+
+{% block title %}Rent Rocket: Utility Data{% endblock %}
+
+{% block content %}
+
+<div class="page">
+<h2>Are you paying too much for utilities?</h2>
+<p>Collecting utility information is a critical step for comparing the total cost of a rental.  Most utility companies will not share this information in bulk, so we're asking for your help! </p>
+
+<b>Which city is your utility data from?</b>
+
+{{ results|safe }}<br>
+
+<form action="/utility/" method="post">{% csrf_token %}
+  {{ form.non_field_errors }}
+
+  <div class="leftcolumn">
+
+    <div class="block">
+      {{ form.city.errors }}
+      {{ form.city.label }}: 
+      {{ form.city }}
+    </div>
+  </div>
+  
+  <div class="rightcolumn" data-bind="visible: show_alts()">
+  
+    <div class="block">
+      <div class="fieldWrapper">
+	<div class="error">{{ form.alt_city.errors }}</div>
+	Other City: 
+	{{ form.alt_city }}
+      </div>
+
+      <div class="fieldWrapper">
+	<div class="error">{{ form.alt_state.errors }}</div>
+	State: 
+	{{ form.alt_state }}
+      </div>
+    </div>
+
+  </div>
+
+  <div class="centered">
+    <input type="submit" value="Next >" />
+  </div>
+
+</form>
+
+</div>
+
+{% endblock %} {# content #}
+    
+{% block script %}
+<script type="text/javascript">
+  require(['utility_step1'], function(utility_step1) {});
+</script>
+{% endblock %}

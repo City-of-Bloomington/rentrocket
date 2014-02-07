@@ -1,58 +1,6 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <title>{% block title %}Rent Rocket{% endblock %}</title>
-    
-    <meta name="description" content="{% block description %}Rent Rocket helps you find the total cost of renting an apartment by comparing utility usage. {% endblock %}" />
-    <meta name="keywords" content="{% block keywords %}rent apartment energy efficiency cost comparison{% endblock %}" />
-    <meta name="author" content="Charles Brandt" />
-  
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />  
-    <meta name="HandheldFriendly" content="True" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+{% extends "no_nav.html" %}
 
-    <link rel="shortcut icon" href="/static/favicon.png" />
-    <link rel="icon" href="/static/favicon.png" />
-
-    <!-- Stylesheets -->
-    <!--
-    <link rel="stylesheet" href="responsive.less" type="text/less" media="screen" />
-    -->
-
-    <link rel="stylesheet" href="/static/css/responsive.css" type="text/css" media="screen" />
-    
-    <!-- Scripts -->
-    <!--
-    <script src="../../js/less-1.1.3.min.js" type="text/javascript"></script>
-    -->
-    
-  {#include other javascript at the end of the page to improve loading #}
-
-  <script type="application/javascript">  
-  </script>
-
-  </head>
-  <body>
-    
-    <!-- Header -->
-    <header id="top">
-      <a href="/" title="Rent Rocket" class="home_link">
-	<div class="logo">
-	  <img src="/static/img/logo.png" alt="Rent Rocket">
-	</div>
-      </a>
-    </header>
-    
-    <div id="content">
-
-{% if user.is_authenticated %}
-    <p>Welcome back, {{ user.username }}. <a href="logout">Log out.</a></p>
-{% else %}
-    {#<p>Please <a href="login">log in</a> or <a href="{% url registration.views.register %}">sign up</a>. </p>#}
-{% endif %}
-
+{% block content %}
     <div class="page">
 <h3>Welcome to RentRocket.org.  </h3>
 
@@ -66,49 +14,4 @@
 
     </div>
 
-
-    </div>
-	
-    <footer class="contentinfo" role="contentinfo">
-      {# http://stackoverflow.com/questions/5651763/django-want-to-print-the-date-time-for-today #}
-      <p>&copy; RentRocket.org - {% now "Y" %}</p>
-    </footer>
-    
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-    <script>window.jQuery || document.write('<script src="/static/js/libs/jquery-1.7.1.min.js"><\/script>')</script>
-
-    <!-- these should all be minified and combined before a production release -->
-
-    <script type="text/javascript">window.JSON || document.write('<script src="/static/js/lib/json2.js"><\/script>')</script>
-    
-    <script type="text/javascript" src="/static/js/lib/require.js"></script>
-
-    {% block script %}
-    <script type="text/javascript">
-      //this allows require.js to be in a different directory (lib)
-      //than main custom code
-      require.config({
-		baseUrl: 'static/js',
-		paths: {
-			'jquery' : 'lib/jquery-1.7.1',
-	                'lodash' : 'lib/lodash',
-	                'ko'     : 'lib/knockout-2.2.1.js'
-		}
-      });
-      require(['main'], function(main) {});
-    </script>
-    {% endblock %}
-
-<script>
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-  ga('create', 'UA-43186610-1', 'rentrocket.org');
-  ga('send', 'pageview');
-
-</script>
-
-  </body>
-</html>
+{% endblock %} {# content #}

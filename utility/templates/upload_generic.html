@@ -1,0 +1,129 @@
+{% extends "layout.html" %}
+
+{% block title %}Rent Rocket: Share Utility Data{% endblock %}
+
+{% block content %}
+
+<div class="page">
+
+<p>{{ results|safe }}</p>
+
+<form action="{{ upload_url }}" method="POST" enctype="multipart/form-data">
+  {% csrf_token %}
+
+  {{ form.non_field_errors }}
+
+  <div class="leftcolumn">
+    
+    <h3>Upload Utility Data </h3>
+      
+    <div>
+      <p>
+	{% if bldg %}  
+	{% endif %}
+	
+	{{ city }}, {{ state }} <a href="/utility/">[Change]</a>
+      </p>
+    </div>
+
+
+    
+    <div class="block">
+      {{ form.file.errors }}
+      {{ form.file }}
+    </div>
+
+    <p>What type of utility is the billing data for?</p>
+    <div class="block"> 
+      {{ form.utility_type.errors }}
+      {{ form.utility_type }}
+    </div> 
+
+    <div class="fieldWrapper" data-bind="visible: show_alts()">
+      <div class="error">{{ form.alt_type.errors }}</div>
+      Please specify: 
+	{{ form.alt_type }}
+    </div>
+
+    <p>Who provides the service? (Company name)</p>
+      {{ form.vendor.errors }}
+      {{ form.vendor }}
+
+    
+    <div class="fieldWrapper" data-bind="visible: energy_upload()">
+      <p>What energy services are used at this location? (Please check all that apply)</p>
+      {{ form.energy_options.errors }}
+      
+      {{ form.energy_options }}
+      {{ form.alt_energy }}
+
+    </div>
+    
+
+
+
+  </div>
+  
+  <div class="rightcolumn">
+  
+
+  
+    {% if bldg %}  
+    {% else %}
+    <p>What is the address of the property? </p>
+    <div class="block">
+      {{ form.address.errors }}
+      {{ form.address }}
+    </div>
+    {% endif %}
+
+    <p>When did you move to this address?</p>
+    <div class="block">
+      {{ form.move_in.errors }}
+      {{ form.move_in }}
+    </div>
+
+    <p>How big is your residence?</p>
+    <div class="block">
+      {{ form.sqft.errors }}
+      {{ form.sqft.label }}: 
+      {{ form.sqft }}
+    </div>
+
+
+    <p>How many bedrooms are in your residence?</p>
+    <div class="block"> 
+      {{ form.bedrooms.errors }}
+      {{ form.bedrooms }}
+    </div> 
+
+    {% if not user.is_authenticated %}
+    <p>What is your email address?</p>
+    <div class="block">
+      {{ form.email.errors }}
+      {{ form.email }}
+    </div>
+    {% endif %}
+
+  </div>
+
+  <div class="centered">
+    <input type="submit" value="Save" />
+  </div>
+
+</form>
+
+<p><b>Terms & Conditions:</b></p>
+
+<p>By choosing and submitting a file to upload, I understand that utility data submitted to RentRocket.org will be used in a public, online database, website, smart phone application, and may be used in future analyses of energy usage patterns and/or other studies related to this project. Any names and account numbers in data uploaded here will not be shared publicly.</p>
+
+
+</div>
+
+{% endblock %} {# content #}
+    
+{% block script %}
+<script type="text/javascript">
+  require(['utility_upload'], function(utility_upload) {});
+</script>
+{% endblock %}

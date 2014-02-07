@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+
+{% block title %}Rent Rocket: Utility Data{% endblock %}
+
+{% block content %}
+
+{% if user.is_authenticated %}
+<p>Welcome back, {{ user.username }}. <a href="logout">Log out.</a></p>
+{% else %}
+{#<p>Please <a href="login">log in</a> or <a href="{% url registration.views.register %}">sign up</a>. </p>#}
+{% endif %}
+
+<div class="page">
+
+Directions: In order to upload data for both Duke and Vectren, you will need to fill out this form twice. Once you've submitted your first form, simply refresh the page, fill out the form and upload your second set of data. </p>
+
+Click here to learn how to download Vectren data.
+Click here to learn how to download Duke data.
+
+<p>{{ results|safe }}</p>
+
+<form action="/utility/" method="post">{% csrf_token %}
+{{ form.as_p }}
+<input type="submit" value="Submit" />
+</form>
+
+For which utility are you uploading billing data? (Data uploads for utilities other than Vectren or Duke should be sent to citylife@indiana.edu.)  </p>
+ Vectren 
+ Duke
+
+Who supplies your energy?  </p>
+ Only Duke 
+ Only Vectren 
+ Both Duke and Vectren 
+
+Number of months you have lived at this address:  </p>
+ 1-4 
+ 5-8 
+ 9-12 
+ More than 12 
+
+How many bedrooms does your residence have?  </p>
+ 1 bedroom/studio 
+ 2 bedrooms 
+ 3 bedrooms 
+ More than 4 bedrooms 
+
+How do you save energy at your residence? (Optional)  </p>
+ 
+Terms & Conditions:
+
+By choosing a file to upload and clicking "save" to submit, I understand that utility data submitted to the City of Bloomington and Indiana University will be used in a public, online database, website, smart phone application, and may be used in future analyses of energy usage patterns and/or other studies related to this project. Names and account numbers will be deleted from data uploaded using this form.
+
+
+</div>
+
+{% endblock %} {# content #}
+    
+{% block script %}
+<script type="text/javascript">
+  require(['main'], function(main) {});
+</script>
+{% endblock %}

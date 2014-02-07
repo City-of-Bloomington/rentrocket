@@ -8,15 +8,20 @@ admin.autodiscover()
 
 #first argument to patterns tells the prefix for the module callback parameter
 #here we use '' to keep things generic
-urlpatterns = patterns('',
+urlpatterns = patterns(
+    '',
     url(r'^admin/', include(admin.site.urls)),
     url(r'^login', 'allauth.account.views.login', name='login'),
     url(r'^logout', 'django.contrib.auth.views.logout', {'next_page': '/'}, name='logout'),
                            
     url(r'^accounts/', include('allauth.urls')),
     url(r'^building/', include('building.urls')),
+    url(r'^utility/', include('utility.urls')),
     url(r'^city/', include('city.urls')),
+
+    url(r'^content/', include('content.urls')),
     url(r'^about$', 'content.views.about', name='about'),
+    #url(r'^upload_form$', 'content.views.upload_form', name='upload_form'),
     url(r'^$', 'content.views.home', name='home'),
     # url(r'^rentrocket/', include('rentrocket.foo.urls')),
 

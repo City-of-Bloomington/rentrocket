@@ -45,23 +45,33 @@
       </a>
     </header>
     
-    <!-- Main Body -->
-    <article id="maincolumn">
+    <div id="content">
 
-      <div id="content">
-	{% block content %}{% endblock %}
-      </div>
+{% if user.is_authenticated %}
+    <p>Welcome back, {{ user.username }}. <a href="logout">Log out.</a></p>
+{% else %}
+    {#<p>Please <a href="login">log in</a> or <a href="{% url registration.views.register %}">sign up</a>. </p>#}
+{% endif %}
+
+    <div class="page">
+<h3>Welcome to RentRocket.org.  </h3>
+
+<p>Our goal is to help you consider the full cost of housing when you make rental housing decisions – that includes utility costs and transportation costs.  </p>
+
+<p>Our data comes from a combination of sources:  partner cities, property managers, and renters like you who shared data on their homes.</p>
+
+<p>RentRocket.org is the result of a partnership of 14 cities across the U.S., and was made possible with a grant from the Urban Sustainability Directors Network and the Global Philanthropy Partnership. </p>
+
+<p>We're working on the foundation of this service right now, so please check back again soon.</p>
+
+    </div>
+
+
+    </div>
 	
-    </article>
-    
-    <!-- Sidebar -->
-    <section id="sidebar">
-	{% block sidebar %}{% endblock %}
-    </section>
-    
     <footer class="contentinfo" role="contentinfo">
       {# http://stackoverflow.com/questions/5651763/django-want-to-print-the-date-time-for-today #}
-      <p>Rent Rocket - {% now "Y" %}</p>
+      <p>&copy; RentRocket.org - {% now "Y" %}</p>
     </footer>
     
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
@@ -73,27 +83,18 @@
     
     <script type="text/javascript" src="/static/js/lib/require.js"></script>
 
-    <script type="text/javascript">
-      {% comment %}
-      //this allows require.js to be in a different directory (lib)
-      //than main custom code
-      //
-      //keeping it at layout level so that any updates to versions
-      //only requires changes in one place
-      {% endcomment %}
-
-      require.config({
-	baseUrl: '/static/js',
-	paths: {
-		'jquery' : 'lib/jquery-1.7.1',
-                'lodash' : 'lib/lodash',
-                'ko'     : 'lib/knockout-2.2.1'
-	}
-      });
-    </script>
-
     {% block script %}
     <script type="text/javascript">
+      //this allows require.js to be in a different directory (lib)
+      //than main custom code
+      require.config({
+		baseUrl: 'static/js',
+		paths: {
+			'jquery' : 'lib/jquery-1.7.1',
+	                'lodash' : 'lib/lodash',
+	                'ko'     : 'lib/knockout-2.2.1.js'
+		}
+      });
       require(['main'], function(main) {});
     </script>
     {% endblock %}

@@ -349,6 +349,10 @@ body {
   height: 100%;
   background-color: #fdf6e3;
 }
+h2 {
+  margin-top: 0;
+  margin-bottom: .83em;
+}
 header {
   width: 100%;
   text-align: center;
@@ -454,12 +458,17 @@ footer {
   clear: both;
 }
 .page {
-  margin: 30px;
+  margin-left: 30px;
+  margin-right: 30px;
   clear: both;
 }
 .centered {
+  clear: both;
   text-align: center;
   width: 100%;
+}
+.block {
+  margin: 10px;
 }
 .leftcolumn {
   display: inline;
