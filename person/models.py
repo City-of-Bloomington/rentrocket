@@ -16,3 +16,6 @@ class Person(models.Model):
     #longitude = models.FloatField()
 
     email = models.CharField(max_length=200, blank=True)
+
+    #especially useful for property managers
+    website = models.CharField(max_length=200, blank=True)

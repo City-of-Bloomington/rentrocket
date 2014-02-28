@@ -4,13 +4,6 @@
 
 {% block content %}
 
-{% if user.is_authenticated %}
-    <p>Welcome back, {{ user.username }}. <a href="logout">Log out.</a></p>
-{% else %}
-    {#<p>Please <a href="login">log in</a> or <a href="{% url registration.views.register %}">sign up</a>. </p>#}
-{% endif %}
-
-
 <div class="page">
 <h1 class="centered">ABOUT</h1>
 <p>RentRocket.org was funded through an Innovation Fund grant received from the Urban Sustainability Directors Network, a project of the Global Philanthropy Partnership. In addition to helping tenants find awesome places to live, RentRocket.org aims to:</p>

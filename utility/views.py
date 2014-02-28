@@ -17,18 +17,11 @@ from building.models import Building, Unit, BuildingPerson
 
 from city.models import City, to_tag, all_cities
 from utility.models import UTILITY_TYPES, StatementUpload
+from rentrocket.helpers import get_client_ip
         
 #from filetransfers.api import prepare_upload
 from google.appengine.ext.blobstore import create_upload_url
 
-
-def get_client_ip(request):
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
 
 ENERGY_TYPES = (
     ('electricity', 'Electricity'),

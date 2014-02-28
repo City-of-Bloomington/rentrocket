@@ -1,0 +1,27 @@
+{% if unit.bedrooms %}
+Bedrooms: {{ unit.bedrooms }}<br>
+{% endif %}
+
+{% if unit.bathrooms %}
+Bathrooms: {{ unit.bathrooms }}<br>
+{% endif %}
+
+{% if unit.sqft %}
+Square Feet: {{ unit.sqft }}<br>
+{% endif %}
+
+{% if unit.floor %}
+Floor Number: {{ unit.floor }}<br>
+{% endif %}
+
+{% if unit.max_occupants %}
+Maximum Occupants: {{ unit.max_occupants }}<br>
+{% endif %}
+
+<ul class="actions">
+  
+  <li class="action"><form class="button_link" action="/utility/upload/{{ unit.building.city.state }}/{{ unit.building.city.name_tag }}/{{ unit.building.tag }}/{{ unit.tag|urlencode }}"><button type="submit"><img src="/static/img/up.png" class="icon"> Upload Energy Data</button></form></li>
+  <li class="action"><form class="button_link" action="/listing/add/{{ unit.building.city.tag }}/{{ unit.building.tag }}/{{ unit.tag|urlencode }}"><button type="submit"><img src="/static/img/plus.png" class="icon"> Add Rental Listing</button></form></li>
+</ul>
+
+<br>

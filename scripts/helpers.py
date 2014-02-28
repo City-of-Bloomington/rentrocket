@@ -203,7 +203,8 @@ def make_unit(apt_num, building):
         unit = Unit()
         unit.building = building
         unit.number = apt_num
-        unit.address = building.address + ", " + apt_num
+        # don't want to set this unless it's different:
+        #unit.address = building.address + ", " + apt_num
 
         ## bedrooms
         ## bathrooms

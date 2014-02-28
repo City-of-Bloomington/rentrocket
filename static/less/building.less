@@ -1,22 +1,31 @@
+@import 'globals.less';
 @import 'colors.less';
 
 #image_nav {
     float: left;
     list-style-type: none;
-    padding-right: .5em;
+    margin-right: .5em;
+    padding-left: 0;
+    .rounded(@radius);
+    .bordered(@bordercolor, @bordercolor, @bordercolor, @bordercolor);
+    background-color: @lightgrey;
+
 }
 
 .image_nav_link {
     text-decoration: none;
+    color: @brown;
 }
 
 .image_nav_li {
     padding: .5em;
+    /*
     //border-width: 1px;
     border: @grayLight;
     //border-style: solid;
     border-collapse: collapse;
     background-color: @grayLighter;
+    */
 }
 
 
@@ -34,3 +43,46 @@ li.action {
     width: 18px;
     heigh: 18px;
 }
+
+.details {
+    .roundedbox();
+}
+
+#image_box{
+    .section();
+}
+
+.relation {
+    font-weight: bold;
+}
+
+.person {
+    margin-bottom: .5em;
+}
+
+#address {
+    display: inline-block;
+    margin: 0px;
+    margin-top: .75em;
+    padding: 0px;
+}
+
+
+/*
+.energy_usage {
+    .rounded(5px);
+}
+
+.amenities {
+    .rounded(5px);
+}
+
+.smart_living {
+    .rounded(5px);
+}
+
+.contact {
+    .rounded(5px);
+}
+*/
+

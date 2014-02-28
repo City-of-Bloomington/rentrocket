@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ city.name }} Resources: Rent Rocket{% endblock %}
+
+{% block content %}
+
+<div class="page">
+
+{{ result|safe }}
+
+</div>
+
+{% endblock %} {# content #}
+    
+{% block script %}
+<script type="text/javascript">
+  require(['main'], function(main) {});
+</script>
+{% endblock %}

@@ -9,6 +9,10 @@ define(['jquery', 'lodash', 'ko'], function($, _, ko) {
 
 	self.viewing = ko.observable("street_view");
 
+	self.editing_building = ko.observable(false);
+	self.editing_unit = ko.observable(false);
+	self.current_unit = ko.observable("");
+
 	//console.log("made it here");
 
 	self.view_map = function() {

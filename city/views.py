@@ -7,6 +7,7 @@ from django.shortcuts import render, redirect
 from django import forms
 
 from models import City, to_tag, all_cities
+from resource_data import resource_data
 
 class CitySelectForm(forms.Form):
     options = [ ('', "Choose location...") ]
@@ -74,9 +75,12 @@ def resources(request, city_tag):
     #result = ""
     if city:
         #result += "Found match: %s" % city[0].name
-        result = "Resources for renters in %s, %s" % (city['name'], city['state'])
+        result = "<h2>%s, %s Resources:</h2>" % (city['name'], city['state'])
+        if resource_data.has_key(city['tag']):
+            result += resource_data[city['tag']]
+
         context = {'city': city, 'result':result}
-        return render(request, 'change_city.html', context )
+        return render(request, 'resources.html', context )
     else:
         url = "/city/new" 
         return redirect(url)

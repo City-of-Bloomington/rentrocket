@@ -1,16 +1,36 @@
+/*---------------------------------------------------
+    LESS Elements 0.9
+  ---------------------------------------------------
+    A set of useful LESS mixins
+    More info at: http://lesselements.com
+  ---------------------------------------------------*/
 #image_nav {
   float: left;
   list-style-type: none;
-  padding-right: .5em;
+  margin-right: .5em;
+  padding-left: 0;
+  -webkit-border-radius: 11px;
+  -moz-border-radius: 11px;
+  border-radius: 11px;
+  border-top: solid 1px #4a4435;
+  border-left: solid 1px #4a4435;
+  border-right: solid 1px #4a4435;
+  border-bottom: solid 1px #4a4435;
+  background-color: #b3b4a3;
 }
 .image_nav_link {
   text-decoration: none;
+  color: #4a4435;
 }
 .image_nav_li {
   padding: .5em;
-  border: #999999;
-  border-collapse: collapse;
-  background-color: #eeeeee;
+  /*
+    //border-width: 1px;
+    border: @grayLight;
+    //border-style: solid;
+    border-collapse: collapse;
+    background-color: @grayLighter;
+    */
 }
 ul.actions {
   padding: 0px;
@@ -23,3 +43,48 @@ li.action {
   width: 18px;
   heigh: 18px;
 }
+.details {
+  -webkit-border-radius: 11px;
+  -moz-border-radius: 11px;
+  border-radius: 11px;
+  border-top: solid 1px #4a4435;
+  border-left: solid 1px #4a4435;
+  border-right: solid 1px #4a4435;
+  border-bottom: solid 1px #4a4435;
+  background: #eee8d5;
+  padding: .5em;
+  margin-top: .75em;
+}
+#image_box {
+  padding: .5em;
+  margin-top: .75em;
+}
+.relation {
+  font-weight: bold;
+}
+.person {
+  margin-bottom: .5em;
+}
+#address {
+  display: inline-block;
+  margin: 0px;
+  margin-top: .75em;
+  padding: 0px;
+}
+/*
+.energy_usage {
+    .rounded(5px);
+}
+
+.amenities {
+    .rounded(5px);
+}
+
+.smart_living {
+    .rounded(5px);
+}
+
+.contact {
+    .rounded(5px);
+}
+*/

@@ -1,0 +1,64 @@
+@import 'grid.less';
+@import 'colors.less';
+
+// Specify the number of columns and set column and gutter widths
+@columns: 12;
+@column-width: 60;
+@gutter-width: 20;
+
+// Remove the definition below for a pixel-based layout
+@total-width: 100%;
+
+select {
+    width: 14em;
+}
+
+.errorlist {
+    color: @red;
+    list-style: none; 
+    //float: right;
+    //margin-before: 1em;
+    //margin-after: 1em;
+    //vertical-align: top;
+    display: inline-block;
+}
+
+.error {
+    display: inline-block;
+    .column(3);
+}
+.label {
+    display: inline-block;
+    .column(3);
+    text-align: right;
+}
+.field {
+    display: inline-block;
+    .column(5);
+}
+
+.widget {
+    margin-top: 1em;
+    margin-bottom: 1em;
+    overflow: auto;
+}
+
+.clear {
+    clear: both;
+}
+
+li {
+    list-style: none; 
+}
+
+ul {
+    padding: 0px;
+}
+
+.yesno {
+    display: inline-block;
+}
+
+.radio {
+    padding-right: .5em;
+}

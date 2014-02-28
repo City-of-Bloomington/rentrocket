@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}Rent Rocket: {{ building.address }} {% endblock %}
+{% block title %}{{ building.address }} {% endblock %}
 
 {% block custom_css %}
     <link rel="stylesheet" href="/static/css/building.css" type="text/css" media="screen" />
@@ -10,38 +10,104 @@
 
 {% block content %}
 
-<div class="leftcolumn">
-<h2>{{ building.address }}</h2> 
-
-{% if building.units.count != 1 %}
-<h3>Units ( {{ building.units.count }} ):</h3>
-{% endif %}
-
-{% for unit in building.units.all %}
-{% if building.units.count != 1 %}
-<h4>{{ unit.number }}</h3>
-{% endif %}
-
-Bedrooms: {{ unit.bedrooms }}<br>
-Bathrooms: {{ unit.bathrooms }}<br>
-Square Feet: {{ unit.sqft }}<br>
-Maximum Occupants: {{ unit.max_occupants }}<br>
-
-<ul class="actions">
-  
-  <li class="action"><form class="button_link" action="/utility/upload/{{ building.city.state }}/{{ building.city.name_tag }}/{{ building.tag }}/{{ unit.tag }}"><button type="submit"><img src="/static/img/up.png" class="icon"> Upload Energy Data</button></form></li>
-  <li class="action"><form class="button_link" action="/listing/add/{{ unit.tag }}/{{ building.tag }}/{{ building.city.tag }}"><button type="submit"><img src="/static/img/plus.png" class="icon"> Add a Rental Listing</button></form></li>
+{% if messages %}
+<ul class="messages">
+  {% for message in messages %}
+  <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+  {% endfor %}
 </ul>
-
-<br>
-{% endfor %}
-
-{% if building.units.count == 1 %}
-<a href="#">Merge with another building (popup explanation)</a>
 {% endif %}
 
-<div style="float:right"><form class="button_link" action="/unit/edit/{{ unit.tag }}/{{ building.tag }}/{{ building.city.tag }}"><button type="submit"><img src="/static/img/edit.png" class="icon"> Edit Details</button></form></div>
+<div class="leftcolumn">
 
+  <h2 id="address">{{ building.address }}</h2> 
+
+  <div class="edit">
+    {% if user.is_authenticated %}
+    <a href="/building/{{ building.tag }}/{{ building.city.tag }}/edit/">
+    {% else %}
+    <a href="/login/?{{ redirect_field }}=/building/{{ building.tag }}/{{ building.city.tag }}/edit/">
+    {% endif %}
+    <img src="/static/img/edit.png" class="icon"></a>
+  </div>
+  
+  {% if building.name %}
+  <h3>{{ building.name }}</h3>
+  {% endif %}
+
+  <div class="details">
+
+    {% if building.type %}
+    <p>Type: {{ building.type }}</p>
+    {% endif %}
+
+    {% if building.sqft %}
+    <p>Size (sqft):{{ building.sqft }}</p>
+    {% endif %}
+
+    {% if building.units.count != 1 %}
+    <p>{{ building.units.count }} Units</p>
+    {% else %}
+    <p>{{ building.units.count }} Unit</p>
+    {% include "unit_snippet.html" with unit=building.units.all|first %}
+    {% endif %}
+  </div>
+
+  <div class="details">
+    <h4>Costs</h4>
+
+    {% if building.max_rent_listing and building.min_rent_listing %}
+    <p>Rent range: {{ building.min_rent_listing }} - {{ building.max_rent_listing }}</p>
+    {% elif building.max_rent_listing %}
+    <p>Rent: {{ building.max_rent_listing }}</p>
+    {% elif building.min_rent_listing %}
+    <p>Rent: {{ building.min_rent_listing }}</p>
+    {% endif %}
+
+
+    {% if building.max_rent and building.min_rent %}
+    <p>Previous rent range: {{ building.min_rent }} - {{ building.max_rent }}</p>
+    {% elif building.max_rent %}
+    <p>Previous rent: {{ building.max_rent }}</p>
+    {% elif building.min_rent %}
+    <p>Previous rent: {{ building.min_rent }}</p>
+    {% endif %}
+
+    
+    {% if building. %}
+    <p>{{ building. }}</p>
+    {% endif %}
+
+    {% if building. %}
+    <p>{{ building. }}</p>
+    {% endif %}
+
+
+
+  </div>
+
+  <div class="details">
+    <h4>Smart Living Features</h4>
+
+  </div>
+
+  <div class="details">
+    <h4>Amenities</h4>
+
+    {% if building.laundry %}
+    <p>Laundry: {{ building.laundry }}</p>
+    {% endif %}
+
+    {% if building.parking_options and building.parking_options|first%}
+    <div class="parking">
+      Parking: 
+      {% for option in building.parking_options %}
+      <span>{{ option }}; </span>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+  </div>
 
 </div>
 
@@ -65,8 +131,66 @@ Maximum Occupants: {{ unit.max_occupants }}<br>
     </div>
 
   </div>
+
+  <div class="details">
+    <h4>Contact Info</h4>
+    {% if building.website %}
+    <p><a href="{{ building.website }}" target="_blank">{{ building.website }}</a></p>
+    {% endif %}
+
+    {% for bperson in building.people.all %}
+    <div class="person">
+      <div><span class="relation">{{ bperson.relation }}:</span> <span class="person_name">{{ bperson.person.name }}</span></div>
+      <div><span class="address">{{ bperson.person.address }}</span>
+	{% if bperson.person.city %}
+	, <span>{{ bperson.person.city.name }}</span>
+	{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+
+  </div>
+
   
 </div>
+
+<div class="leftcolumn">
+</div>
+
+<div class="rightcolumn">
+
+</div>
+
+<div class="leftcolumn">
+
+{% if building. %}
+<p>{{ building. }}</p>
+{% endif %}
+
+</div>
+
+<div class="rightcolumn">
+</div>
+
+
+{% if building.units.count != 1 %}
+<div class="onecolumn">
+  <div class="details">
+    <h4>Units</h4>
+
+    
+      {% for unit in building.units.all %}
+      <div class="{% cycle 'leftcolumn' 'rightcolumn' %}">
+	<h4>{{ unit.unit_address }}</h4>
+	{% include "unit_snippet.html" with unit=unit %}
+      </div>
+      {% endfor %}
+	
+    <div class="clear"></div>
+
+  </div>
+</div>
+{% endif %}
 
 {% endblock %} {# content #}
     

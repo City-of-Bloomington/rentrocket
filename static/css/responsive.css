@@ -342,14 +342,25 @@ body:after {
 body:after {
   clear: both;
 }
+/*---------------------------------------------------
+    LESS Elements 0.9
+  ---------------------------------------------------
+    A set of useful LESS mixins
+    More info at: http://lesselements.com
+  ---------------------------------------------------*/
 html {
   height: 100%;
 }
 body {
   height: 100%;
   background-color: #fdf6e3;
+  color: #4a4435;
 }
 h2 {
+  margin-top: .83em;
+  margin-bottom: .83em;
+}
+h4 {
   margin-top: 0;
   margin-bottom: .83em;
 }
@@ -373,22 +384,28 @@ header img {
 #nav-wrap {
   width: 100%;
   text-align: center;
+  background-color: #b3b4a3;
+  display: inline-block;
 }
 .nav {
   display: inline-block;
   margin: 0px;
   margin-top: .5em;
-  margin-bottom: .5em;
+  margin-bottom: 0em;
   padding: 0px;
+}
+#about {
+  text-decoration: none;
+  color: #555a3c;
 }
 a.nav-link:link,
 a.nav-link:visited {
   text-decoration: none;
-  font-size: 20px;
-  color: #859900;
+  color: #555a3c;
+  font-size: 1.2em;
   /*
-a, 	  display:block; 
-	  background: #EFE9ED;*/
+  a, 	  display:block; 
+  background: #EFE9ED;*/
 }
 /*Style for the nav menu */
 .nav-item {
@@ -400,6 +417,13 @@ a, 	  display:block;
 }
 li.nav-item:hover {
   text-decoration: none;
+}
+#content {
+  clear: both;
+}
+.page {
+  margin: .5em;
+  clear: both;
 }
 .inset {
   width: 200px;
@@ -454,14 +478,6 @@ footer {
   width: 97.91666666666666%;
   margin: 0 1.0416666666666665%;
 }
-#content {
-  clear: both;
-}
-.page {
-  margin-left: 30px;
-  margin-right: 30px;
-  clear: both;
-}
 .centered {
   clear: both;
   text-align: center;
@@ -469,6 +485,26 @@ footer {
 }
 .block {
   margin: 10px;
+}
+.edit {
+  display: inline-block;
+  margin: 0px;
+  margin-left: .5em;
+  padding: 0px;
+}
+.row {
+  display: inline-block;
+  margin: 0px;
+  padding: 0px;
+}
+.messages {
+  list-style: none;
+}
+.info {
+  color: #dc322f;
+}
+.clear {
+  clear: both;
 }
 .leftcolumn {
   display: inline;
@@ -480,6 +516,12 @@ footer {
   display: inline;
   float: left;
   width: 47.91666666666667%;
+  margin: 0 1.0416666666666665%;
+}
+.onecolumn {
+  display: inline;
+  float: left;
+  width: 97.91666666666666%;
   margin: 0 1.0416666666666665%;
 }
 @media screen and (max-width: 720px) {

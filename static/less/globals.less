@@ -1,0 +1,36 @@
+@import 'elements.less';
+@import 'colors.less';
+
+//B3B4A3,555A3C,859900,FCD158,4A4435
+
+@lightgrey: #B3B4A3;
+@darkgrey: #555A3C;
+//defined in colors too:
+//@green: #859900;
+
+@yellow: #FCD158;
+@brown: #4A4435;
+
+//@bordercolor: @black;
+@bordercolor: #4A4435;
+@radius: 11px;
+
+.links () {
+    text-decoration: none;
+    color: @darkgrey;
+}
+
+
+.section () {
+    // a section on the details page
+    padding: .5em;
+    margin-top: .75em;
+}
+
+.roundedbox () {
+    .rounded(@radius);
+    .bordered(@bordercolor, @bordercolor, @bordercolor, @bordercolor);
+    background: @base2;
+    .section();
+}
+

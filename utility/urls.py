@@ -11,9 +11,9 @@ urlpatterns = patterns(
     #url(r'upload/(?P<state>\w+)/(?P<city_name>\w+)/(?P<bldg_tag>\w+)/$', views.upload),
     #url(r'upload/(?P<state>\w+)/(?P<city_name>\w+)/$', views.upload),
     
-    url(r'upload/(?P<state>\w+)/(?P<city_name>.+)/(?P<bldg_tag>\w+)/(?P<unit_tag>\w+)/$', views.upload),
-    url(r'upload/(?P<state>\w+)/(?P<city_name>.+)/(?P<bldg_tag>\w+)/$', views.upload),
-    url(r'upload/(?P<state>\w+)/(?P<city_name>.+)/$', views.upload),
+    url(r'upload/(?P<state>\w+)/(?P<city_name>\w+)/(?P<bldg_tag>\w+)/(?P<unit_tag>[\w#]+)/$', views.upload),
+    url(r'upload/(?P<state>\w+)/(?P<city_name>\w+)/(?P<bldg_tag>\w+)/$', views.upload),
+    url(r'upload/(?P<state>\w+)/(?P<city_name>\w+)/$', views.upload),
     #url(r'test/$', views.upload_handler),
     url(r'thank_you/$', views.thank_you),
     url(r'secret/$', views.secret),

@@ -28,9 +28,9 @@ from helpers import save_json, load_json, Location, Geo, save_results, make_buil
 sys.path.append(os.path.dirname(os.getcwd()))
 
 #http://stackoverflow.com/questions/8047204/django-script-to-access-model-objects-without-using-manage-py-shell
-from rentrocket import settings
-from django.core.management import setup_environ
-setup_environ(settings)
+## from rentrocket import settings
+## from django.core.management import setup_environ
+## setup_environ(settings)
 
 from city.models import City, to_tag
 from source.models import FeedInfo, Source
@@ -81,7 +81,7 @@ conversions = { "3111 S LEONARD SPRINGS RD": '',
 
 
 def read_csv(source_csv):
-    city_options = City.objects.filter(tag="bloomington")
+    city_options = City.objects.filter(tag="bloomington_in")
     print "Number of cities available: %s" % len(city_options)
     if not len(city_options):
         raise ValueError, "CITY NOT FOUND! run make_cities.py first"

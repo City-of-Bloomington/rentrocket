@@ -11,6 +11,7 @@ admin.autodiscover()
 urlpatterns = patterns(
     '',
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^login/$', 'allauth.account.views.login', name='login'),
     url(r'^login', 'allauth.account.views.login', name='login'),
     url(r'^logout', 'django.contrib.auth.views.logout', {'next_page': '/'}, name='logout'),
                            

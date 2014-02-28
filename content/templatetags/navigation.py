@@ -36,8 +36,8 @@ def make_nav(context):
 
         select_form.fields['choice'].initial = stored['tag']
     
-
-    nav_items.append( ('/about', "About") )
+    # for showing about in the navigation:
+    #nav_items.append( ('/about', "About") )
 
     ## t = loader.get_template('navigation.html')
     ## c = Context({'items': nav_items, 'form': select_form})
