@@ -1,0 +1,51 @@
+@import 'globals.less';
+@import 'colors.less';
+
+#map-canvas {
+    width: 100%;
+    height: 75%;
+}
+
+#legend {
+    margin-right: 5px;
+    text-align: right;
+    background: @lightgrey;
+    .roundedbox();
+}
+.description {
+    vertical-align: bottom;
+    width: 10px;
+    margin-right: 3px;
+    display: inline-table;
+}
+
+.icon {
+    height: 40px;
+    width: 23px;
+}
+
+.half {
+    width: 100px;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.address {
+    //width: px;
+    margin: 0px;
+    //margin-top: .75em;
+    padding: 0px;
+}
+
+.address a {
+    .links();
+}
+
+.building a {
+    .links();
+}
+
+.data {
+}
+
+

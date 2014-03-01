@@ -113,6 +113,7 @@ def to_tag(item):
     item = re.sub("\\\\'", '', item)
     item = re.sub("\\'", '', item)
     item = re.sub("'", '', item)
+    item = re.sub("#", '', item)
     
     #todo:
     # filter any non alphanumeric characters

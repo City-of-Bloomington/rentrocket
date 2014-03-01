@@ -1,0 +1,18 @@
+  <div id="image_box">
+    <ul id="image_nav">
+      <li class="image_nav_li" data-bind="click: view_street_view"><a class="image_nav_link" href="#">street view</a></li>
+      <li class="image_nav_li" data-bind="click: view_map"><a class="image_nav_link" href="#">map</a></li>
+      <li class="image_nav_li" data-bind="click: view_photos"><a class="image_nav_link" href="#">photos</a></li>
+    </ul>
+
+    <div id="street_view" data-bind="if: viewing() === 'street_view'">
+      <img src="http://maps.googleapis.com/maps/api/streetview?size=600x600&location={{ building.address|urlencode }},{{ building.city.name }},{{ building.state }}&sensor=false" width="300">
+    </div>
+    <div id="street_view" data-bind="if: viewing() === 'map'">
+      <img src="http://maps.googleapis.com/maps/api/staticmap?center={{building.latitude}},{{building.longitude}}&zoom=15&size=300x300&markers={{building.latitude}},{{building.longitude}}&sensor=false">
+    </div>
+    <div id="street_view" data-bind="if: viewing() === 'photos'">
+      <img src="/static/img/no-available-image.png" width="300" height="300">
+    </div>
+
+  </div>

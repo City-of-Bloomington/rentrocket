@@ -6,17 +6,7 @@
     <link rel="stylesheet" href="/static/css/building.css" type="text/css" media="screen" />
 {% endblock %}
 
-
-
 {% block content %}
-
-{% if messages %}
-<ul class="messages">
-  {% for message in messages %}
-  <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-  {% endfor %}
-</ul>
-{% endif %}
 
 <div class="leftcolumn">
 
@@ -42,115 +32,57 @@
     {% endif %}
 
     {% if building.sqft %}
-    <p>Size (sqft):{{ building.sqft }}</p>
+    <p>Size (sqft): {{ building.sqft }}</p>
     {% endif %}
 
-    {% if building.units.count != 1 %}
-    <p>{{ building.units.count }} Units</p>
+    {% if units|length != 1 %}
+    <p>{{ units|length }} Units</p>
     {% else %}
-    <p>{{ building.units.count }} Unit</p>
+    <p><div class="num_units">{{ units|length }} Unit</div>
+      
+	{% include "edit_unit.html" with unit=units|first %}
+
+    </p>
+    {% endif %}
+
+    {% if units|length == 1 %}
     {% include "unit_snippet.html" with unit=building.units.all|first %}
     {% endif %}
+
   </div>
 
   <div class="details">
     <h4>Costs</h4>
 
-    {% if building.max_rent_listing and building.min_rent_listing %}
-    <p>Rent range: {{ building.min_rent_listing }} - {{ building.max_rent_listing }}</p>
-    {% elif building.max_rent_listing %}
-    <p>Rent: {{ building.max_rent_listing }}</p>
-    {% elif building.min_rent_listing %}
-    <p>Rent: {{ building.min_rent_listing }}</p>
-    {% endif %}
+    {% include "building_rents.html" %}
 
-
-    {% if building.max_rent and building.min_rent %}
-    <p>Previous rent range: {{ building.min_rent }} - {{ building.max_rent }}</p>
-    {% elif building.max_rent %}
-    <p>Previous rent: {{ building.max_rent }}</p>
-    {% elif building.min_rent %}
-    <p>Previous rent: {{ building.min_rent }}</p>
-    {% endif %}
-
-    
-    {% if building. %}
-    <p>{{ building. }}</p>
-    {% endif %}
-
-    {% if building. %}
-    <p>{{ building. }}</p>
-    {% endif %}
-
-
-
-  </div>
-
-  <div class="details">
-    <h4>Smart Living Features</h4>
-
-  </div>
-
-  <div class="details">
-    <h4>Amenities</h4>
-
-    {% if building.laundry %}
-    <p>Laundry: {{ building.laundry }}</p>
-    {% endif %}
-
-    {% if building.parking_options and building.parking_options|first%}
-    <div class="parking">
-      Parking: 
-      {% for option in building.parking_options %}
-      <span>{{ option }}; </span>
-      {% endfor %}
+    <div>
+      <div>Average monthly costs for:</div>
+      {% include "average_cost.html" with average=building.average_electricity name="Electricity" who_pays=building.who_pays_electricity %}
+      {% include "average_cost.html" with average=building.average_gas name="Natural Gas" who_pays=building.who_pays_gas %}
+      {% include "average_cost.html" with average=building.average_water name="Water" who_pays=building.who_pays_water %}
+      {% include "average_cost.html" with average=building.average_trash name="Trash" who_pays=building.who_pays_trash %}
     </div>
-    {% endif %}
 
+    {% include "heat_source.html" %}
+    
+    {% if building.cost_per_sqft %}
+    <p>Energy cost per sqft: ${{ building.cost_per_sqft|floatformat:3 }}</p>
+    {% endif %}
+    
   </div>
+
+  {% include "amenities.html" %}
 
 </div>
 
 <div class="rightcolumn">
 
-  <div id="image_box">
-    <ul id="image_nav">
-      <li class="image_nav_li" data-bind="click: view_street_view"><a class="image_nav_link" href="#">street view</a></li>
-      <li class="image_nav_li" data-bind="click: view_map"><a class="image_nav_link" href="#">map</a></li>
-      <li class="image_nav_li" data-bind="click: view_photos"><a class="image_nav_link" href="#">photos</a></li>
-    </ul>
+  {% include "image_box.html" %}
 
-    <div id="street_view" data-bind="if: viewing() === 'street_view'">
-      <img src="http://maps.googleapis.com/maps/api/streetview?size=300x300&location={{ building.address|urlencode }},{{ building.city.name }},{{ building.state }}&sensor=false">
-    </div>
-    <div id="street_view" data-bind="if: viewing() === 'map'">
-      <img src="http://maps.googleapis.com/maps/api/staticmap?center={{building.latitude}},{{building.longitude}}&zoom=15&size=300x300&markers={{building.latitude}},{{building.longitude}}&sensor=false">
-    </div>
-    <div id="street_view" data-bind="if: viewing() === 'photos'">
-      <img src="/static/img/no-available-image.png" width="300" height="300">
-    </div>
+  {% include "smart_living.html" %}
 
-  </div>
-
-  <div class="details">
-    <h4>Contact Info</h4>
-    {% if building.website %}
-    <p><a href="{{ building.website }}" target="_blank">{{ building.website }}</a></p>
-    {% endif %}
-
-    {% for bperson in building.people.all %}
-    <div class="person">
-      <div><span class="relation">{{ bperson.relation }}:</span> <span class="person_name">{{ bperson.person.name }}</span></div>
-      <div><span class="address">{{ bperson.person.address }}</span>
-	{% if bperson.person.city %}
-	, <span>{{ bperson.person.city.name }}</span>
-	{% endif %}
-      </div>
-    </div>
-    {% endfor %}
-
-  </div>
-
+  {% include "contacts.html" %}
   
 </div>
 
@@ -173,16 +105,30 @@
 </div>
 
 
-{% if building.units.count != 1 %}
+{% if units|length != 1 %}
 <div class="onecolumn">
   <div class="details">
     <h4>Units</h4>
 
     
-      {% for unit in building.units.all %}
+      {% for unit in units %}
       <div class="{% cycle 'leftcolumn' 'rightcolumn' %}">
-	<h4>{{ unit.unit_address }}</h4>
-	{% include "unit_snippet.html" with unit=unit %}
+	<h4 class="unit_number">
+	  <a href="{% url building.views.unit_details city_tag=building.city.tag bldg_tag=building.tag unit_tag=unit.tag %}">
+	    {{ unit.unit_address }}
+	</a></h4> 
+
+	{% include "edit_unit.html" with unit=unit %}
+
+	<div class="unit">
+	  {% if unit.rent %}
+	  Current rent: ${{ unit.rent|floatformat:2 }}<br>
+	  {% endif %}
+
+
+	  {% include "unit_snippet.html" with unit=unit %}
+	</div>
+	
       </div>
       {% endfor %}
 	

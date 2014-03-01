@@ -1,0 +1,36 @@
+  <div class="details">
+    <h4>Amenities</h4>
+
+    {% if building.air_conditioning %}
+    <div class="data">Air Conditioning</div>
+    {% endif %}
+
+    {% if building.laundry %}
+    <div class="data">Laundry: {{ building.laundry }}</div>
+    {% endif %}
+
+    {% include "list_of_items.html" with options=building.parking_options name="Parking" other="" %}
+
+    {% include "list_of_items.html" with options=building.pets_options name="Pets" other=building.pets_other %}
+
+    {% if building.gym %}
+    <div class="data">Gym</div>
+    {% endif %}
+
+    {% if building.pool %}
+    <div class="data">Pool</div>
+    {% endif %}
+
+    {% if building.game_room %}
+    <div class="data">Game Room</div>
+    {% endif %}
+
+    {% if building.amenities %}
+    <div class="amenities">
+      <div>Other Amenities:</div>
+      <div>{{ building.amenities }}</div>
+    </div>
+    {% endif %}
+
+
+  </div>

@@ -1,0 +1,20 @@
+	<div class="edit">
+	  {% if user.is_authenticated %}
+	  {% if unit.tag %}
+	  <a href="{% url building.views.unit_edit city_tag=building.city.tag bldg_tag=building.tag unit_tag=unit.tag %}">
+	  {% else %}
+	  <a href="{% url building.views.unit_edit city_tag=building.city.tag bldg_tag=building.tag %}">
+	  {% endif %}
+
+
+	  {% else %}
+	  {% if unit.tag %}
+	  <a href="/login/?{{ redirect_field }}={% url building.views.unit_edit city_tag=building.city.tag bldg_tag=building.tag unit_tag=unit.tag %}">
+	  {% else %}
+	  <a href="/login/?{{ redirect_field }}={% url building.views.unit_edit city_tag=building.city.tag bldg_tag=building.tag %}">
+	  {% endif %}
+
+	  {% endif %}
+	  <img src="/static/img/edit.png" class="icon"></a>
+	</div>
+	

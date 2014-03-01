@@ -1,0 +1,17 @@
+    {% if average %}
+    <p>
+      <span class="average">{{ name }}: ${{ average|floatformat:2 }}</span>
+      {% if who_pays == "tenant" or who_pays == "tenant_via_landlord" %}
+      <span class="who_pays"><b>Separate</b></span>
+      {% elif who_pays == "landlord" %}
+      <span class="who_pays"><b>Included</b></span>
+      {% elif who_pays == "not_available" %}
+      <span class="who_pays"><b>Service Not Available</b></span>
+      {% elif who_pays == "unknown" or who_pays == "other" %}
+      <span class="who_pays"><b>Unknown</b></span>      
+      {% endif %}
+
+    </p>
+    
+    {% endif %}
+

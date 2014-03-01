@@ -1,0 +1,16 @@
+    {% if building.max_rent_listing and building.min_rent_listing %}
+    <p>Listing rent range: ${{ building.min_rent_listing|floatformat:2 }} - ${{ building.max_rent_listing|floatformat:2  }}</p>
+    {% elif building.max_rent_listing %}
+    <p>Listing rent: ${{ building.max_rent_listing|floatformat:2 }}</p>
+    {% elif building.min_rent_listing %}
+    <p>Listing rent: ${{ building.min_rent_listing|floatformat:2  }}</p>
+    {% endif %}
+
+
+    {% if building.max_rent and building.min_rent %}
+    <p>Current rent range: ${{ building.min_rent|floatformat:2  }} - ${{ building.max_rent|floatformat:2  }}</p>
+    {% elif building.max_rent %}
+    <p>Current rent: ${{ building.max_rent|floatformat:2  }}</p>
+    {% elif building.min_rent %}
+    <p>Current rent: ${{ building.min_rent|floatformat:2  }}</p>
+    {% endif %}

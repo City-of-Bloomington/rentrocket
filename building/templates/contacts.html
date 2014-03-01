@@ -1,0 +1,18 @@
+  <div class="details">
+    <h4>Contact Info</h4>
+    {% if building.website %}
+    <p><a href="{{ building.website }}" target="_blank">{{ building.website }}</a></p>
+    {% endif %}
+
+    {% for bperson in building.people.all %}
+    <div class="person">
+      <div><span class="relation">{{ bperson.relation }}:</span> <span class="person_name">{{ bperson.person.name }}</span></div>
+      <div><span class="address">{{ bperson.person.address }}</span>
+	{% if bperson.person.city %}
+	, <span>{{ bperson.person.city.name }}</span>
+	{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+
+  </div>

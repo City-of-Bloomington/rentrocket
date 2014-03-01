@@ -2,6 +2,7 @@ from django.db import models
 
 from django.contrib.auth.models import User
 from django.forms.models import model_to_dict
+from django.core.urlresolvers import reverse
 
 from jsonfield import JSONField
 
@@ -10,6 +11,7 @@ from city.models import City
 from person.models import Person
 from rentrocket.helpers import to_tag, MultiSelectField
 
+from urllib import urlencode
 
 #http://stackoverflow.com/questions/1355150/django-when-saving-how-can-you-check-if-a-field-has-changed
 class ModelDiffMixin(object):
@@ -107,6 +109,35 @@ class Parcel(models.Model):
     ## Unique identifier for the residential building.  Can correspond to more than one parcel_id or an address range
 
 
+def tally_energy_total(building, source):
+    """
+    building is used to get the 'who_pays...' data
+    source can be either a unit or a building
+    depending on which average you want to tally
+    """
+    complete = True
+
+    total = 0
+    for opt in [ ('average_electricity', 'who_pays_electricity'),
+                 ('average_gas', 'who_pays_gas'), ]:
+
+        who_pays = getattr(building, opt[1])
+        value = getattr(source, opt[0])
+        if (who_pays == 'not_available'):
+            # service is not available at the location... 
+            # should only be the case with natural gas
+            # won't affect complete status
+            pass
+
+        #5 is arbitrary...
+        #trying to avoid someone putting in a fake low value
+        elif value and value > 5:
+            total += value
+        else:
+            complete = False
+
+    return total, complete
+
 class Building(models.Model, ModelDiffMixin):
     """
     an indivdual structure
@@ -139,18 +170,20 @@ class Building(models.Model, ModelDiffMixin):
     latitude = models.FloatField()
     longitude = models.FloatField()
 
+    #blank=True means not required
 
     #optional property name
     name = models.CharField(max_length=80, blank=True, default='')
 
     #Type of residential property:
     #( single family, duplex, multi-family, single room occupancy,  etc)
-    #blank=True means not required
     #type = models.CharField(max_length=30, blank=True)
     TYPE_CHOICES = (
         ('apartment', 'Apartment'),
         ('duplex', 'Duplex'),
+        #aka single family
         ('house', 'House'),
+        #aka multi-family
         ('multiunit', 'Multi-Unit Building'),
         ('room', 'Room'),
         ('condo', 'Condo'),
@@ -168,12 +201,20 @@ class Building(models.Model, ModelDiffMixin):
     #Recorded building square feet 
     sqft = models.IntegerField(default=0)
 
+    #this is the average size of all units in the building...
+    #used in calculating energy scores
+    average_sqft = models.FloatField(default=0)
+    #alternatively, if we have the total sqft for the building (self.sqft)
+    #could divide that by the number of units
+
     #Current assessed property value.
     value = models.FloatField(default=0)
 
     #might be better to keep this with the property manager
     #but making it here just in case
     website = models.CharField(max_length=200, blank=True)
+
+
 
     #RENT STATS
     #these should all be updated when a unit or listing changes, or nightly
@@ -228,6 +269,8 @@ class Building(models.Model, ModelDiffMixin):
     #these can help when search for a specific total price range    
     estimated_total_min = models.FloatField(default=0)
     estimated_total_max = models.FloatField(default=0)
+    #similar estimated for listing min and max?
+    #or should these just be property values?
 
     #only gas and electric included here:  (use this / sqft for energy score)
     energy_average = models.FloatField(default=0)
@@ -236,7 +279,7 @@ class Building(models.Model, ModelDiffMixin):
     #once we have energy data,
     #we will want to summarize the results here
     #so that we can use this to color code appropriately
-    energy_score = models.IntegerField(default=0)
+    energy_score = models.FloatField(default=0)
 
     #when utility data was last updated (age of data)
     utility_data_updated = models.DateTimeField(blank=True, null=True)
@@ -271,7 +314,6 @@ class Building(models.Model, ModelDiffMixin):
     energy_saving_details = MultiSelectField(max_length=100, choices=ENERGY_SAVING_CHOICES, default='', blank=True)
     energy_saving_other = models.CharField(max_length=255, default='', blank=True)
 
-
     RENEWABLE_CHOICES = (
         ('solar', 'Solar (electric or hot water)'),
         ('geothermal', 'Geothermal/heat pumps'),
@@ -282,6 +324,7 @@ class Building(models.Model, ModelDiffMixin):
     #renewable_energy_details = JSONField(default='""')
     renewable_energy_details = MultiSelectField(max_length=100, choices=RENEWABLE_CHOICES, default='', blank=True)
     renewable_energy_other = models.CharField(max_length=255, default='', blank=True)
+
 
 
     #smart-living:
@@ -423,7 +466,151 @@ class Building(models.Model, ModelDiffMixin):
     #unfortunately this doesn't work
     #tag = models.CharField(max_length=200, default=to_tag(str(address)))
     tag = models.CharField(max_length=200, default='')
+
+
+    def update_rent_details(self):
+        """
+        call this after update utility averages
+        that way most recent totals can be applied to estimated total
+
+        TODO:
+        similar function to update listing price ranges
+        ...
+        or maybe just show the estimate when looking at the actual listing
+        """
+        
+        #for all units, regardless of available listings:
+        #these should not both be set if they are equal... leave one set to zero
+        #max_rent = models.FloatField(default=0)
+        #min_rent = models.FloatField(default=0)
+
+        building_values = {}
+        first = True
+        for unit in self.units.all():
+            if unit.rent:
+                if first:
+                    #reset both of them:
+                    self.max_rent = unit.rent
+                    self.min_rent = unit.rent
+                    first = False
+                else:
+                    if unit.rent > self.max_rent:
+                        self.max_rent = unit.rent
+                    if unit.rent < self.min_rent:
+                        self.min_rent = unit.rent
+
+        if self.max_rent == self.min_rent:
+            #zero out one of the values,
+            #so they aren't both displayed on the template
+            self.min_rent = 0
+
+        ## #then add utilities (if tenant pays) to come up with estimated_totals
+        ## #these can help when search for a specific total price range    
+        if self.total_average and self.max_rent:
+            self.estimated_total_max = self.max_rent + self.total_average
+
+        if self.total_average and self.min_rent:
+            self.estimated_total_min = self.min_rent + self.total_average
+
+        self.save()
+
+        
     
+    def update_utility_averages(self):
+        """
+        go through all associated units
+        calculate the average utility cost for each type of service
+        and store that in the corresponding local variable
+        """
+        #group all valid (non-zero) values by type
+        building_values = {}
+        for unit in self.units.all():
+            for average_type in ['average_electricity', 'average_gas', 'average_water', 'average_trash', 'sqft']:
+                value = getattr(unit, average_type)
+                if value:
+                    #rather than checking if key exists in dictionary:
+                    #(or using a defaultdict)
+                    building_values.setdefault(average_type, []).append(value)
+                    
+        #then compute the average_value for each type with valid values
+        for key in building_values.keys():
+            total = sum(building_values[key])
+            average_value = total * 1.0 / len(building_values[key])
+
+            #special case for sqft... 
+            if key == 'sqft':
+                setattr(self, 'average_sqft', average_value)
+            else:
+                setattr(self, key, average_value)
+
+        #now that the averages have been tallied (as best as possible)
+        #update other values that depend on those:
+
+        #assume we have everything, until we find a missing value
+        complete = True
+        total = 0
+        for opt in [ ('average_electricity', 'who_pays_electricity'),
+                     ('average_gas', 'who_pays_gas'),
+                     ('average_water', 'who_pays_water'),
+                     ('average_trash', 'who_pays_trash'), ]:
+
+            who_pays = getattr(self, opt[1])
+            if ((who_pays == 'tenant_via_landlord') or
+                (who_pays == 'tenant')):
+                #5 is arbitrary...
+                #trying to avoid someone putting in a fake low value
+                value = getattr(self, opt[0])
+                if value > 5:
+                    total += value
+                else:
+                    complete = False
+
+        #only storing total_average if it complete 
+        if complete:
+            self.total_averge = total
+        else:
+            self.total_averge = 0
+    
+        #only gas and electric included here:
+        #(use this / sqft for energy score)
+        #energy_average = models.FloatField(default=0)
+
+        #assume we have everything, until we find a missing value
+
+        #total, complete = tally_energy_total(building, source)
+        total, complete = tally_energy_total(self, self)
+
+        ## #regardless of who pays utilities, 
+        ## #once we have energy data,
+        ## #we will want to summarize the results here
+        ## #so that we can use this to color code appropriately
+        ## energy_score = models.IntegerField(default=0)
+
+        if complete and total:
+            self.energy_average = total
+            if self.energy_average and self.average_sqft:
+                cost_per_sqft = self.energy_average * 1.0 / self.average_sqft
+                #want lower (better) values to have higher score
+                #that way can sort by score, higher ones show up first
+                self.energy_score = 100.0 / cost_per_sqft
+            #TODO:
+            #could check for self.sqft value
+            #divide by number of units for alternative to self.average_sqft
+            #(especially if self.average_sqft is not available)
+        elif total:
+            #using this to signal that we have some data, but it is incomplete
+            self.energy_score = .0001
+        else:
+            self.energy_score = 0
+
+        self.save()
+        
+    def cost_per_sqft(self):
+        cost_per_sqft = 0
+        if self.energy_average and self.average_sqft:
+            cost_per_sqft = self.energy_average * 1.0 / self.average_sqft
+        return cost_per_sqft
+
     def create_tag(self, force=False):
         if ((not self.tag) and self.address) or force:
             #update stored tag so it also exists
@@ -433,36 +620,15 @@ class Building(models.Model, ModelDiffMixin):
         #either it exists or it won't
         return self.tag
 
-    def to_dict(self):
-        """
-        return a simple dictionary representation of the building
-        this is used by ajax calls to get a representation of the building
-        (via views.lookup)
-
-        see also model_to_dict
-        """
-        profile = '<a href="%s">%s</a>' % (self.url(), self.address)
-        #result = {'address': self.address, 'lat': self.latitude, 'lng': self.longitude}
-        result = {'address': self.address, 'lat': self.latitude, 'lng': self.longitude, 'profile': profile}
-        return result
-
     def url(self):
-        #this might be the main place that building.tag is utilized:
-        tag = self.create_tag()
-        
-        #return "/building/" + self.tag() + '/' + self.city.tag
-        return "/building/" + tag + '/' + self.city.tag
+        """
+        better to use reverse lookup here:
+        """
+        ### old way
+        #tag = self.create_tag()
+        #return "/building/" + tag + '/' + self.city.tag
+        return reverse('building.views.details', args=(self.tag, self.city.tag))
 
-
-
-class UnitType(models.Model):
-    """
-    some buildings may have many units of a similar type
-
-    this could be expanded to allow those details to be grouped
-    """
-    pass
-    
 class Unit(models.Model, ModelDiffMixin):
     """
     an indivdual dwelling or unit
@@ -476,7 +642,7 @@ class Unit(models.Model, ModelDiffMixin):
     #each with a different street number
     #can continue to use the building address in the url
     #even if sections are duplicated here:
-    #completely optional though... only use it if it differs from building 
+    #only use it if it differs from building (do not use if the same!)
     address = models.CharField(max_length=200, blank=True, default='')
 
     #this is more for noting that a property is no longer going to be available
@@ -484,12 +650,12 @@ class Unit(models.Model, ModelDiffMixin):
     #not necessary to use if it's redundant
     #rented, owner-occupied, available, off the market
     STATUS_CHOICES = (
+        ('unknown', 'Unknown'),
         ('rented', 'Rented'),
         ('owner-occupied', 'Owner-Occupied'),
         ('available', 'Available'),
         ('off-the-market', 'Off the market'),
         ('other', 'Other'),
-        ('unknown', 'Unknown'),
         )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='unknown', blank=True)
 
@@ -514,41 +680,68 @@ class Unit(models.Model, ModelDiffMixin):
 
     #use this to track rents after we have a listing
     #this way we can give an estimate of the rent
-    current_rent = models.FloatField(default=0)
-
+    #aka current_rent
+    rent = models.FloatField(default=0)
     
     #allow photos *(more than 1)* to be submitted for the listing
     #photos and floor plans will be handled by:
     #BuildingPhoto and BuildingDocument
 
-    #should be part of utility data tie in here: 
-    #what were the highest and lowest values in a given period
-    #energy_max
-    #energy_min
-
     #unit specific averages:
-    #monthly details should be stored via associated utility models 
-    #average utility cost ($) per month (over 1 year) for each type: 
+    #average utility cost ($) per month (over 1 year) for each type:
+    #eventually these should be calculated from uploaded energy data
+    #for now they can be specified manually
     average_electricity = models.FloatField(default=0)
     average_gas = models.FloatField(default=0)
     average_water = models.FloatField(default=0)
     average_trash = models.FloatField(default=0)
-    
 
+    #monthly details should be stored via associated utility models 
+    #along with mins and maxes
+    #what were the highest and lowest values in a given period
+    #energy_max
+    #energy_min
+    #when utility details are updated, call self.update_averages
+
+    
     added = models.DateTimeField('date published', auto_now_add=True)
     updated = models.DateTimeField('date updated', auto_now=True)
 
-    #this should be stored to assist with lookups
-    #same goes for Building
-    ## def tag(self):
-    ##     return to_tag(self.number) 
-
-    # unfortunately this doesn't work:
-    #tag = models.CharField(max_length=20, default=to_tag(str(number)))
-    tag = models.CharField(max_length=20, default='')
+    #tag should be able to accomodate address *AND* number,
+    #so it should be longer than just 20
+    tag = models.CharField(max_length=255, default='')
 
     class Meta:
         ordering = ['number']
+
+
+    def cost_per_sqft(self):
+        #total, complete = tally_energy_total(building, source)
+        total, complete = tally_energy_total(self.building, self)
+
+        cost_per_sqft = 0
+        if total and self.sqft:
+            cost_per_sqft = total * 1.0 / self.sqft
+        return cost_per_sqft
+
+
+    def url_tag(self):
+        """
+        return tag encoded as a url string... often needed with '#' in tag
+
+        might be better to just get rid of '#' in tags,
+        since they cause such a mess in urls
+        """
+        return urlencode(self.tag)
+    
+    def update_averages(self):
+        """
+        go through all associated utility statements
+        parse the most recent year's worth of data for each type of service
+        generate an average for each,
+        and store that in the corresponding local variable
+        """
+        pass
 
     def unit_address(self):
         """
@@ -592,12 +785,25 @@ class Unit(models.Model, ModelDiffMixin):
             return full
         else:
             return self.building.address.strip()
+
+    def full_address_with_link(self):
+        """
+        similar to full_address, but link to the main building
+        could be more verbose.
+        """
+        if self.number:
+            
+            full = '<a href="%s">%s</a>, %s' % (self.building.url(), self.building.address.strip(), self.number)
+        else:
+            full = '<a href="%s">%s</a>' % (self.building.url(), self.building.address.strip())
+        return full
+
         
-    def create_tag(self):
-        if not self.tag and (self.address or self.number):
+    def create_tag(self, force=False):
+        if (not self.tag and (self.address or self.number)) or force:
             #update stored tag so it also exists
             self.tag = to_tag(self.unit_address())
-            self.put()
+            self.save()
             
         #either it exists or it won't
         return self.tag
@@ -781,7 +987,14 @@ class ChangeDetails(models.Model):
     added = models.DateTimeField('date published', auto_now_add=True)
     
 
+class UnitType(models.Model):
+    """
+    some buildings may have many units of a similar type
 
+    this could be expanded to allow those details to be grouped
+    """
+    pass
+    
 class Permit(models.Model):
     """
     for storing details about the rental permit source

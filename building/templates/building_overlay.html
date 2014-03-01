@@ -1,0 +1,37 @@
+<div class="building">
+  <a href="{{ building.url }}">
+    <div class="address">{{ building.address }}</div>
+    
+    {% if building.name %}
+    <div class="name">{{ building.name }}</div>
+    {% endif %}
+    
+    <div class="half">
+      {% if building.type %}
+      <div class="data">Type: {{ building.type }}</div>
+      {% endif %}
+      
+      {% include "building_rents.html" %}
+      
+      {% comment %} 
+      do not include any unit details here
+      unless they are summarized on the building object itself
+      otherwise the lookups could be more expensive than they already are
+      
+      {% if units|length == 1 %}
+      {% include "unit_snippet.html" with unit=building.units.all|first %}
+      {% endif %}
+      
+      {% endcomment %}
+
+    </div>
+
+
+    <div class="half">
+      <div id="street_view" data-bind="if: viewing() === 'street_view'">
+	<img src="http://maps.googleapis.com/maps/api/streetview?size=200x200&location={{ building.address|urlencode }},{{ building.city.name }},{{ building.state }}&sensor=false" width="100">
+      </div>
+    </div>
+    
+  </a>
+</div>

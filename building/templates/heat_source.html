@@ -1,0 +1,6 @@
+    {% if building.heat_source_other %}
+    <p>Heat Source: {{ building.heat_source_other }}</p>
+    {% elif building.heat_source_details != "unknown" %}
+    <p>Heat Source: {{ building.heat_source_details }}</p>
+    {% endif %}
+

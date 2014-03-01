@@ -37,14 +37,52 @@ var RRMap = function(args) {
 		    map: self.map,
 		    title: building.address
 		});
+		var image;
+		if (building.score > 500) {
+		    image = '/static/img/marker-green.png';
+		}
+		else if (building.score > 250) {
+		    image = '/static/img/marker-yellow.png';
+		}
+		else if (building.score > 50) {
+		    image = '/static/img/marker-orange.png';
+		}
+		else if (building.score > .0001) {
+		    image = '/static/img/marker-red.png';
+		}
+		else if (building.score == .0001) {
+		    image = '/static/img/marker-dark_gray.png';
+		}
+		else if (building.score == 0) {
+		    image = '/static/img/marker-light_gray.png';
+		}
+		else {
+		    //shouldn't get this, but... 
+		    image = '/static/img/marker-light_gray.png';
+		}
+
+		var icon = {
+		    url: image, 
+		    // This marker is 20 pixels wide by 32 pixels tall.
+		    //size: new google.maps.Size(20, 32),
+		    scaledSize: new google.maps.Size(23, 40),
+		    
+		    // The origin for this image is 0,0.
+		    //origin: new google.maps.Point(0,10),
+		    // The anchor for this image is the base of the flagpole at 0,32.
+		    anchor: new google.maps.Point(0, 12)
+		};
+
+		marker.setIcon(icon);
 
 		//not sure if this is the best place to generate the view
 		//self.pop_up_content = 
 		//could pass it in as part of json request
 		//
-		// building is a json object that gets returned by ajax request
-		// generated in building.models.Building.to_dict()
-		// collected in building.views.lookup()
+		// building is a json object 
+		// that gets returned by the ajax request above
+		// it is generated in building.models.Building.to_dict()
+		// and collected in building.views.lookup()
 
 		//self.update_info(building.address, marker)
 		self.update_info(building.profile, marker)
@@ -52,9 +90,11 @@ var RRMap = function(args) {
 	    }
 
 	    
+	    /*
 	    if( console && console.log ) {
 		console.log("Sample of data:", result);
 	    }
+	    */
 	    
 	});
 	//alert(bounds);
@@ -80,7 +120,12 @@ var RRMap = function(args) {
 	self.map = new google.maps.Map(document.getElementById("map-canvas"),
 				  mapOptions);
 	
+	self.map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(
+	    document.getElementById('legend'));
+
 	self.infowindow = new google.maps.InfoWindow();
+	//doesn't seem to have an effect:
+	//self.infowindow.setOptions({maxWidth:600});
 
 	google.maps.event.addListener(self.map, 'idle', self.showMarkers);
         

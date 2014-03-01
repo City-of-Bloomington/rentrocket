@@ -49,18 +49,91 @@ def index(request):
 
     #return HttpResponse("Hello, world. You're at the building index.")
 
+def map(request, lat=39.166537, lng=-86.531754, zoom=14):
+    
+    #buildings = Building.objects.filter(city=city)
+    context = {'lat': lat,
+               'lng': lng,
+               'zoom': zoom,
+               }
+
+    return render(request, 'map.html', context)
+
+#previously in models.Building.to_dict
+def render_as_json(request, building):
+    """
+    return a simple dictionary representation of the building
+    this is used by ajax calls to get a representation of the building
+    (via views.lookup)
+
+    This is different than an attempt to convert
+    to a full dictionary representation,
+    in which case django model_to_dict might be a better solution
+    """
+    #t = loader.get_template('preferences/index.html')
+    #c = Context({
+    ##     'latest_preferences': latest_preferences,
+    ## })
+
+    t = loader.get_template('building_overlay.html')
+    context = Context({ 'building': building,
+                })
+    #return HttpResponse(t.render(c))
+    #profile = render(request, 'building_overlay.html', context)
+    profile = t.render(context)
+
+    #old, manual way:
+    #profile = '<a href="%s">%s</a>' % (building.url(), building.address)
+
+    result = {'score': building.energy_score, 'address': building.address, 'lat': building.latitude, 'lng': building.longitude, 'profile': profile}
+    return result
+
+
+def lookup(request, lat1, lng1, lat2, lng2, type="rental", limit=100):
+    """
+    this is a json request to lookup buildings within a given area
+    should return json results that are easy to parse and show on a map
+
+    http://stackoverflow.com/questions/2428092/creating-a-json-response-using-django-and-python
+    """
+    
+    bq = Building.objects.all().filter(latitude__gte=float(lat1)).filter(longitude__gte=float(lng1)).filter(latitude__lte=float(lat2)).filter(longitude__lte=float(lng2)).order_by('-energy_score')
+    all_bldgs = []
+    for building in bq[:limit]:
+        #all_bldgs.append(building.to_dict())
+        all_bldgs.append(render_as_json(request, building))
+        
+    bldg_dict = {'buildings': all_bldgs, 'total': len(bq)}
+
+    #print bldg_dict
+    
+    return HttpResponse(json.dumps(bldg_dict), content_type="application/json")
+
+
+
+
+
+
+
+
+
 def send_json(request, bldg_tag, city_tag):
     pass
 
+#not sure that this is necessary
 def update(request, bldg_tag, city_tag):
     pass
-
 
 class BuildingForm(ModelForm):
     class Meta:
         model = Building
         #fields = ['pub_date', 'headline', 'content', 'reporter']
-        fields = [ 'name', 'website', 'type', 'sqft',
+        fields = [ 'name', 'website', 'type',
+
+                   #will collect this at the unit level...
+                   #building level can be added via scripts
+                   #when assessor databases are available with this info
+                   #'sqft',
                    #'number_of_units', 'built_year', 'value',
                    
                    'who_pays_electricity', 'who_pays_gas', 'who_pays_water', 'who_pays_trash', 'who_pays_internet', 'who_pays_cable',
@@ -85,7 +158,7 @@ class BuildingForm(ModelForm):
                    #once we have energy data,
                    #we will want to summarize the results here
                    #so that we can use this to color code appropriately
-                   'energy_score',
+                   #'energy_score',
 
                    #these will usually happen on a building level
 
@@ -170,10 +243,6 @@ class BuildingForm(ModelForm):
             
         }
                    
-
-
-
-
 @login_required
 def edit(request, bldg_tag, city_tag):
     city = City.objects.filter(tag=city_tag)
@@ -232,7 +301,7 @@ def edit(request, bldg_tag, city_tag):
             else:
                 updated.pets = False
 
-            print json.dumps(updated.diff)
+            #print json.dumps(updated.diff)
             
             #print updated.diff
             changes = ChangeDetails()
@@ -263,6 +332,8 @@ def edit(request, bldg_tag, city_tag):
     return render(request, 'building-edit.html', context)
 
 def details(request, bldg_tag, city_tag):
+
+
     city = City.objects.filter(tag=city_tag)
     #old way... this doesn't work very reliably:
     #address = re.sub('_', ' ', bldg_tag)
@@ -291,39 +362,131 @@ def details(request, bldg_tag, city_tag):
             unit.save()
     else:
         building = None
+
+    #print building.units.all()[0].tag
+    #unit_url = reverse('unit_details', kwargs={'city_tag':building.city.tag, 'bldg_tag':building.tag, 'unit_tag':building.units.all()[0].tag})
+    #print unit_url
+
         
     context = { 'building': building,
+                'units': building.units.all(),
                 'user': request.user,
                 'redirect_field': REDIRECT_FIELD_NAME,
                 }
     return render(request, 'details.html', context)
 
-def map(request, lat=39.166537, lng=-86.531754, zoom=14):
-    
-    #buildings = Building.objects.filter(city=city)
-    context = {'lat': lat,
-               'lng': lng,
-               'zoom': zoom,
-               }
 
-    return render(request, 'map.html', context )
 
-def lookup(request, lat1, lng1, lat2, lng2, type="rental", limit=100):
-    """
-    this is a json request to lookup buildings within a given area
-    should return json results that are easy to parse and show on a map
 
-    http://stackoverflow.com/questions/2428092/creating-a-json-response-using-django-and-python
-    """
-    
-    bq = Building.objects.all().filter(latitude__gte=float(lat1)).filter(longitude__gte=float(lng1)).filter(latitude__lte=float(lat2)).filter(longitude__lte=float(lng2))
-    all_bldgs = []
-    for building in bq[:limit]:
-        all_bldgs.append(building.to_dict())
+
+
+
+def unit_json(request, city_tag, bldg_tag, unit_tag):
+    pass
+
+class UnitForm(ModelForm):
+    class Meta:
+        model = Unit
+        fields = [ 'bedrooms', 'bathrooms', 'sqft', 'floor', 'max_occupants', 'rent', 'status',
+                   'average_electricity', 'average_gas', 'average_water', 'average_trash',
+                   ]
+
+@login_required
+def unit_edit(request, city_tag, bldg_tag, unit_tag=''):
+    #TODO: probably many instances where this is not right
+    #city = City.objects.filter(tag=city_tag)
+    cities = City.objects.filter(tag=city_tag)
+    city = None
+    if cities.count():
+        city = cities[0]
+    buildings = Building.objects.filter(city=city).filter(tag=bldg_tag)
+    if buildings.count():
+        building = buildings[0]
+        units = building.units.filter(tag=unit_tag)
+        if units.count():
+            unit = units[0]
+        else:
+            unit = None
+            #raise 404
+            pass
         
-    bldg_dict = {'buildings': all_bldgs, 'total': len(bq)}
+    else:
+        building = None
+        unit = None
 
-    #print bldg_dict
-    
-    return HttpResponse(json.dumps(bldg_dict), content_type="application/json")
+    if request.method == 'POST':
+        form = UnitForm(request.POST, instance=unit)
+
+        if form.is_valid(): # All validation rules pass
+            updated = form.save(commit=False)
+
+            #print json.dumps(updated.diff)
+            
+            #print updated.diff
+            changes = ChangeDetails()
+            changes.ip_address = get_client_ip(request)
+            changes.user = request.user
+            changes.diffs = json.dumps(updated.diff)
+            changes.building = building
+            #not required
+            changes.unit = updated
+            changes.save()
+            
+            #now it's ok to save the building details:
+            updated.save()
+
+            #now that we've saved the unit,
+            #update the averages for the whole building:
+            building.update_utility_averages()
+            building.update_rent_details()
+
+            #redirect to unit details page with an edit message
+            messages.add_message(request, messages.INFO, 'Saved changes to unit.')
+            if updated.tag:
+                finished_url = reverse('building.views.unit_details', kwargs={'city_tag':city.tag, 'bldg_tag':building.tag, 'unit_tag':updated.tag})
+            else:
+                finished_url = reverse('building.views.unit_details', kwargs={'city_tag':city.tag, 'bldg_tag':building.tag})
+                
+            #args=(updated.building.tag, city.tag, updated.tag)
+            return redirect(finished_url)
+    else:
+        print unit
+        form = UnitForm(instance=unit)
+        
+    context = { 'building': building,
+                'unit': unit,
+                'user': request.user,
+                'form': form,
+                }
+    return render(request, 'unit_edit.html', context)
+
+def unit_details(request, city_tag, bldg_tag, unit_tag=''):
+    cities = City.objects.filter(tag=city_tag)
+    city = None
+    if cities.count():
+        city = cities[0]
+    buildings = Building.objects.filter(city=city).filter(tag=bldg_tag)
+    if buildings.count():
+        building = buildings[0]
+        units = building.units.filter(tag=unit_tag)
+        if units.count():
+            unit = units[0]
+        else:
+            unit = None
+            #raise 404
+            pass
+        
+    else:
+        building = None
+        unit = None
+
+
+    print unit.full_address()
+    context = { 'building': building,
+                'units': [unit],
+                'unit': unit,
+                'user': request.user,
+                'redirect_field': REDIRECT_FIELD_NAME,
+                }
+    return render(request, 'unit_details.html', context)
 

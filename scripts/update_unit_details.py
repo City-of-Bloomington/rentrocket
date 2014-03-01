@@ -25,7 +25,7 @@ for unit in units:
             print "%s != %s" % (unit.tag, unit.number)
 
             #unit.tag = to_tag(unit.number)
-            unit.create_tag()
+            unit.create_tag(force=True)
 
             unit.save()
 

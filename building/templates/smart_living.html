@@ -1,0 +1,37 @@
+  <div class="details">
+    <h4>Smart Living Features</h4>
+
+    {% if building.recycling %}
+    <div class="data">Recycling</div>
+    {% endif %}
+
+    {% if building.composting %}
+    <div class="data">Composting</div>
+    {% endif %}
+
+    {% include "list_of_items.html" with options=building.garden_details name="Garden Options" other=building.garden_other %}
+
+    {% include "list_of_items.html" with options=building.energy_saving_details name="Energy Saving Features" other=building.energy_saving_other %}
+
+    {% include "list_of_items.html" with options=building.renewable_energy_details name="Renewable Energy Sources" other=building.renewable_energy_other %}
+
+    {% include "list_of_items.html" with options=building.bike_friendly_details name="Bike Friendly" other=building.bike_friendly_other %}
+
+    {% include "list_of_items.html" with options=building.walk_friendly_details name="Walk Friendly" other=building.walk_friendly_other %}
+
+    {% include "list_of_items.html" with options=building.transit_friendly_details name="Transit Friendly" other=building.transit_friendly_other %}
+
+    {% if building. %}
+    <p>{{ building. }}</p>
+    {% endif %}
+
+    {% if building.smart_living %}
+    <div class="smart_living">
+      <div>Other Smart Living Features:</div>
+      <div>{{ building.smart_living }}</div>
+    </div>
+    {% endif %}
+
+
+  </div>
+
