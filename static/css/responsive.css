@@ -415,9 +415,16 @@ li.nav-item:hover {
 #content {
   clear: both;
 }
+.contentinfo {
+  margin-top: 5px;
+}
 .page {
   margin: .5em;
   clear: both;
+}
+#map-canvas {
+  width: 100%;
+  height: 80%;
 }
 .inset {
   width: 200px;
@@ -527,6 +534,10 @@ footer {
     float: left;
     width: 97.91666666666666%;
     margin: 0 1.0416666666666665%;
+  }
+  #map-canvas {
+    width: 100%;
+    height: 76%;
   }
   .nav-item {
     float: none;
