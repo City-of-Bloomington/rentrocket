@@ -1,3 +1,12 @@
+"""
+this is a script to help tranfer a data format
+that was used initially to store downloaded geocoded coordinates
+
+to the current one...
+not a database migration script
+
+note added *2014.03.01 20:07:37 ... script is older than that
+"""
 import os, json, codecs, re
 from helpers import save_json, load_json, Location, Geo, save_results
 

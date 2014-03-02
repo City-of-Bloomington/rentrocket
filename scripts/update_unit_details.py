@@ -17,6 +17,16 @@ print units.count()
 count = 0
 #for unit in units[:10]:
 for unit in units:
+#for unit in units[15320:]:
+    #I think this should happen first, since tag may use it if it exists
+    auto_addy = unit.building.address + ", " + unit.number
+    if unit.address == auto_addy:
+        print 
+        print "Clearing %04d: %s, %s" % (count, unit.address, unit.number)
+        #clear it out
+        unit.address = ''
+        unit.save()
+                
     if unit.number:
         print 
         print "Starting %04d: %s, %s" % (count, unit.number, unit.building.address)
@@ -29,13 +39,5 @@ for unit in units:
 
             unit.save()
 
-    auto_addy = unit.building.address + ", " + unit.number
-    if unit.address == auto_addy:
-        print 
-        print "Clearing %04d: %s, %s" % (count, unit.address, unit.number)
-        #clear it out
-        unit.address = ''
-        unit.save()
-                
     count += 1
         
