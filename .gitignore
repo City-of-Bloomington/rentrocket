@@ -6,3 +6,5 @@ local_settings.py
 *.py~
 *~
 .DS_Store
+configuration.inc
+
