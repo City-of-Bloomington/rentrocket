@@ -74,9 +74,7 @@ create table ImprvList(
 	ImprvTypeID int unsigned not null,
 	PercentComplete decimal(3, 0),
 	NbrhdFactor decimal(3, 2),
-	MarketFactor decimal(5, 3),
-	foreign key (ParcelKey) references ParcelGenInfo(ParcelKey),
-	foreign key (ImprvTypeID) references ImprvTypes(ImprvTypeID)
+	MarketFactor decimal(5, 3)
 );
 
 
@@ -113,8 +111,7 @@ create table SalesList(
 	Seller2State varchar(50),
 	Seller2Zip varchar(50),
 	ParcelCount int,
-	Valid varchar(1) not null,
-	foreign key (ParcelKey) references ParcelGenInfo(ParcelKey)
+	Valid varchar(1) not null
 );
 
 create table ResFloor(
@@ -123,8 +120,7 @@ create table ResFloor(
 	`Floor` varchar(3) not null,
 	Construction varchar(50),
 	BaseArea int,
-	Finished int,
-	foreign key (ImprvListID) references ImprvList(ImprvListID)
+	Finished int
 );
 
 create table ResDetail(
@@ -164,8 +160,7 @@ create table ResDetail(
 	Rec1Area int,
 	Rec2Area int,
 	Rec3Area int,
-	Rec4Area int,
-	foreign key (ImprvListID) references ImprvList(ImprvListID)
+	Rec4Area int
 );
 
 create table PlumbingList(
@@ -184,8 +179,7 @@ create table PlumbingList(
 	CommHalf int not null,
 	CommKitchen int not null,
 	CommWaterHeater int not null,
-	CommExtra int not null,
-	foreign key (ImprvListID) references ImprvList(ImprvListID)
+	CommExtra int not null
 );
 
 create table Photos(
@@ -193,8 +187,7 @@ create table Photos(
 	ParcelKey int unsigned not null,
 	FilePath varchar(1000),
 	PrimaryPhoto int not null,
-	primary key (PhotoListID, ParcelKey),
-	foreign key (ParcelKey) references ParcelGenInfo(ParcelKey)
+	primary key (PhotoListID, ParcelKey)
 );
 
 
@@ -214,8 +207,7 @@ create table OtherPlumbingList(
 	BathTubswSteam int,
 	Sauna int,
 	NumSteamBaths int,
-	Whirlpools int,
-	foreign key (ImprvListID) references ImprvList(ImprvListID)
+	Whirlpools int
 );
 
 create table Misc(
@@ -225,8 +217,7 @@ create table Misc(
 	IntegralGarages int not null,
 	AttachedGarages int not null,
 	AttachedCarports int not null,
-	BasementGarages int not null,
-	foreign key (ImprvListID) references ImprvList(ImprvListID)
+	BasementGarages int not null
 );
 
 create table LandDescList(
@@ -247,8 +238,7 @@ create table LandDescList(
 	Cap1 decimal(5, 2),
 	Cap2 decimal(5, 2),
 	Cap3 decimal(5, 2),
-	MarketFactor decimal(6, 4),
-	foreign key (ParcelKey) references ParcelGenInfo(ParcelKey)
+	MarketFactor decimal(6, 4)
 );
 
 create table FloorList(
@@ -261,31 +251,27 @@ create table FloorList(
 	HeatingArea int,
 	ACArea int,
 	SprinkledArea int,
-	SortOrder int,
-	foreign key (ImprvListID) references ImprvList(ImprvListID)
+	SortOrder int
 );
 
 create table ExtFeatureList(
 	ExtFeatureListID int unsigned not null primary key auto_increment,
 	ImprvListID int unsigned not null,
 	Features varchar(100),
-	Area int unsigned,
-	foreign key (ImprvListID) references ImprvList(ImprvListID)
+	Area int unsigned
 );
 
 create table SpecialFeatList(
 	SpecialFeatListID int unsigned not null primary key auto_increment,
 	ImprvListID int unsigned not null,
 	Description varchar(100),
-	SizeQty int unsigned,
-	foreign key (ImprvListID) references ImprvList(ImprvListID)
+	SizeQty int unsigned
 );
 
 create table SketchList(
 	SketchListID int unsigned not null primary key auto_increment,
 	ParcelKey int unsigned not null,
-	FilePath varchar(200),
-	foreign key (ParcelKey) references ParcelGenInfo(ParcelKey)
+	FilePath varchar(200)
 );
 
 create table SiteDescList(
@@ -294,8 +280,7 @@ create table SiteDescList(
 	Improving varchar(1) not null,
 	Declining varchar(1) not null,
 	Blighted varchar(1) not null,
-	Static varchar(1) not null,
-	foreign key (ParcelKey) references ParcelGenInfo(ParcelKey)
+	Static varchar(1) not null
 );
 
 create table WallTypeList(
@@ -307,8 +292,7 @@ create table WallTypeList(
 	WallType2 int,
 	WallType3 int,
 	WallType4 int,
-	SortOrder int,
-	foreign key (ImprvListID) references ImprvList(ImprvListID)
+	SortOrder int
 );
 
 create table ValuationList(
@@ -332,8 +316,7 @@ create table ValuationList(
 	Cap3Improv int,
 	Cap3Total int,
 	ValuationDate datetime not null,
-	ValuationMethod varchar(50),
-	foreign key (ParcelKey) references ParcelGenInfo(ParcelKey)
+	ValuationMethod varchar(50)
 );
 
 create table Topo(
@@ -343,8 +326,7 @@ create table Topo(
 	High varchar(1) not null,
 	Low varchar(1) not null,
 	Rolling varchar(1) not null,
-	Swampy varchar(1) not null,
-	foreign key (ParcelKey) references ParcelGenInfo(ParcelKey)
+	Swampy varchar(1) not null
 );
 
 create table Utility(
@@ -354,9 +336,7 @@ create table Utility(
 	Sewer varchar(1) not null,
 	Gas varchar(1) not null,
 	Electricity varchar(1) not null,
-	All_Utils varchar(1) not null,
-	foreign key (Topo_ID) references Topo(Topo_ID),
-	foreign key (ParcelKey) references ParcelGenInfo(ParcelKey)
+	All_Utils varchar(1) not null
 );
 
 create table TransferOwnList(
@@ -368,8 +348,7 @@ create table TransferOwnList(
 	Page varchar(10),
 	DocumentID varchar(20),
 	SaleAmount int,
-	DocumentCode varchar(5),
-	foreign key (ParcelKey) references ParcelGenInfo(ParcelKey)
+	DocumentCode varchar(5)
 );
 
 create table Streets(
@@ -379,8 +358,7 @@ create table Streets(
 	Alley varchar(1) not null,
 	Paved varchar(1) not null,
 	Unpaved varchar(1) not null,
-	Proposed varchar(1) not null,
-	foreign key (ParcelKey) references ParcelGenInfo(ParcelKey)
+	Proposed varchar(1) not null
 );
 
 create table DataDate(
