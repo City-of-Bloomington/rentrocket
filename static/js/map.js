@@ -123,6 +123,9 @@ var RRMap = function(args) {
 	self.map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(
 	    document.getElementById('legend'));
 
+      	self.map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(
+	    document.getElementById('map-search'));
+
 	self.infowindow = new google.maps.InfoWindow();
 	//doesn't seem to have an effect:
 	//self.infowindow.setOptions({maxWidth:600});

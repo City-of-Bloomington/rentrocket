@@ -1,7 +1,7 @@
 """
-*2014.02.27 14:31:54 
+*2014.03.06 09:52:54 
 just a helper script...
-looking for buildings with multipe units associated
+want to debug some values 
 
 """
 import os, sys, re
@@ -13,9 +13,9 @@ from building.models import Building, Parcel, BuildingPerson, Unit
 from city.models import City
 from rentrocket.helpers import to_tag
 
-city_options = City.objects.filter(tag="bloomington_in")
+#city_options = City.objects.filter(tag="bloomington_in")
 #city_options = City.objects.filter(tag="ann_arbor_mi")
-#city_options = City.objects.filter(tag="ann_arbor_mi")
+city_options = City.objects.filter(tag="columbia_mo")
 print "Number of cities available: %s" % len(city_options)
 if not len(city_options):
     raise ValueError, "CITY NOT FOUND! run make_cities.py first"
@@ -27,8 +27,9 @@ buildings = Building.objects.filter(city=city)
 print len(buildings)
 print buildings.count()
 count = 0
-#for building in buildings[:10]:
-for building in buildings:
+for building in buildings[100:103]:
+#for building in buildings:
+    print building.address
     if len(building.units.all()) > 1:
         print 
         print "%04d: %s" % (count, building.address)

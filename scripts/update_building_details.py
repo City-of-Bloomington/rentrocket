@@ -14,23 +14,37 @@ from building.models import Building, Parcel, BuildingPerson, Unit
 from city.models import City
 from rentrocket.helpers import to_tag
 
-#buildings = Building.objects.filter(city=city)
-buildings = Building.objects.all()
+city_options = City.objects.filter(tag="columbia_mo")
+if not len(city_options):
+    raise ValueError, "CITY NOT FOUND! run make_cities.py first"
+else:
+    city = city_options[0]
+
+buildings = Building.objects.filter(city=city)
+#buildings = Building.objects.all()
 print len(buildings)
 print buildings.count()
-count = 0
+total = buildings.count()
+start = 2822
+count = start
 #for building in buildings[:10]:
-for building in buildings:
+for building in buildings[start:]:
     print 
-    print "Starting %04d: %s" % (count, building.address)
+    print "Starting %05d (out of %05d): %s" % (count, total, building.address)
 
-    building.renewable_energy_details = ""
-    building.garden_details = ""
-    building.bike_friendly_details = ""
-    building.walk_friendly_details = ""
-    building.transit_friendly_details = ""
+
+    ## building.renewable_energy_details = ""
+    ## building.garden_details = ""
+    ## building.bike_friendly_details = ""
+    ## building.walk_friendly_details = ""
+    ## building.transit_friendly_details = ""
     
-    building.save()
+    ## building.save()
+
+    print "Building.tag pre: %s" % building.tag
+    building.create_tag(force=True)
+    print "Building.tag post: %s" % building.tag
+
                 
     count += 1
         

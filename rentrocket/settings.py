@@ -63,7 +63,7 @@ elif os.getenv('SETTINGS_MODE') == 'prod':
             'HOST': '173.194.111.70',
             'NAME': 'rentrocket',
             'USER': 'root',
-            #must add password in manually: (do not commit)
+            #add password in manually: 
             'PASSWORD': 'greenrentals',            
         }
     }
