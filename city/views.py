@@ -99,6 +99,7 @@ def city_map(request, city_tag="bloomington_in"):
         context = {'lat': city['lat'],
                    'lng': city['lng'],
                    'zoom': zoom,
+                   'city_tag': city_tag,
                    }
 
         return render(request, 'map.html', context )

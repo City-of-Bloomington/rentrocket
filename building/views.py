@@ -89,15 +89,19 @@ def render_as_json(request, building):
     return result
 
 
-def lookup(request, lat1, lng1, lat2, lng2, type="rental", limit=100):
+def lookup(request, lat1, lng1, lat2, lng2, city_tag=None, type="rental", limit=100):
     """
     this is a json request to lookup buildings within a given area
     should return json results that are easy to parse and show on a map
 
     http://stackoverflow.com/questions/2428092/creating-a-json-response-using-django-and-python
     """
-    
-    bq = Building.objects.all().filter(latitude__gte=float(lat1)).filter(longitude__gte=float(lng1)).filter(latitude__lte=float(lat2)).filter(longitude__lte=float(lng2)).order_by('-energy_score')
+    if city_tag:
+        city = City.objects.filter(tag=city_tag)
+        bq = Building.objects.all().filter(city=city).filter(latitude__gte=float(lat1)).filter(longitude__gte=float(lng1)).filter(latitude__lte=float(lat2)).filter(longitude__lte=float(lng2)).order_by('-energy_score')
+    else:
+        bq = Building.objects.all().filter(latitude__gte=float(lat1)).filter(longitude__gte=float(lng1)).filter(latitude__lte=float(lat2)).filter(longitude__lte=float(lng2)).order_by('-energy_score')
+        
     all_bldgs = []
     for building in bq[:limit]:
         #all_bldgs.append(building.to_dict())
@@ -110,7 +114,36 @@ def lookup(request, lat1, lng1, lat2, lng2, type="rental", limit=100):
     return HttpResponse(json.dumps(bldg_dict), content_type="application/json")
 
 
+def search(request, query=None, city_tag=None, limit=100):
+    """
+    similar to lookup, but filter results by query instead of geo-coords
+    """
+    if not query:
+        query = request.GET.get('query', '')
+        
 
+    all_bldgs = []
+    if not query:
+        print "Empty query... skipping"
+        
+    else:
+        if city_tag:
+            city = City.objects.filter(tag=city_tag)
+            bq = Building.objects.all().filter(city=city).filter(address__icontains=query).order_by('-energy_score')
+        else:
+            bq = Building.objects.all().filter(address__icontains=query).order_by('-energy_score')
+
+        all_bldgs = []
+        for building in bq[:limit]:
+            #all_bldgs.append(building.to_dict())
+            #all_bldgs.append(render_as_json(request, building))
+            all_bldgs.append( { 'value': building.address, 'data': building.tag } )
+
+    print all_bldgs
+    #this is the format required by jquery.autocomplete (devbridge) plugin:
+    bldg_dict = {'suggestions': all_bldgs}
+        
+    return HttpResponse(json.dumps(bldg_dict), content_type="application/json")
 
 
 
@@ -323,11 +356,11 @@ def edit(request, bldg_tag, city_tag):
             return redirect(finished_url)
     else:
         form = BuildingForm(instance=building)
-        
+        form.fields['name'].label = "Building Name"
+
     context = { 'building': building,
                 'user': request.user,
                 'form': form,
-
                 }
     return render(request, 'building-edit.html', context)
 

@@ -54,13 +54,13 @@
       &copy; RentRocket.org - {% now "Y" %} - <a href="/about" id="about">About</a>
     </footer>
     
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></Script>
-    <script>window.jQuery || document.write('<script src="/static/js/libs/jquery-1.7.1.min.js"><\/script>')</script>
+    <script src="/static/js/lib/jquery-1.11.1.js"></script>
 
     <!-- these should all be minified and combined before a production release -->
 
     <script type="text/javascript">window.JSON || document.write('<script src="/static/js/lib/json2.js"><\/script>')</script>
     
+    {% block require %}
     <script type="text/javascript" src="/static/js/lib/require.js"></script>
 
     <script type="text/javascript">
@@ -75,12 +75,14 @@
       require.config({
 	baseUrl: '/static/js',
 	paths: {
-		'jquery' : 'lib/jquery-1.7.1',
+		'jquery' : 'lib/jquery-1.11.1',
                 'lodash' : 'lib/lodash',
                 'ko'     : 'lib/knockout-2.2.1'
 	}
       });
     </script>
+
+    {% endblock %}
 
     {% block script %}
     <script type="text/javascript">
