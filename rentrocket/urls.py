@@ -21,7 +21,17 @@ urlpatterns = patterns(
     url(r'^city/', include('city.urls')),
 
     url(r'^content/', include('content.urls')),
+
     url(r'^about$', 'content.views.about', name='about'),
+    url(r'^information$', 'content.views.information', name='information'),
+    url(r'^faq$', 'content.views.faq', name='faq'),
+    url(r'^crowdsourcing$', 'content.views.crowdsourcing', name='crowdsourcing'),
+
+    url(r'^welcome$', 'content.views.welcome', name='welcome'),
+    url(r'^simple$', 'content.views.simple_data', name='simple'),
+
+
+
     #url(r'^upload_form$', 'content.views.upload_form', name='upload_form'),
     url(r'^$', 'content.views.home', name='home'),
     # url(r'^rentrocket/', include('rentrocket.foo.urls')),

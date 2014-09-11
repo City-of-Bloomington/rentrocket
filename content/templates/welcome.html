@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+
+{% block title %}RentRocket.org: Know the total cost of your next rental.{% endblock %}
+
+{% block content %}
+
+<div class="page-background">
+</div>
+<div class="page">
+
+  <div class="leftcolumn">
+
+    <h1>Searching for a new apartment? RentRocket helps you compare the total monthly cost of a rental, including utilities, so you know what expenses to expect.</h1>
+  </div>
+
+  <div class="rightcolumn">
+    <div id="quick-form">
+      <h5 class="centered">That's our goal...</h5>
+      <h5>We need your help collecting information. Please tell us about your current apartment:</h5>
+      <h5 class="centered"></h5>
+      
+      <form action="{{ action_url }}" method="post">
+        {% csrf_token %}
+
+        {% include "simple_form_pt1.html" with form=form %}
+        
+        {% include "simple_form_pt2.html" with form=form %}
+        
+        <div class="centered">
+          <input type="submit" value="Save" />
+        </div>
+
+      </form>
+      
+      
+    </div>
+
+    <div class="centered section"><a class="big-link" href="/information">Find out more...</a></div>
+
+    
+  </div>
+
+  <div class="centered">
+    <h3>Search Apartments:</h3>
+    <input><button>Search</button>
+  </div>
+  
+    
+
+<br>
+</div>
+{% endblock %} {# content #}
+
+{% block script %}
+<script type="text/javascript">
+  require(['simple'], function(simple) {});
+</script>
+{% endblock %}
+

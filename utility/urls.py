@@ -18,5 +18,6 @@ urlpatterns = patterns(
     url(r'thank_you/$', views.thank_you),
     url(r'secret/$', views.secret),
     url(r'upload/$', views.upload, name='utility_upload'),
+    url(r'upload$', views.upload, name='utility_upload'),
     url(r'^$', views.index, name='utility_index')
 )

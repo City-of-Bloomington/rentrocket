@@ -342,22 +342,6 @@ body:after {
 body:after {
   clear: both;
 }
-html {
-  height: 100%;
-}
-body {
-  height: 100%;
-  background-color: #fdf6e3;
-  color: #4a4435;
-}
-h2 {
-  margin-top: .83em;
-  margin-bottom: .83em;
-}
-h4 {
-  margin-top: 0;
-  margin-bottom: .83em;
-}
 header {
   width: 100%;
   text-align: center;
@@ -412,15 +396,127 @@ a.nav-link:visited {
 li.nav-item:hover {
   text-decoration: none;
 }
+html {
+  height: 100%;
+}
+body {
+  height: 100%;
+  background-color: #fdf6e3;
+  color: #4a4435;
+}
+h2 {
+  margin-top: .83em;
+  margin-bottom: .83em;
+}
+h4 {
+  margin-top: 0;
+  margin-bottom: .83em;
+}
+h5 {
+  margin-top: 0;
+  margin-bottom: .33em;
+  font-size: 18px;
+  font-weight: bold;
+}
 #content {
   clear: both;
 }
 .contentinfo {
-  margin-top: 5px;
+  margin-top: 20px;
 }
 .page {
   margin: .5em;
   clear: both;
+}
+.page-background {
+  margin: .5em;
+  clear: both;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-image: url('/static/img/markers-background.png');
+  background-repeat: no-repeat;
+  opacity: 0.2;
+  filter: alpha(opacity=20);
+  -webkit-filter: blur(1px);
+  -moz-filter: blur(1px);
+  -o-filter: blur(1px);
+  -ms-filter: blur(1px);
+  filter: blur(1px);
+  z-index: -1;
+}
+.error {
+  color: #dc322f;
+  list-style-type: none;
+  display: inline-block;
+  text-align: center;
+}
+.errorlist {
+  color: #dc322f;
+  list-style: none;
+  display: inline-block;
+}
+.icon {
+  width: 50px;
+  margin-top: .53em;
+  opacity: 0.6;
+}
+.big-link {
+  text-decoration: none;
+  font-size: 18px;
+  font-weight: bold;
+  color: #859900;
+}
+.section {
+  margin-top: 2em;
+  margin-bottom: 2em;
+}
+#quick-form {
+  -webkit-border-radius: 11px;
+  -moz-border-radius: 11px;
+  border-radius: 11px;
+  border-top: solid 1px #4a4435;
+  border-left: solid 1px #4a4435;
+  border-right: solid 1px #4a4435;
+  border-bottom: solid 1px #4a4435;
+  background: #eee8d5;
+  padding: .5em;
+  margin-top: .75em;
+  margin-top: 2em;
+  margin-bottom: 2em;
+}
+.simple-widget {
+  margin-bottom: .33em;
+}
+.simple-label {
+  width: 30%;
+  display: inline-block;
+  text-align: right;
+}
+.simple-half {
+  width: 48%;
+  display: inline-block;
+  text-align: center;
+}
+.simple-field {
+  width: 65%;
+  display: inline-block;
+  text-align: left;
+}
+.simple-field-label {
+  width: 30%;
+  display: inline-block;
+  text-align: left;
+}
+.simple-field-small {
+  width: 45%;
+  display: inline-block;
+  text-align: left;
+}
+.simple-field-icon {
+  width: 20%;
+  display: inline-block;
+  text-align: left;
 }
 #map-canvas {
   width: 100%;
@@ -478,6 +574,7 @@ footer {
   float: left;
   width: 97.91666666666666%;
   margin: 0 1.0416666666666665%;
+  margin-bottom: .83em;
 }
 .centered {
   clear: both;
@@ -545,5 +642,12 @@ footer {
   }
   .nav {
     display: block;
+  }
+}
+@media screen and (max-width: 480px) {
+  .simple-half {
+    width: 100%;
+    display: inline-block;
+    text-align: center;
   }
 }

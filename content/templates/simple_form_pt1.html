@@ -1,0 +1,18 @@
+        {{ form.non_field_errors }}        
+
+        {% include "field_snippet.html" with field=form.address %}
+
+        <div class="simple-widget centered">
+          <span class="simple-half">
+            This {{ form.property_type }} a rental.
+          </span>
+          <span class="simple-half" data-bind="visible: show_rent()">
+            The rent is: ${{ form.rent }}
+            <span class="error">
+              {{ form.rent.errors }}
+            </span>
+          </span>
+        </div>
+
+        {% include "field_snippet.html" with field=form.bedrooms %}
+

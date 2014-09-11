@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+
+{% block title %}RentRocket.org: Share data.{% endblock %}
+
+{% block content %}
+
+<div class="page-background">
+</div>
+<div class="page">
+  
+  <div id="quick-form">
+      <form action="{{ action_url }}" method="post">
+        {% csrf_token %}
+
+        <div class="leftcolumn">
+          {% include "simple_form_pt1.html" with form=form %}
+        </div>
+        
+        <div class="rightcolumn">
+          {% include "simple_form_pt2.html" with form=form %}
+        </div>
+
+        {% if show_calculator %}
+          {% include "average_calculator.html" with form=form %}
+        {% endif %}
+
+        
+        <div class="centered">
+          <input type="submit" value="Save" />
+        </div>
+
+      </form>
+    
+  </div>
+    
+<br>
+</div>
+{% endblock %} {# content #}
+
+{% block script %}
+<script type="text/javascript">
+  require(['simple'], function(simple) {});
+</script>
+{% endblock %}
+

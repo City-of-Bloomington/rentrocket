@@ -86,9 +86,15 @@ def resources(request, city_tag):
         return redirect(url)
         
 def city_map(request, city_tag="bloomington_in"):
-    #city = City.objects.filter(tag=city_tag)
-    city = all_cities.get(city_tag, None)
+    city_q = City.objects.filter(tag=city_tag)
+    #city = all_cities.get(city_tag, None)
 
+    if len(city_q):
+        city = city_q[0]
+    else:
+        city = None
+
+    #print city
     #default
     zoom = 14
     
@@ -96,8 +102,14 @@ def city_map(request, city_tag="bloomington_in"):
         url = "/city/new"
         return redirect(url)
     else:
-        context = {'lat': city['lat'],
-                   'lng': city['lng'],
+        ## context = {'lat': city['lat'],
+        ##            'lng': city['lng'],
+        ##            'zoom': zoom,
+        ##            'city_tag': city_tag,
+        ##            }
+
+        context = {'lat': city.latitude,
+                   'lng': city.longitude,
                    'zoom': zoom,
                    'city_tag': city_tag,
                    }

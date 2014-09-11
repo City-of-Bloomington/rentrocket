@@ -1,12 +1,20 @@
 @import 'elements.less';
-@import 'colors.less';
+//@import 'colors.less';
 
 //B3B4A3,555A3C,859900,FCD158,4A4435
 
+@orange:    #cb4b16;
+@red:       #dc322f;
+@magenta:   #d33682;
+@violet:    #6c71c4;
+@blue:      #268bd2;
+@cyan:      #2aa198;
+                                  
+@green:     #859900;
+                                  
 @lightgrey: #B3B4A3;
 @darkgrey: #555A3C;
-//defined in colors too:
-//@green: #859900;
+@beige: #eee8d5;
 
 @yellow: #FCD158;
 @brown: #4A4435;
@@ -15,11 +23,12 @@
 @bordercolor: #4A4435;
 @radius: 11px;
 
+@background: #fdf6e3;
+
 .links () {
     text-decoration: none;
     color: @darkgrey;
 }
-
 
 .section () {
     // a section on the details page
@@ -30,7 +39,7 @@
 .roundedbox () {
     .rounded(@radius);
     .bordered(@bordercolor, @bordercolor, @bordercolor, @bordercolor);
-    background: @base2;
+    background: @beige;
     .section();
 }
 

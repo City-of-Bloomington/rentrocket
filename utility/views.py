@@ -142,6 +142,7 @@ class UploadForm(forms.Form):
     sqft = forms.CharField(max_length=5, required=False)
     email = forms.EmailField(required=False)
 
+
 def upload(request, state=None, city_name=None, bldg_tag=None, unit_tag=None):
     results = ''
     

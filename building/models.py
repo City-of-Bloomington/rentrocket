@@ -1,3 +1,5 @@
+import re, json
+
 from django.db import models
 
 from django.contrib.auth.models import User
@@ -7,9 +9,9 @@ from django.core.urlresolvers import reverse
 from jsonfield import JSONField
 
 from source.models import Source
-from city.models import City
+from city.models import City, lookup_city_with_geo, find_by_city_state
 from person.models import Person
-from rentrocket.helpers import to_tag, MultiSelectField
+from rentrocket.helpers import to_tag, MultiSelectField, check_result, address_search, get_client_ip
 
 from urllib import urlencode
 
@@ -107,6 +109,249 @@ class Parcel(models.Model):
     ## string
     ## Yes
     ## Unique identifier for the residential building.  Can correspond to more than one parcel_id or an address range
+
+
+def make_unit(apt_num, building):
+    unit = None
+
+    #check for existing:
+    #should have already checked using building.find_unit()
+    #could disable check if that is working
+    units = Unit.objects.filter(building=building).filter(number=apt_num)
+
+    #check if a previous building object in the db exists
+    if units.exists():
+        unit = units[0]
+        #print "Already had Unit: %s" % unit.address
+    else:
+        #now check if we have a blank unit with the building...
+        #might have added just the building before we knew about unit specifics
+        #
+        #all buildings need at least one unit, so we may have a blank one
+        #use that first if so...
+        blank_count = 0
+        blank_unit = False
+
+        #this is similar to building.find_unit
+        #but looks for blanks too
+        for bldg_unit in building.units.all():
+            if not bldg_unit.number:
+                blank_unit = bldg_unit
+                blank_count += 1
+
+            #could select/filter for this, but since we want blanks too
+            #loop is fine
+            elif bldg_unit.number == unit:
+                unit = bldg_unit
+
+        if not unit:
+            #if we didn't have a matching unit already,
+            #use either an existing blank unit
+            if blank_unit:
+                if blank_count > 1:
+                    raise ValueError, "More than one blank unit found. This shouldn't happen"
+                else:
+                    blank_unit.number = apt_num
+                    blank_unit.save()
+                    unit = blank_unit
+
+            #or create a new one
+            else:
+                unit = Unit()
+                unit.building = building
+                unit.number = apt_num
+                #DON'T DO THIS! (see Unit.__init__)
+                # don't want to set this unless it's different:
+                #unit.address = building.address + ", " + unit
+                unit.save()    
+
+    return unit
+
+
+def make_building(result, bldg_id=None, parcel_id=None, source=None, request=None):
+    """
+    assume we've already checked for existing here...
+    part of that check should have involved a call to address_search...
+    no need to duplicate that here...
+    we just need to process the result
+    """
+
+    (city, error) = lookup_city_with_geo([result], make=True)
+
+    if parcel_id:
+        cid = parcel_id
+    elif bldg_id:
+        cid = "%s-%s" % (city.tag, bldg_id)
+    else:
+        cid = ''
+
+    parcel = None
+    if cid:
+        #print "Checking parcel id: %s" % (cid)
+        parcels = Parcel.objects.filter(custom_id=cid)
+        if parcels.exists():
+            parcel = parcels[0]
+            #print "Already had parcel: %s" % parcel.custom_id
+
+
+    # if we don't have one, just make a new one
+    if not parcel:
+        parcel = Parcel()
+        parcel.custom_id = cid
+        parcel.save()
+        #print "Created new parcel: %s" % parcel.custom_id
+
+    bldg = Building()
+
+    bldg.address = result['street']
+    bldg.latitude = float(result['lat'])
+    bldg.longitude = float(result['lng'])
+
+    bldg.parcel = parcel
+    bldg.geocoder = "Google"
+    if source:
+        #not going to try to create one of these otherwise
+        bldg.source = source
+
+    ## elif request:
+    ##     bldg.source = "Web:%s" % get_client_ip(request)
+    ## else:
+    ##     #delete this after request passing attempted
+    ##     #raise ValueError, "Have you tried passing in request yet?"
+    ##     bldg.source = "Web"
+
+    bldg.city = city
+    bldg.state = city.state
+
+    bldg.postal_code = result['zipcode']
+    
+    #print updated.diff
+    changes = ChangeDetails()
+
+    if request:
+        changes.ip_address = get_client_ip(request)
+        if request.user:
+            changes.user = request.user
+    else:
+        #set a default to show that this change was made from a script
+        changes.ip_address = "1.1.1.1"
+            
+    changes.diffs = json.dumps(bldg.diff)
+    #not required
+    #changes.unit =
+    #print changes.diffs
+
+    bldg.save()
+
+    #waiting to make sure bldg has an id:
+    changes.building = bldg
+    changes.save()
+
+    bldg.create_tag(force=True)
+
+    #delaying creating an associated Unit here...
+    #may have multiple units that we want to add
+    #every building should have at least one Unit associated with it though
+
+    return (bldg, error)
+
+def find_building(result):
+    """
+    check for existing...
+    take the whole checked result here
+
+    not worried about making here...
+    so if we don't have a city, we don't have a building, just return None
+    """
+
+    building = None
+    error = None
+    
+    city = find_by_city_state(result['city'], result['state'])
+            
+    if city and result.has_key('street'):
+        #at this point we should have done the normalization... want the equal
+        #bq = Building.objects.all().filter(city=city).filter(address__icontains=result['street']).order_by('-energy_score')
+        bq = Building.objects.all().filter(city=city).filter(address=result['street']).order_by('-energy_score')
+
+        if len(bq) > 1:
+            error = "More than one building found. Please be more specific: %s" % len(bq)
+        elif len(bq) == 1:
+            building = bq[0]
+        else:
+            #error = "No building matched"
+            pass
+
+    else:
+        #if we don't have a city, we certainly won't have a building
+        building = None
+
+    return [building, error]
+
+def lookup_building_with_geo(search_options, unit_search='', make=False, request=None):
+    """
+    address_search should have already happened... pass those results in
+
+    then see if we have a matching building
+
+    if not, and if make is True, then we can call make_building
+    """
+    error = None
+    unit = None
+    if len(search_options) == 1:
+        #print search_options
+        result = search_options[0]
+        error = check_result(result)
+        if not error:
+            #down to one result... add unit_search in to that
+            #this should be set already now:
+            #result['unit'] = unit_search
+
+            (building, error) = find_building(result)
+            #print "Building: ", building
+            #print "Error: ", error
+            if not building and not error and make:
+                (building, error) = make_building(result, request=request)
+
+            #regardless of if we have a value for unit_search
+            #want to look up the unit (blank ones included)
+            if building:
+                 (match, error, matches) = building.find_unit(unit_search)
+                 if match:
+                     unit = match
+                 elif not match and not error and make:
+                     #if unit_search is '', this should create a blank unit
+                     unit = make_unit(unit_search, building)
+
+    elif len(search_options) > 1:
+        error = "More than one match found. Please narrow your selection."
+        building = None
+
+    elif len(search_options) < 1: 
+        error = "No match found. Please check the address."
+        building = None
+
+    return (building, unit, error)
+    
+def search_building(query, make=False, request=None):
+    """
+    in this version, we'll do the geo query to normalize the search
+    then pass it on to lookup_building_with_geo...
+    that way we can use lookup_building_with_geo elsewhere, if needed
+
+    only looking for *one* building...
+    multiple matches can be found and returned elsewhere
+
+    if this is made from a web request, pass the request in so we can log source
+    """
+
+    (search_options, error, unit) = address_search(query)
+    if not error:
+        (building, unit, error) = lookup_building_with_geo(search_options, unit_search=unit, make=make, request=request)
+        
+    return (building, unit, error, search_options)    
+
+    
 
 
 def tally_energy_total(building, source):
@@ -455,7 +700,8 @@ class Building(models.Model, ModelDiffMixin):
     geocoder = models.CharField(max_length=10)
 
     #aka feed_source:
-    source = models.ForeignKey(Source)
+    #would like to leave this null if it's from the web
+    source = models.ForeignKey(Source, blank=True, null=True)
 
     #eventually can use this to hide results
     visible = models.BooleanField(default=True)
@@ -628,6 +874,39 @@ class Building(models.Model, ModelDiffMixin):
         #tag = self.create_tag()
         #return "/building/" + tag + '/' + self.city.tag
         return reverse('building.views.details', args=(self.tag, self.city.tag))
+
+    def find_unit(self, unit):
+        """
+        even with normalization, it is possible that the unit number
+        doesn't match
+        (maybe after entries created with google's #___ format are cleaned?)
+        go through each of our units and see if the suffix is the same
+        """
+        if unit:
+            suffix = unit.split()[-1]
+            suffix = suffix.replace('#', '')
+        else:
+            suffix = ''
+
+        error = None
+        matches = []
+        for unit in self.units.all():
+            if unit.number:
+                usuffix = unit.number.split()[-1]
+                usuffix = usuffix.replace('#', '')
+            else:
+                usuffix = ''
+                
+            if usuffix == suffix:
+                matches.append(unit)
+
+        if len(matches) > 1:
+            return (None, "More than one matching unit found. This shouldn't happen!", matches)
+        elif len(matches) < 1:
+            #this is not an error case...
+            return (None, '', matches)
+        else:
+            return (matches[0], '', matches)
 
 class Unit(models.Model, ModelDiffMixin):
     """

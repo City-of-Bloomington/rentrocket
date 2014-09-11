@@ -12,10 +12,10 @@ from django import forms
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 
-from models import Building, Unit, Listing, BuildingPerson, ChangeDetails
+from models import Building, Unit, Listing, BuildingPerson, ChangeDetails, search_building
 
 from city.models import City, to_tag, all_cities
-from rentrocket.helpers import get_client_ip
+from rentrocket.helpers import get_client_ip, address_search
 
 #from django.shortcuts import render_to_response, get_object_or_404
 
@@ -97,7 +97,13 @@ def lookup(request, lat1, lng1, lat2, lng2, city_tag=None, type="rental", limit=
     http://stackoverflow.com/questions/2428092/creating-a-json-response-using-django-and-python
     """
     if city_tag:
-        city = City.objects.filter(tag=city_tag)
+        city_q = City.objects.filter(tag=city_tag)
+        if len(city_q):
+            city = city_q[0]
+        else:
+            city = None
+
+    if city:
         bq = Building.objects.all().filter(city=city).filter(latitude__gte=float(lat1)).filter(longitude__gte=float(lng1)).filter(latitude__lte=float(lat2)).filter(longitude__lte=float(lng2)).order_by('-energy_score')
     else:
         bq = Building.objects.all().filter(latitude__gte=float(lat1)).filter(longitude__gte=float(lng1)).filter(latitude__lte=float(lat2)).filter(longitude__lte=float(lng2)).order_by('-energy_score')
@@ -114,7 +120,7 @@ def lookup(request, lat1, lng1, lat2, lng2, city_tag=None, type="rental", limit=
     return HttpResponse(json.dumps(bldg_dict), content_type="application/json")
 
 
-def search(request, query=None, city_tag=None, limit=100):
+def match_existing(request, query=None, city_tag=None, limit=100):
     """
     similar to lookup, but filter results by query instead of geo-coords
     """
@@ -128,7 +134,13 @@ def search(request, query=None, city_tag=None, limit=100):
         
     else:
         if city_tag:
-            city = City.objects.filter(tag=city_tag)
+            city_q = City.objects.filter(tag=city_tag)
+            if len(city_q):
+                city = city_q[0]
+            else:
+                city = None
+
+        if city:
             bq = Building.objects.all().filter(city=city).filter(address__icontains=query).order_by('-energy_score')
         else:
             bq = Building.objects.all().filter(address__icontains=query).order_by('-energy_score')
@@ -145,17 +157,109 @@ def search(request, query=None, city_tag=None, limit=100):
         
     return HttpResponse(json.dumps(bldg_dict), content_type="application/json")
 
+def search_geo(request, query=None, limit=100):
+    """
+    use a geocoder to look up options that match...
+    this is the first phase of adding a new building,
+    and it would be nice to start providing relevant results instantly
+    """
+    all_options = []
+    if not query:
+        query = request.GET.get('query', '')
+        
+    if not query:
+        print "Empty query... skipping"
+        
+    else:
+        print "QUERY: %s" % query
+        (search_options, error, unit) = address_search(query)
+
+        for option in search_options[:limit]:
+            all_options.append( { 'value': option['place_total'], 'data': option['place_total'] } )
+
+    print all_options
+    #this is the format required by jquery.autocomplete (devbridge) plugin:
+    options_dict = {'suggestions': all_options}
+        
+    return HttpResponse(json.dumps(options_dict), content_type="application/json")
 
 
 
 
 
-def send_json(request, bldg_tag, city_tag):
-    pass
 
-#not sure that this is necessary
-def update(request, bldg_tag, city_tag):
-    pass
+## def send_json(request, bldg_tag, city_tag):
+##     pass
+
+#not sure that this is necessary... edit suffices
+## def update(request, bldg_tag, city_tag):
+##     pass
+
+class NewBuildingForm(forms.Form):
+    address = forms.CharField(max_length=200, required=True, widget=forms.TextInput(attrs={'placeholder': 'Street, City, State, Zip', 'class': 'typeahead'}))
+
+    search_options_visible = False
+    search_options = False
+
+    unit_options_visible = False
+    unit_options = False
+
+    def clean(self):
+        print "cleaning called!"
+        cleaned_data = super(NewBuildingForm, self).clean()
+
+        result = search_building(cleaned_data.get("address"))
+        print result
+
+        if result[2]:
+            raise forms.ValidationError(result[2])
+        ## cc_myself = cleaned_data.get("cc_myself")
+        ## subject = cleaned_data.get("subject")
+
+        ## if cc_myself and subject:
+        ##     # Only do something if both fields are valid so far.
+        ##     if "help" not in subject:
+        ##         raise forms.ValidationError("Did not send for 'help' in "
+        ##                 "the subject despite CC'ing yourself.")
+
+        #http://stackoverflow.com/questions/15946979/django-form-cleaned-data-is-none
+        #must return cleaned_data!!
+        return cleaned_data
+
+    ## def as_p(self):
+    ##     """
+    ##     Returns this form rendered as HTML <p>s.
+    ##     Customizing to handle when to show select fields.
+    ##     """
+    ##     return self._html_output(
+    ##         normal_row = u'<p%(html_class_attr)s>%(label)s</p> %(field)s%(help_text)s',
+    ##         error_row = u'%s',
+    ##         row_ender = '</p>',
+    ##         help_text_html = u' <span class="helptext">%s</span>',
+    ##         errors_on_separate_row = True)
+    
+#@login_required
+def new(request, query=None):
+    if request.method == 'POST':
+        form = NewBuildingForm(request.POST)
+
+        if form.is_valid(): # All validation rules pass
+            print form.cleaned_data
+            #results = address_search(form.cleaned_data['address'])
+            results = search_building(form.cleaned_data['address'])
+            print "OPTIONS!:"
+            print results
+            
+    else:
+        form = NewBuildingForm()
+
+    context = { 
+                'user': request.user,
+                'form': form,
+                }
+    return render(request, 'building-new.html', context)
+
+
 
 class BuildingForm(ModelForm):
     class Meta:
@@ -290,6 +394,9 @@ def edit(request, bldg_tag, city_tag):
         form = BuildingForm(request.POST, instance=building)
 
         if form.is_valid(): # All validation rules pass
+            #https://docs.djangoproject.com/en/dev/topics/forms/modelforms/#the-save-method
+            #by passing commit=False, we get a copy of the model before it
+            #has been saved. This allows diff to work below
             updated = form.save(commit=False)
 
             #update any summary boolean fields here
@@ -365,7 +472,6 @@ def edit(request, bldg_tag, city_tag):
     return render(request, 'building-edit.html', context)
 
 def details(request, bldg_tag, city_tag):
-
 
     city = City.objects.filter(tag=city_tag)
     #old way... this doesn't work very reliably:

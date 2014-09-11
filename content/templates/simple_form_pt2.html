@@ -1,0 +1,29 @@
+        <div class="simple-widget centered"><b>Energy Cost - average monthly bill</b></div>
+
+        <div class="simple-widget">
+          <span class="simple-field-label">
+            <div class="simple-widget">{{ form.electricity.label_tag }}: </div>
+            <div class="simple-widget">{{ form.gas.label_tag }}: </div>
+          </span>
+
+          <span class="simple-field-small">
+            <div class="simple-widget">
+              ${{ form.electricity }}
+              <span class="error">
+                {{ form.electricity.errors }}
+              </span>
+            </div>
+            <div class="simple-widget">
+              ${{ form.gas }}
+              <span class="error">
+                {{ form.gas.errors }}
+              </span>
+            </div>
+          </span>
+
+          <span class="simple-field-icon">
+            <input class="icon" type="image" src="/static/img/calculator.png" alt="Calculate Averages" name="calculator">
+          </span>
+          
+        </div>
+

@@ -1,0 +1,12 @@
+      <form action="{{ action_url }}" method="post">
+        {% csrf_token %}
+
+        {% include "simple_form_pt1.html" with form=form %}
+        
+        {% include "simple_form_pt2.html" with form=form %}
+        
+        <div class="centered">
+          <input type="submit" value="Save" />
+        </div>
+
+      </form>

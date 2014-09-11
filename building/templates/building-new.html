@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+
+{% block title %}Create New Building{% endblock %}
+
+{% block custom_css %}
+    <link rel="stylesheet" href="/static/css/wide_form.css" type="text/css" media="screen" />
+{% endblock %}
+
+{% block content %}
+
+<div class="page">
+
+<h2>Create New Building</h2> 
+
+<p>{{ results|safe }}</p>
+
+<form action="{{ upload_url }}" method="POST" enctype="multipart/form-data">
+  {% csrf_token %}
+
+  {{ form.non_field_errors }}
+
+  {% include "building-new-form.html" %}
+
+  {# { form.as_p } #}
+    
+  <div class="centered">
+    <input type="submit" value="Save" />
+  </div>
+
+</form>
+
+{% endblock %} {# content #}
+    
+{% block require %}
+{% endblock %} {# require #}
+
+{% block script %}
+<script type="text/javascript" src="/static/js/lib/jquery.autocomplete.js"></script>
+
+<script type="text/javascript">
+  
+  $('#bldg-search .typeahead').autocomplete({
+    serviceUrl: '/building/search/',
+    minChars: 4,
+    onSelect: function(suggestion) {
+      console.log("chose: ", suggestion.data);
+      window.location.href = '/building/' + suggestion.data + '/' + city_tag ;
+    }
+  });
+  
+</script>
+
+{% endblock %}

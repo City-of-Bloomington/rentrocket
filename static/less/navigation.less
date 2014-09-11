@@ -1,0 +1,72 @@
+//@import 'colors.less';
+@import 'globals.less';
+
+@header: @green;
+
+// header
+header {
+    width: 100%;
+    text-align: center;
+    background-color: @header;
+}
+header .logo {
+//  color: @header;
+}
+header p.logo {
+    color: #002b36;
+    text-decoration: none;
+}
+header a.home_link {
+    text-decoration: none;
+}
+header img {
+    max-width: 800px;
+    width: 100%;
+    margin: 0 auto 0;
+}
+header#top {
+    //margin-bottom: 1em;
+}
+
+#nav-wrap {
+    width: 100%;
+    text-align: center;
+    background-color: @lightgrey;
+    display: inline-block;
+}
+
+.nav {
+    display: inline-block;
+    margin: 0px;
+    margin-top: .5em;
+    margin-bottom: 0em;
+    padding: 0px;
+}
+
+#about {
+    .links();
+}
+a.nav-link:link, a.nav-link:visited	{
+    .links();
+    font-size: 1.2em;
+    //font-weight: bold;
+/*
+  a, 	  display:block; 
+  background: #EFE9ED;*/
+}
+
+/*Style for the nav menu */
+.nav-item {
+    float: left;
+    text-align: center; 
+    list-style: none; 
+    padding-right: 14px; 
+    padding-left: 14px; 
+    //padding-bottom: 15px;
+
+}
+
+li.nav-item:hover	{
+    //background: @brown;
+    text-decoration: none;
+}

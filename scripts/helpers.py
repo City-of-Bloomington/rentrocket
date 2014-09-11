@@ -1,3 +1,12 @@
+"""
+*2014.09.10 16:10:05 
+DEPRECATED!!!!
+
+please use building.models.search_building and building.models.make_building
+instead of the make_unit and make_building functions found here...
+out of date.
+"""
+
 import sys, os, json, codecs, re
 
 sys.path.append(os.path.dirname(os.getcwd()))
@@ -128,7 +137,12 @@ def make_building(location, bldg_id, city, feed_source, parcel_id=None, bldg_typ
                 #keeping city and zip minimizes chance for overlap
                 #especially since this is used as a key
                 #can always take it out on display, if necessary
-                cur_address = source_list[0]['place']
+
+                #*2014.09.10 14:51:28
+                #this has changed... should only use street now...
+                #see building/models.py -> make_building
+                #cur_address = source_list[0]['place']
+                #cur_address = source_list[0]['place']
 
 
                 if parcel_id == None:
@@ -162,7 +176,8 @@ def make_building(location, bldg_id, city, feed_source, parcel_id=None, bldg_typ
                     #cur_building = Building()
                     bldg = Building()
 
-                    bldg.address = source_list[0]['place']
+                    #bldg.address = source_list[0]['place']
+                    bldg.address = source_list[0]['street']
                     bldg.latitude = float(source_list[0]['lat'])
                     bldg.longitude = float(source_list[0]['lng'])
 

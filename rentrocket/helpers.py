@@ -6,6 +6,168 @@ from django import forms
 from django.utils.text import capfirst
 from south.modelsinspector import add_introspection_rules
 
+from geopy import geocoders
+
+def check_result(result):
+    """
+    do some common checks on any matches returned by address_search()
+    
+    update result in place
+    """
+    error = None
+    #print result['place']
+    parts = result['place'].split(',')
+    
+    #make sure we're in the US for now...
+    #not set up to handle other cities yet.
+    if (parts[-1].strip() != 'USA') and (parts[-1].strip() != 'United States'):
+        error = "Cannot process addresses outside of the U.S. at this time"
+    elif len(parts) < 3:
+        error = "Could not find the city name: %s" % result['place']
+    else:
+        #processing moved to handle place
+        pass
+    #can have more than 4 parts returned,
+    #eg street, University of Michigan, Law Quadrangle, etc
+    #elif len(parts) <= 4:    
+    #elif len(parts) > 4:
+    #    error = "Too many parts found for address result: %s" % (parts)
+        
+    #print city_name, city_state, city_tag
+    return error
+
+def handle_place(matches, place, lat, lng, unit):
+    """
+    helper for adding unit in to results from lookup
+
+    add unit back in everywhere, if found    
+    """
+    result = {'place': place, 'lat': lat, 'lng': lng}
+    error = check_result(result)
+    if not error:
+        print "PLACE: ", place
+        parts = place.split(',')
+        #3 or 4 + (city or address)... this is something we can work with
+        if len(parts) > 3:
+            street = parts[0].strip()
+
+            result['street'] = street
+
+            if unit:
+                street_total = result['street'] + ' ' + unit
+                result['unit'] = unit
+                result['street_total'] = street_total
+                parts[0] = street_total
+                result['place_total'] = ','.join(parts)
+            else:
+                result['street_total'] = result['street']
+                result['place_total'] = result['place']
+                
+
+        if len(parts) > 2:
+            result['city'] = parts[-3].strip()
+
+            zipcode = ''
+            state = ''
+            #if a zipcode was matched, it will be in this part: , IN 47408,
+            state_zip = parts[-2].strip()
+            print "STATE_ZIP: ", state_zip
+            if len(state_zip) == 2:
+                state = state_zip
+            elif state_zip:
+                parts = state_zip.split()
+                if len(parts) == 2:
+                    (state, zipcode) = parts
+
+            result['state'] = state
+            result['zipcode'] = zipcode
+
+        matches.append(result)
+
+def address_search(query):
+    error = None
+    building = None
+    search_options = []
+    unit = ''
+    matches = []
+
+    if query:
+        #before searching for the normalized address
+        #check if there is a unit or apartment in the string
+        #Google seems to have difficulty with different unit and apartment strings
+        #especially if they are not numbers
+        #https://code.google.com/p/gmaps-api-issues/issues/detail?id=5587
+
+        #rentrocket/scripts 
+        #python columbia-find_apartment_keys.py
+        #[u'APT', u'UNIT', u'HOUSE', u'RM', u'HM', u'BLDG', u'LOT', u'TRLR', u'STE', u'SPK', u'DUP', u'ROOM', u'SUITE', u'HM1', u'OFC', u'GAR', u'HMRM', u'SHOP']
+        units = ['unit', 'apartment', 'apt', 'suite', 'ste', 'trlr', 'trailer', 'room', 'rm']
+        substitutes = { 'unit':'Unit', 'apartment':'Apt', 'apt':'Apt', 'suite':"Ste", 'ste':"Ste", 'trlr':"Trlr", 'trailer':"Trlr", 'room':"Rm", 'rm':"Rm" }
+
+        for item in units:
+            search = '(.+)( %s )(.+)' % item
+            print "looking for ", search
+            print "in: ", query
+            match = re.search(search, query, re.I)
+            if match:
+                #now have 3 parts... find the corresponding unit number
+                parts = match.group(3).split()
+                unit_num = parts.pop(0)
+                unit_num = unit_num.replace(',', '')
+                unit_num = unit_num.strip()
+                unit = substitutes[item] + ' ' + unit_num
+                #print unit
+                city_state = ' '.join(parts)
+
+                query = match.group(1) + ', ' + city_state
+                #print query
+
+                #print match
+                #print dir(match)            
+                #for group in match.groups():
+                #    print group
+                #print match.groups()
+
+        #the above will not match the google format of #xxx
+        all_parts = query.split(',')
+        street = all_parts[0]
+        street_parts = street.split()
+        last_part = street_parts[-1]
+        if re.search('#', last_part):
+            if unit:
+                error = "Found multiple Unit identifiers. Please fix: %s, %s" % (unit, last_part)
+            else:
+                #matched a unit in the address
+                #take care of splitting and merging these
+                street, unit = street.split('#')
+                unit = '#' + unit
+
+                ## #see if we already matched a unit# earlier
+                ## if result.has_key('unit'):
+                ##     (prefix, suffix) = result['unit'].split()
+                ##     if str(suffix) != str(unit):
+                ##         error = "Found multiple unit options: %s, %s" % (result['unit'], unit)
+                ##     #otherwise we can stick with the previous version
+
+                ## else:
+                ##     result['unit'] = unit
+                ## print unit
+
+        if not error:            
+            google = geocoders.GoogleV3()
+
+            options = google.geocode(query, exactly_one=False)
+            if options:
+                if isinstance(options[0], unicode):
+                    #must only have one... different format:
+                    (place, (lat, lng)) = options
+                    handle_place(matches, place, lat, lng, unit)
+                else:
+                    for place, (lat, lng) in options:
+                        handle_place(matches, place, lat, lng, unit)
+
+    return matches, error, unit
+
 #via: https://djangosnippets.org/snippets/1200/
 #http://stackoverflow.com/questions/2726476/django-multiple-choice-field-checkbox-select-multiple
 class MultiSelectFormField(forms.MultipleChoiceField):

@@ -1,7 +1,8 @@
 @import 'normalize.less';
 @import 'grid.less';
-@import 'colors.less';
+//@import 'colors.less';
 @import 'globals.less';
+@import 'navigation.less';
 
 //////////
 // GRID //
@@ -40,72 +41,11 @@ h4 {
     margin-bottom: .83em;
 }
 
-// header
-header {
-    width: 100%;
-    text-align: center;
-    background-color: @header;
-}
-header .logo {
-//  color: @header;
-}
-header p.logo {
-    color: #002b36;
-    text-decoration: none;
-}
-header a.home_link {
-    text-decoration: none;
-}
-header img {
-    max-width: 800px;
-    width: 100%;
-    margin: 0 auto 0;
-}
-header#top {
-    //margin-bottom: 1em;
-}
-
-#nav-wrap {
-    width: 100%;
-    text-align: center;
-    background-color: @lightgrey;
-    display: inline-block;
-}
-
-.nav {
-    display: inline-block;
-    margin: 0px;
-    margin-top: .5em;
-    margin-bottom: 0em;
-    padding: 0px;
-}
-
-#about {
-    .links();
-}
-a.nav-link:link, a.nav-link:visited	{
-    .links();
-    font-size: 1.2em;
-    //font-weight: bold;
-/*
-  a, 	  display:block; 
-  background: #EFE9ED;*/
-}
-
-/*Style for the nav menu */
-.nav-item {
-    float: left;
-    text-align: center; 
-    list-style: none; 
-    padding-right: 14px; 
-    padding-left: 14px; 
-    //padding-bottom: 15px;
-
-}
-
-li.nav-item:hover	{
-    //background: @brown;
-    text-decoration: none;
+h5 {
+    margin-top: 0;
+    margin-bottom: .33em;
+    font-size: 18px;
+    font-weight: bold;
 }
 
 #content {
@@ -115,12 +55,109 @@ li.nav-item:hover	{
 
 //aka footer
 .contentinfo {
-    margin-top: 5px;
+    margin-top: 20px;
 }
 
 .page {
     margin: .5em;
     clear: both;
+}
+
+.page-background {
+    .page();
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: url('/static/img/markers-background.png');
+    background-repeat: no-repeat;
+    opacity: 0.2;
+    filter: alpha(opacity=20);
+    
+    -webkit-filter: blur(1px);
+    -moz-filter: blur(1px);
+    -o-filter: blur(1px);
+    -ms-filter: blur(1px);
+    filter: blur(1px);
+
+    z-index: -1;   
+}
+
+.error {
+    color: @red;
+    list-style-type: none; 
+    display: inline-block;
+    text-align: center;
+}
+
+.errorlist {
+    color: @red;
+    list-style: none; 
+    display: inline-block;
+}
+
+.icon {
+    width: 50px;
+    margin-top: .53em;
+    opacity: 0.6;
+}
+
+.big-link {
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: bold;
+    color: @green;
+}
+
+.section {
+    margin-top: 2em;
+    margin-bottom: 2em;
+}
+
+#quick-form {
+    .roundedbox();
+}
+
+
+.simple-widget {
+    margin-bottom: .33em;
+}
+.simple-label {
+    width: 30%;
+    display: inline-block;
+    text-align: right;
+    //vertical-align: top;
+}
+
+.simple-half {
+    width: 48%;
+    display: inline-block;
+    text-align: center;
+    //vertical-align: top;
+}
+
+.simple-field {
+    width: 65%;
+    display: inline-block;
+    text-align: left;
+    //vertical-align: top;
+}
+
+.simple-field-label {
+    width: 30%;
+    display: inline-block;
+    text-align: left;
+}
+
+.simple-field-small {
+    width: 45%;
+    display: inline-block;
+    text-align: left;
+}
+
+.simple-field-icon {
+    width: 20%;
+    display: inline-block;
+    text-align: left;
 }
 
 #map-canvas {
@@ -185,6 +222,7 @@ li.nav-item:hover	{
 footer {
     text-align: center;
     .column(12);
+    margin-bottom: .83em;
 }
 
 .centered {
@@ -257,4 +295,14 @@ footer {
 	display: block;
     }
 
+    
 }
+
+@media screen and (max-width: 480px) {
+    .simple-half {
+        width: 100%;
+        display: inline-block;
+        text-align: center;
+    }
+}
+

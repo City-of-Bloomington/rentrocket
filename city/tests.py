@@ -1,16 +1,44 @@
 """
-This file demonstrates writing tests using the unittest module. These will pass
-when you run "manage.py test".
+This file demonstrates writing tests using the unittest module.
 
-Replace this with more appropriate tests for your application.
+run with:
+manage.py test
+
+testing with live / dev data:
+scripts/test_searches.py
 """
 
 from django.test import TestCase
 
+from city.models import *
 
-class SimpleTest(TestCase):
-    def test_basic_addition(self):
+class CityTest(TestCase):
+    def test_city_creation(self):
         """
-        Tests that 1 + 1 always equals 2.
+        Test that a city gets created
         """
-        self.assertEqual(1 + 1, 2)
+        #city = make_city("", "IN")
+        #(city, error) = find_by_city_state("", "IN", make=True)
+        city = find_by_city_state("", "IN")
+        
+        #city = make_city("Bloomington", "IN")
+        #(city, error) = find_by_city_state("Bloomington", "IN", make=True)
+        city = find_by_city_state("Bloomington", "IN")
+        #print city
+        #nothing added yet
+        self.assertEqual(city, None)
+
+        (city, error, results) = search_city("Bloomington, IN", make=True)
+        ## print dir(self)
+        ## print city
+        ## print error
+        ## print results
+        self.assertEqual(error, None)
+        self.assertNotEqual(city, None)
+
+        #'addCleanup', 'addTypeEqualityFunc', 'assertAlmostEqual', 'assertAlmostEquals', 'assertContains', 'assertDictContainsSubset', 'assertDictEqual', 'assertEqual', 'assertEquals', 'assertFalse', 'assertFieldOutput', 'assertFormError', 'assertFormsetError', 'assertGreater', 'assertGreaterEqual', 'assertHTMLEqual', 'assertHTMLNotEqual', 'assertIn', 'assertInHTML', 'assertIs', 'assertIsInstance', 'assertIsNone', 'assertIsNot', 'assertIsNotNone', 'assertItemsEqual', 'assertJSONEqual', 'assertLess', 'assertLessEqual', 'assertListEqual', 'assertMultiLineEqual', 'assertNotAlmostEqual', 'assertNotAlmostEquals', 'assertNotContains', 'assertNotEqual', 'assertNotEquals', 'assertNotIn', 'assertNotIsInstance', 'assertNotRegexpMatches', 'assertNumQueries', 'assertQuerysetEqual', 'assertRaises', 'assertRaisesMessage', 'assertRaisesRegexp', 'assertRedirects', 'assertRegexpMatches', 'assertSequenceEqual', 'assertSetEqual', 'assertTemplateNotUsed', 'assertTemplateUsed', 'assertTrue', 'assertTupleEqual', 'assertXMLEqual', 'assertXMLNotEqual', 'assert_', 'atomics', 'available_apps', 'client', 'client_class', 'countTestCases', 'debug', 'defaultTestResult', 'doCleanups', 'fail', 'failIf', 'failIfAlmostEqual', 'failIfEqual', 'failUnless', 'failUnlessAlmostEqual', 'failUnlessEqual', 'failUnlessRaises', 'failureException', 'id', 'longMessage', 'maxDiff', 'reset_sequences', 'restore_warnings_state', 'run', 'save_warnings_state', 'setUp', 'setUpClass', 'settings', 'shortDescription', 'skipTest', 'tearDown', 'tearDownClass', 'test_city_creation']
+
+        city2 = find_by_city_state("Bloomington", "IN")
+        #print city2
+        #nothing added yet
+        self.assertEqual(city, city2)
