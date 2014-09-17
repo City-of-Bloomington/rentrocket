@@ -2,9 +2,6 @@
 
 {% block title %}Create New Building{% endblock %}
 
-{% block custom_css %}
-    <link rel="stylesheet" href="/static/css/wide_form.css" type="text/css" media="screen" />
-{% endblock %}
 
 {% block content %}
 
@@ -17,13 +14,13 @@
 <form action="{{ upload_url }}" method="POST" enctype="multipart/form-data">
   {% csrf_token %}
 
-  {{ form.non_field_errors }}
+  {% include "building-new-form.html" with form=bldgform%}
 
-  {% include "building-new-form.html" %}
+  {% include "building-new-unit_select.html" with form=unitform%}
 
   {# { form.as_p } #}
     
-  <div class="centered">
+  <div class="section">
     <input type="submit" value="Save" />
   </div>
 
@@ -39,12 +36,12 @@
 
 <script type="text/javascript">
   
-  $('#bldg-search .typeahead').autocomplete({
+  $('#id_building-address').autocomplete({
     serviceUrl: '/building/search/',
     minChars: 4,
     onSelect: function(suggestion) {
-      console.log("chose: ", suggestion.data);
-      window.location.href = '/building/' + suggestion.data + '/' + city_tag ;
+      //console.log("chose: ", suggestion.data);
+      //window.location.href = '/building/' + suggestion.data + '/' + city_tag ;
     }
   });
   

@@ -58,33 +58,74 @@ def find_by_city_state(city_name, city_state):
         city = city_options[0]
     return city
 
-def lookup_city_with_geo(search_options, make=False):
+def lookup_city_with_geo(search_results, make=False):
     """
     geo_lookup should have already happened... pass those in
     """
     error = None
-    if len(search_options) == 1:
-        #print search_options
-        result = search_options[0]
-        error = check_result(result)
-        if not error:
-            city = find_by_city_state(result['city'], result['state'])
-            if not city and make:
-                (city, error) = make_city(result)
-            else:
-                city = None
+    if len(search_results.matches) == 1:
+        #print search_results.matches
+        result = search_results.matches[0]
+
+        #probably ok to skip this here... it should have been done earlier..
+        #could also get rid of one level of conditionals in that case:
+        #error = check_result(result)
+        #if not error:
+
+        city = find_by_city_state(result['city'], result['state'])
+        if not city and make:
+            (city, error) = make_city(result)
+
+        if city:
+            search_results.city = city
+        if error:
+            search_result.errors.append(error)
+
+        #else:
+        #    search_result.errors.append(error)
                 
-    elif len(search_options) > 1:
-        #print "WARNING! more than one match found: ", search_options
-        error = "WARNING! more than one (%s) city found %s" % (len(search_options), search_options)
-        city = None
+    elif len(search_results.matches) > 1:
+        error = "More than one (%s) city found %s" % (len(search_results.matches), search_results.matches)
+        search_result.errors.append(error)
 
-    elif len(search_options) < 1: 
-        #print "WARNING! no match found: ", search_options
-        error = "WARNING! no match found"
-        city = None
+        #city = None
 
-    return (city, error)
+    elif len(search_results.matches) < 1: 
+        #print "WARNING! no match found: ", search_results.matches
+        error = "No city found"
+        search_result.errors.append(error)
+        #city = None
+
+    #return (city, error)
+
+## original version that did not use SearchResults object
+## def lookup_city_with_geo(search_options, make=False):
+##     """
+##     geo_lookup should have already happened... pass those in
+##     """
+##     error = None
+##     if len(search_options) == 1:
+##         #print search_options
+##         result = search_options[0]
+##         error = check_result(result)
+##         if not error:
+##             city = find_by_city_state(result['city'], result['state'])
+##             if not city and make:
+##                 (city, error) = make_city(result)
+##             else:
+##                 city = None
+                
+##     elif len(search_options) > 1:
+##         #print "WARNING! more than one match found: ", search_options
+##         error = "WARNING! more than one (%s) city found %s" % (len(search_options), search_options)
+##         city = None
+
+##     elif len(search_options) < 1: 
+##         #print "WARNING! no match found: ", search_options
+##         error = "WARNING! no match found"
+##         city = None
+
+##     return (city, error)
     
 def search_city(query, make=False):
     """
@@ -93,10 +134,13 @@ def search_city(query, make=False):
 
     if not, and if make is True, then we can call make_city
     """
-    (results, error, unit) = address_search(query)
+    results = address_search(query)
+    #(results, error, unit) = address_search(query)
     #results = address_search(query)
-    (city, error) = lookup_city_with_geo(results, make)
-    return (city, error, results)    
+    #(city, error) = lookup_city_with_geo(results, make)
+    lookup_city_with_geo(results, make)
+    #return (city, error, results)    
+    return results
 
 ## def find_by_city_state(city_name, city_state, make=False):
 ##     """

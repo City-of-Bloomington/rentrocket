@@ -1,5 +1,6 @@
 @import 'globals.less';
 @import 'colors.less';
+@import 'autocomplete.less';
 
 //see responsive.less for map-canvas
 
@@ -22,45 +23,6 @@
     font-weight: bold;
     font-size: 1.4em;
 }
-
-
-.autocomplete-w1 {
-    background: @lightgrey;
-    position:absolute;
-    top:0px;
-    left:0px;
-    margin:6px 0 0 6px;
-    /* IE6 fix: */
-    _background:none;
-    _margin:1px 0 0 0;
-}
-
-.autocomplete-suggestions {
-    border:1px solid #999;
-    background-color:#FFF;
-    cursor:default;
-    text-align:left;
-    max-height:350px;
-    overflow:auto;
-    //margin:-6px 6px 6px -6px;
-    /* IE6 specific: */
-    _height:350px;
-    _margin:0;
-    _overflow-x:hidden;
-} 
-.autocomplete .selected {
-    background:#F0F0F0;
-}
-
-.autocomplete div {
-    padding:2px 5px;
-    white-space:nowrap;
-    overflow:hidden;
-} 
-.autocomplete strong {
-    font-weight:normal;
-    color:#3399FF;
-} 
 
 .description {
     vertical-align: bottom;

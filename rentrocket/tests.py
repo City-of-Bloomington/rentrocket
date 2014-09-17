@@ -17,11 +17,14 @@ class HelpersTest(TestCase):
         (this shouldn't require database connections)
         """
         a1 = "3210 E JOHN HINKLE PL UNIT B, Bloomington IN"
-        (options, error, unit) = address_search(a1)
+        #(options, error, unit) = address_search(a1)
+        #self.assertEqual(unit, "Unit B")
+        #self.assertEqual(len(options), 1)
 
-        self.assertEqual(unit, "Unit B")
+        result = address_search(a1)
+        self.assertEqual(result.unit_text, "Unit B")
+        self.assertEqual(len(result.matches), 1)
 
-        self.assertEqual(len(options), 1)
 
         #print options
         #print error

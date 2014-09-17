@@ -168,14 +168,17 @@ def search_geo(request, query=None, limit=100):
         query = request.GET.get('query', '')
         
     if not query:
-        print "Empty query... skipping"
+        #print "Empty query... skipping"
+        pass
         
     else:
-        print "QUERY: %s" % query
-        (search_options, error, unit) = address_search(query)
+        #print "QUERY: %s" % query
+        #(search_options, error, unit) = address_search(query)
+        results = address_search(query)
 
-        for option in search_options[:limit]:
-            all_options.append( { 'value': option['place_total'], 'data': option['place_total'] } )
+        for option in results.matches[:limit]:
+            if option.has_key('place_total'):
+                all_options.append( { 'value': option['place_total'], 'data': option['place_total'] } )
 
     print all_options
     #this is the format required by jquery.autocomplete (devbridge) plugin:
@@ -195,68 +198,110 @@ def search_geo(request, query=None, limit=100):
 ## def update(request, bldg_tag, city_tag):
 ##     pass
 
+class ChooseUnitForm(forms.Form):
+    #unit_options = ()
+    #unit_select = forms.ChoiceField(unit_options, label='Available Units', required=False, widget=forms.Select(attrs={'onchange':"this.form.submit()"}))
+    #unit_text = "BLAH BLAH"
+    unit_text = forms.CharField(max_length=15, label='New Unit', required=False, widget=forms.TextInput(attrs={ 'placeholder': 'Apt #', 'size': '10' }))
+
+    def __init__(self, *args, **kwargs):
+        #extra = kwargs.pop('extra')
+        choices = kwargs.pop('choices')
+        super(ChooseUnitForm, self).__init__(*args, **kwargs)
+        
+        self.fields['unit_select'] = forms.ChoiceField(choices, label='Available Units', required=False, widget=forms.Select(attrs={'onchange':"this.form.submit()"}))
+        
+        #for i, question in enumerate(extra):
+        #    self.fields['custom_%s' % i] = forms.CharField(label=question)
+
 class NewBuildingForm(forms.Form):
-    address = forms.CharField(max_length=200, required=True, widget=forms.TextInput(attrs={'placeholder': 'Street, City, State, Zip', 'class': 'typeahead'}))
+    address = forms.CharField(max_length=200, required=True, widget=forms.TextInput(attrs={ 'placeholder': 'Street + Apt#, City, State, Zip', 'class': 'typeahead', 'size': '40' }))
 
-    search_options_visible = False
-    search_options = False
+    #these are handled by autocomplete now
+    #search_options_visible = False
+    #search_options = False
 
-    unit_options_visible = False
-    unit_options = False
+    unit_select_visible = False
 
     def clean(self):
         print "cleaning called!"
         cleaned_data = super(NewBuildingForm, self).clean()
 
         result = search_building(cleaned_data.get("address"))
-        print result
+        #result = search_building(cleaned_data.get("address"))
+        #print result
 
-        if result[2]:
-            raise forms.ValidationError(result[2])
-        ## cc_myself = cleaned_data.get("cc_myself")
-        ## subject = cleaned_data.get("subject")
+        if result.errors:
+            for error in result.errors:
+                raise forms.ValidationError(error)
 
-        ## if cc_myself and subject:
-        ##     # Only do something if both fields are valid so far.
-        ##     if "help" not in subject:
-        ##         raise forms.ValidationError("Did not send for 'help' in "
-        ##                 "the subject despite CC'ing yourself.")
+        # wait on creating... handle this in view:
+        ## elif not result.building:
+        ##     #we don't have something that matches an existing building
+        ##     #should be ok to make a new one!
+        ##     result = search_building(cleaned_data.get("address"), make=True)
+        ##     if result.errors:
+        ##         for error in result.errors:
+        ##             raise forms.ValidationError(error)
+
+        elif (not result.unit) and (result.building.units.count() > 1):
+            #what about one unit, but unit.number != ''?
+            #also want to add then
+            self.unit_select_visible = True
+
+            #self.__init__()
+            #print dir(self.fields['unit_select'])
+            #self.fields['unit_select'].choices = choices
+            #self.unit_options = False
+            #print "UNIT TEXT: ", self.unit_text
+
+            raise forms.ValidationError("Please specify a unit or apartment number")
 
         #http://stackoverflow.com/questions/15946979/django-form-cleaned-data-is-none
         #must return cleaned_data!!
         return cleaned_data
 
-    ## def as_p(self):
-    ##     """
-    ##     Returns this form rendered as HTML <p>s.
-    ##     Customizing to handle when to show select fields.
-    ##     """
-    ##     return self._html_output(
-    ##         normal_row = u'<p%(html_class_attr)s>%(label)s</p> %(field)s%(help_text)s',
-    ##         error_row = u'%s',
-    ##         row_ender = '</p>',
-    ##         help_text_html = u' <span class="helptext">%s</span>',
-    ##         errors_on_separate_row = True)
-    
 #@login_required
 def new(request, query=None):
+    unitform = None
     if request.method == 'POST':
-        form = NewBuildingForm(request.POST)
+        bldgform = NewBuildingForm(request.POST, prefix='building')
 
-        if form.is_valid(): # All validation rules pass
-            print form.cleaned_data
+        if bldgform.is_valid(): # All validation rules pass
+            #print form.cleaned_data
             #results = address_search(form.cleaned_data['address'])
-            results = search_building(form.cleaned_data['address'])
-            print "OPTIONS!:"
-            print results
-            
-    else:
-        form = NewBuildingForm()
+            #print "OPTIONS!:"
+            #print results
+            print "Bldgform valid!"
 
+        ##     result = search_building(cleaned_data.get("address"), make=True)
+        ##     if result.errors:
+        ##         for error in result.errors:
+        ##             raise forms.ValidationError(error)
+
+        #maybe we've discovered that there are units available...
+        #ask for clarification
+        if bldgform.unit_select_visible:
+            #should only be able to get here if 
+            result = search_building(bldgform.data['building-address'])
+            choices = [ ('', '') ]
+            for unit in result.building.units.all():
+                choices.append( (unit.number, unit.number) )
+
+            unitform = ChooseUnitForm(request.POST, prefix='unit', choices=choices)
+            if unitform.is_valid():
+                if unitform.cleaned_data[
+                print "Unit form valid!!!"
+
+        
+    else:
+        bldgform = NewBuildingForm()
+        
     context = { 
-                'user': request.user,
-                'form': form,
-                }
+        'user': request.user,
+        'bldgform': bldgform,
+        'unitform': unitform,
+        }
     return render(request, 'building-new.html', context)
 
 

@@ -10,6 +10,8 @@ libraries:
   version: "1.4"
 - name: MySQLdb
   version: "latest"
+- name: ssl
+  version: latest
   
 env_variables:
   DJANGO_SETTINGS_MODULE: 'rentrocket.settings'

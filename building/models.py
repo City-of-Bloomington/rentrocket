@@ -168,7 +168,7 @@ def make_unit(apt_num, building):
     return unit
 
 
-def make_building(result, bldg_id=None, parcel_id=None, source=None, request=None):
+def make_building(search_results, bldg_id=None, parcel_id=None, source=None, request=None):
     """
     assume we've already checked for existing here...
     part of that check should have involved a call to address_search...
@@ -176,17 +176,31 @@ def make_building(result, bldg_id=None, parcel_id=None, source=None, request=Non
     we just need to process the result
     """
 
-    (city, error) = lookup_city_with_geo([result], make=True)
+    #(city, error) = lookup_city_with_geo(search_results, make=True)
+    lookup_city_with_geo(search_results, make=True)
+    city = search_results.city
 
-    if parcel_id:
-        cid = parcel_id
-    elif bldg_id:
-        cid = "%s-%s" % (city.tag, bldg_id)
+    #should have already checked that there is only one!
+    result = search_results.matches[0]
+
+    if not result.has_key('street') or not city:
+        search_results.errors.append("Cannot add a new building without a street address and a city.")
     else:
-        cid = ''
 
-    parcel = None
-    if cid:
+        if parcel_id:
+            cid = parcel_id
+        elif bldg_id:
+            cid = "%s-%s" % (city.tag, bldg_id)
+        else:
+            cid = ''
+
+        parcel = None
+        #if cid == '', we'll get one empty parcel for every building
+        #but that is probably ok...
+        #should only add a parcel if we know something about it
+        #(even if that is just the ID a city uses for it)
+        #if cid:
+
         #print "Checking parcel id: %s" % (cid)
         parcels = Parcel.objects.filter(custom_id=cid)
         if parcels.exists():
@@ -194,66 +208,67 @@ def make_building(result, bldg_id=None, parcel_id=None, source=None, request=Non
             #print "Already had parcel: %s" % parcel.custom_id
 
 
-    # if we don't have one, just make a new one
-    if not parcel:
-        parcel = Parcel()
-        parcel.custom_id = cid
-        parcel.save()
-        #print "Created new parcel: %s" % parcel.custom_id
+        # if we don't have one, just make a new one
+        if not parcel:
+            parcel = Parcel()
+            parcel.custom_id = cid
+            parcel.save()
+            #print "Created new parcel: %s" % parcel.custom_id
 
-    bldg = Building()
+        bldg = Building()
 
-    bldg.address = result['street']
-    bldg.latitude = float(result['lat'])
-    bldg.longitude = float(result['lng'])
+        bldg.address = result['street']
+        bldg.latitude = float(result['lat'])
+        bldg.longitude = float(result['lng'])
 
-    bldg.parcel = parcel
-    bldg.geocoder = "Google"
-    if source:
-        #not going to try to create one of these otherwise
-        bldg.source = source
+        bldg.parcel = parcel
+        bldg.geocoder = "Google"
+        if source:
+            #not going to try to create one of these otherwise
+            bldg.source = source
 
-    ## elif request:
-    ##     bldg.source = "Web:%s" % get_client_ip(request)
-    ## else:
-    ##     #delete this after request passing attempted
-    ##     #raise ValueError, "Have you tried passing in request yet?"
-    ##     bldg.source = "Web"
+        ## elif request:
+        ##     bldg.source = "Web:%s" % get_client_ip(request)
+        ## else:
+        ##     #delete this after request passing attempted
+        ##     #raise ValueError, "Have you tried passing in request yet?"
+        ##     bldg.source = "Web"
 
-    bldg.city = city
-    bldg.state = city.state
+        bldg.city = city
+        bldg.state = city.state
 
-    bldg.postal_code = result['zipcode']
-    
-    #print updated.diff
-    changes = ChangeDetails()
+        bldg.postal_code = result['zipcode']
 
-    if request:
-        changes.ip_address = get_client_ip(request)
-        if request.user:
-            changes.user = request.user
-    else:
-        #set a default to show that this change was made from a script
-        changes.ip_address = "1.1.1.1"
-            
-    changes.diffs = json.dumps(bldg.diff)
-    #not required
-    #changes.unit =
-    #print changes.diffs
+        #print updated.diff
+        changes = ChangeDetails()
 
-    bldg.save()
+        if request:
+            changes.ip_address = get_client_ip(request)
+            if request.user:
+                changes.user = request.user
+        else:
+            #set a default to show that this change was made from a script
+            changes.ip_address = "1.1.1.1"
 
-    #waiting to make sure bldg has an id:
-    changes.building = bldg
-    changes.save()
+        changes.diffs = json.dumps(bldg.diff)
+        #not required
+        #changes.unit =
+        #print changes.diffs
 
-    bldg.create_tag(force=True)
+        bldg.save()
 
-    #delaying creating an associated Unit here...
-    #may have multiple units that we want to add
-    #every building should have at least one Unit associated with it though
+        #waiting to make sure bldg has an id:
+        changes.building = bldg
+        changes.save()
 
-    return (bldg, error)
+        bldg.create_tag(force=True)
+
+        #delaying creating an associated Unit here...
+        #may have multiple units that we want to add
+        #every building should have at least one Unit associated with it though
+
+        search_results.building = bldg
+        #return (bldg, error)
 
 def find_building(result):
     """
@@ -288,7 +303,7 @@ def find_building(result):
 
     return [building, error]
 
-def lookup_building_with_geo(search_options, unit_search='', make=False, request=None):
+def lookup_building_with_geo(search_results, make=False, request=None):
     """
     address_search should have already happened... pass those results in
 
@@ -297,41 +312,113 @@ def lookup_building_with_geo(search_options, unit_search='', make=False, request
     if not, and if make is True, then we can call make_building
     """
     error = None
-    unit = None
-    if len(search_options) == 1:
-        #print search_options
-        result = search_options[0]
-        error = check_result(result)
-        if not error:
-            #down to one result... add unit_search in to that
-            #this should be set already now:
-            #result['unit'] = unit_search
+    #unit = None
+    if len(search_results.matches) == 1:
+        #print search_results.matches
+        result = search_results.matches[0]
 
-            (building, error) = find_building(result)
-            #print "Building: ", building
-            #print "Error: ", error
-            if not building and not error and make:
-                (building, error) = make_building(result, request=request)
+        #same as city... this check should have happened already
+        #error = check_result(result)
+        #if not error:
 
-            #regardless of if we have a value for unit_search
-            #want to look up the unit (blank ones included)
-            if building:
-                 (match, error, matches) = building.find_unit(unit_search)
-                 if match:
-                     unit = match
-                 elif not match and not error and make:
-                     #if unit_search is '', this should create a blank unit
-                     unit = make_unit(unit_search, building)
+        #down to one result... add unit_search in to that
+        #this should be set already now:
+        #result['unit'] = unit_search
 
-    elif len(search_options) > 1:
+
+        #could refactor find_building
+        #to accept a SearchResult object
+        #and update settings appropriately...
+        #
+        #but that might make that function more difficult to use on its own
+        (building, error) = find_building(result)
+        if error:
+            search_results.errors.append(error)
+
+        #print "Building: ", building
+        #print "Error: ", error
+        if not building and not error and make:
+            #(building, error) = make_building(result, request=request)
+            make_building(search_results, request=request)
+            building = search_results.building
+            
+        #regardless of if we have a value for unit_search
+        # (aka search_results.unit_text)
+        #want to look up the unit (blank ones included)
+        if building:
+            search_results.building = building
+            (match, error, matches) = building.find_unit(search_results.unit_text)
+            #print "Find Unit Results: ->%s<- ->%s<- ->%s<-" % (match, error, matches)
+            
+            if match:
+                #unit = match
+                search_results.unit = match
+            elif not match and not error and make:
+                #if search_results.unit_text is '',
+                #this should create a blank unit:
+                unit = make_unit(search_results.unit_text, building)
+                #print "Made new unit: ", unit
+                search_results.unit = unit
+                
+            if error:
+                search_results.errors.append(error)
+
+    elif len(search_results.matches) > 1:
         error = "More than one match found. Please narrow your selection."
-        building = None
+        search_results.errors.append(error)
+        #building = None
 
-    elif len(search_options) < 1: 
+    elif len(search_results.matches) < 1: 
         error = "No match found. Please check the address."
-        building = None
+        search_results.errors.append(error)
+        #building = None
 
-    return (building, unit, error)
+
+#original version before SearchResult object
+## def lookup_building_with_geo(search_options, unit_search='', make=False, request=None):
+##     """
+##     address_search should have already happened... pass those results in
+
+##     then see if we have a matching building
+
+##     if not, and if make is True, then we can call make_building
+##     """
+##     error = None
+##     unit = None
+##     if len(search_options) == 1:
+##         #print search_options
+##         result = search_options[0]
+##         error = check_result(result)
+##         if not error:
+##             #down to one result... add unit_search in to that
+##             #this should be set already now:
+##             #result['unit'] = unit_search
+
+##             (building, error) = find_building(result)
+##             #print "Building: ", building
+##             #print "Error: ", error
+##             if not building and not error and make:
+##                 (building, error) = make_building(result, request=request)
+
+##             #regardless of if we have a value for unit_search
+##             #want to look up the unit (blank ones included)
+##             if building:
+##                  (match, error, matches) = building.find_unit(unit_search)
+##                  if match:
+##                      unit = match
+##                  elif not match and not error and make:
+##                      #if unit_search is '', this should create a blank unit
+##                      unit = make_unit(unit_search, building)
+
+##     elif len(search_options) > 1:
+##         error = "More than one match found. Please narrow your selection."
+##         building = None
+
+##     elif len(search_options) < 1: 
+##         error = "No match found. Please check the address."
+##         building = None
+
+##     return (building, unit, error)
     
 def search_building(query, make=False, request=None):
     """
@@ -345,11 +432,17 @@ def search_building(query, make=False, request=None):
     if this is made from a web request, pass the request in so we can log source
     """
 
-    (search_options, error, unit) = address_search(query)
-    if not error:
-        (building, unit, error) = lookup_building_with_geo(search_options, unit_search=unit, make=make, request=request)
+    result = address_search(query)
+    if not result.errors:
+        lookup_building_with_geo(result, make=make, request=request)
         
-    return (building, unit, error, search_options)    
+    return result
+
+    ## (search_options, error, unit) = address_search(query)
+    ## if not error:
+    ##     (building, unit, error) = lookup_building_with_geo(search_options, unit_search=unit, make=make, request=request)
+        
+    ## return (building, unit, error, search_options)    
 
     
 
