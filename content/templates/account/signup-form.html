@@ -1,0 +1,19 @@
+      {% load url from future %}
+      {% load i18n %}
+
+      <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
+          {% csrf_token %}
+            {{ form.non_field_errors }}
+            {{ form.username }} {{ form.username.errors }}
+            <br>
+            {{ form.password1 }} {{ form.password1.errors }}
+            <br>
+            {{ form.password2 }} {{ form.password2.errors }}
+            <br>
+            <input id="id_email" name="email" type="email" placeholder="email@address.com"> {{ form.email.errors }}
+            <br><br>
+          {% if redirect_field_value %}
+          <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+          {% endif %}
+          <button class="btn" type="submit">{% trans "Sign Up" %} &raquo;</button>
+        </form>

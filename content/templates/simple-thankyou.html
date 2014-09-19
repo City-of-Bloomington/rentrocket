@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+
+{% load url from future %}
+{% load i18n %}
+
+
+{% block title %}RentRocket.org: Thank you!{% endblock %}
+
+{% block content %}
+
+<div class="page-background">
+</div>
+<div class="page">
+  <div id="fb-root"></div>
+  
+  <div id="quick-form-container">
+  <div id="content-box">
+    <h1>Thank You!</h1>
+    <p>We appreciate your help.</p>
+    <p>If you would like to get future updates and notification when the site launches, please take a second to create an account:</p>
+      
+    {% include "account/signup-form.html" with form=form %}
+
+    <h3>Want to help further?</h3>
+    <p><a href="{{ next }}">Share more info on this address</a></p>
+    <p><a href="/simple">Share info on a new address</a></p>
+    <p>Encourage friends to help:</p>
+    <p>
+      <span class="social-widget"><a href="https://twitter.com/share" class="twitter-share-button" data-url="http://rentrocket.org/simple" data-text="Share energy data for your apartment.">Tweet</a></span>
+      <span class="social-widget"><span class="fb-like" data-href="http://rentrocket.org/simple" data-layout="button_count" data-action="like" data-show-faces="false" data-share="false"></span></span>
+    </p>
+      
+  </div>
+  </div>
+    
+<br>
+</div>
+{% endblock %} {# content #}
+
+
+{% block require %}
+{% endblock %} {# require #}
+
+
+{% block script %}
+      <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+
+      <script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&appId=72381235661&version=v2.0";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+{% endblock %}
+
+
