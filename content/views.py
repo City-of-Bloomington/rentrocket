@@ -92,84 +92,87 @@ def simple_data(request):
         #make and test the bldgform (and unitform, if necessary)
         (result, bldgform, unitform) = validate_building_and_unit(request)
 
-        if result.errors:
-            #we had difficulty finding the corresponding building
-            #add errors to the form
-            errors = bldgform._errors.setdefault(forms.forms.NON_FIELD_ERRORS, ErrorList())
+        #might need these anywhere:
+        errors = bldgform._errors.setdefault(forms.forms.NON_FIELD_ERRORS, ErrorList())
 
-            #http://stackoverflow.com/questions/188886/inject-errors-into-already-validated-form
-            #although once this is on django 1.7:
-            #https://docs.djangoproject.com/en/dev/ref/forms/api/#django.forms.Form.add_error
-            for error in result.errors:                    
-                errors.append(error)
+        if result:
+            if result.errors:
+                #we had difficulty finding the corresponding building
+                #add errors to the form
 
-        #should already be errors if not result.building, 
-        #so this could just be else, but this is more clear:
-        elif result.building and result.unit:
+                #http://stackoverflow.com/questions/188886/inject-errors-into-already-validated-form
+                #although once this is on django 1.7:
+                #https://docs.djangoproject.com/en/dev/ref/forms/api/#django.forms.Form.add_error
+                for error in result.errors:                    
+                    errors.append(error)
 
-            #TODO
-            #consider filling in any empty fields in the form
-            #with data we have previously collected about chosen building
+            #should already be errors if not result.building, 
+            #so this could just be else, but this is more clear:
+            elif result.building and result.unit:
 
-            #image button must submit a hybrid value with x and y...
-            #discovered by printing POST results:
-            #print request.POST
-            if 'calculator.x' in request.POST or 'calculator.y' in request.POST:
-                show_calculator = True
-                print "SHOWING CALCULATOR!!"
+                #TODO
+                #consider filling in any empty fields in the form
+                #with data we have previously collected about chosen building
 
-            if simpleform.is_valid(): # All validation rules pass
+                #image button must submit a hybrid value with x and y...
+                #discovered by printing POST results:
+                #print request.POST
+                if 'calculator.x' in request.POST or 'calculator.y' in request.POST:
+                    show_calculator = True
+                    print "SHOWING CALCULATOR!!"
 
-                errors = False
+                if simpleform.is_valid(): # All validation rules pass
 
-                #now check if rental / rent combo is complete...
-                #custome validation check
-                if simpleform.cleaned_data['property_type'] == 'rental':
-                    result.unit.status = 'rented'
-                    if not simpleform.cleaned_data['rent']:
-                        simpleform.errors['rent'] = "Please specify the rent."
-                        errors = True
+                    errors = False
+
+                    #now check if rental / rent combo is complete...
+                    #custome validation check
+                    if simpleform.cleaned_data['property_type'] == 'rental':
+                        result.unit.status = 'rented'
+                        if not simpleform.cleaned_data['rent']:
+                            simpleform.errors['rent'] = "Please specify the rent."
+                            errors = True
+                        else:
+                            result.unit.rent = simpleform.cleaned_data['rent']
                     else:
-                        result.unit.rent = simpleform.cleaned_data['rent']
-                else:
-                    result.unit.status = 'owner-occupied'
+                        result.unit.status = 'owner-occupied'
 
 
-                #check if we have electricity
-                #or natural gas average bill amounts
+                    #check if we have electricity
+                    #or natural gas average bill amounts
 
-                if not errors:
-                    #save what ever we have
-                    result.unit.bedroom = simpleform.cleaned_data['bedrooms']
-                    if not simpleform.cleaned_data['electricity'] is None:
-                        result.unit.average_electricity = simpleform.cleaned_data['electricity']
-                    if not simpleform.cleaned_data['gas'] is None:
-                        result.unit.average_gas = simpleform.cleaned_data['gas']
+                    if not errors:
+                        #save what ever we have
+                        result.unit.bedroom = simpleform.cleaned_data['bedrooms']
+                        if not simpleform.cleaned_data['electricity'] is None:
+                            result.unit.average_electricity = simpleform.cleaned_data['electricity']
+                        if not simpleform.cleaned_data['gas'] is None:
+                            result.unit.average_gas = simpleform.cleaned_data['gas']
 
-                    result.unit.save_and_update(request)
+                        result.unit.save_and_update(request)
 
-                    #redirect to unit details page with an edit message
-                    #TODO:
-                    #redirect to thank you page instead!
-                    
-                    messages.add_message(request, messages.INFO, 'Saved changes to unit.')
-                    if result.unit.tag:
-                        finished_url = reverse('building.views.unit_details', kwargs={'city_tag':result.building.city.tag, 'bldg_tag':result.building.tag, 'unit_tag':result.unit.tag})
-                    else:
-                        finished_url = reverse('building.views.unit_details', kwargs={'city_tag':result.building.city.tag, 'bldg_tag':result.building.tag})
+                        #redirect to unit details page with an edit message
+                        #TODO:
+                        #redirect to thank you page instead!
+
+                        messages.add_message(request, messages.INFO, 'Saved changes to unit.')
+                        if result.unit.tag:
+                            finished_url = reverse('building.views.unit_details', kwargs={'city_tag':result.building.city.tag, 'bldg_tag':result.building.tag, 'unit_tag':result.unit.tag})
+                        else:
+                            finished_url = reverse('building.views.unit_details', kwargs={'city_tag':result.building.city.tag, 'bldg_tag':result.building.tag})
 
 
 
-                    thank_you = "/simple-thankyou?next=%s" % quote(finished_url)
-                        
-                    #args=(updated.building.tag, city.tag, updated.tag)
-                    #return redirect(finished_url)
-                    return redirect(thank_you)
+                        thank_you = "/simple-thankyou?next=%s" % quote(finished_url)
+
+                        #args=(updated.building.tag, city.tag, updated.tag)
+                        #return redirect(finished_url)
+                        return redirect(thank_you)
 
 
-                    #in chrome, the original post url stays in the address bar.
-                    #finished_url = reverse('utility.views.thank_you')
-                    #return redirect(finished_url)
+                        #in chrome, the original post url stays in the address bar.
+                        #finished_url = reverse('utility.views.thank_you')
+                        #return redirect(finished_url)
 
         else:
             errors.append("There was a problem locating the requested building")
