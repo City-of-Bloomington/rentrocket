@@ -114,8 +114,30 @@ h5 {
     margin-bottom: 2em;
 }
 
+#quick-form-container {
+    text-align: center;
+}
+
 #quick-form {
     .roundedbox();
+    max-width: 1020px;
+    text-align: center;
+    margin: 0 auto;    
+}
+
+#content-box {
+    .roundedbox();
+    max-width: 600px;
+    text-align: center;
+    margin: 0 auto;
+    padding: 0 20px 20px 20px;
+}
+
+.social-widget {
+    vertical-align: top;
+}
+.fb_iframe_widget {
+    vertical-align: top;
 }
 
 
@@ -273,6 +295,16 @@ footer {
     .column(12);
 }
 
+#id_building-address {
+    width: 300px;
+}
+
+@media screen and (max-width: 930px) {
+    #id_building-address {
+        width: 240px;
+    }
+}
+
 @media screen and (max-width: 720px) {
     .leftcolumn,
     .rightcolumn,
@@ -296,7 +328,9 @@ footer {
 	display: block;
     }
 
-    
+    #id_building-address {
+        width: 300px;
+    }
 }
 
 @media screen and (max-width: 480px) {
@@ -304,6 +338,10 @@ footer {
         width: 100%;
         display: inline-block;
         text-align: center;
+    }
+    
+    #id_building-address {
+        width: 240px;
     }
 }
 

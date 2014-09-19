@@ -1,3 +1,5 @@
+from urllib import quote
+
 from google.appengine.ext import blobstore
 
 from django.template import Context, loader
@@ -10,8 +12,15 @@ from django import forms
 from django.forms import extras
 from django.forms import widgets
 
+from django.shortcuts import render, redirect
+from django.forms.util import ErrorList
+from django.contrib import messages
+
 #from rentrocket.helpers import address_search
 from building.models import search_building
+from building.views import validate_building_and_unit, NewBuildingForm
+
+from allauth.account.forms import SignupForm
 
 #from django.shortcuts import render_to_response, get_object_or_404
 
@@ -31,7 +40,7 @@ def upload_form(request):
 
 DWELLING_CHOICES = (
     ('rental', 'is'),
-    ('owned', 'is not'),
+    ('owner_occupied', 'is not'),
     )
 
 BEDROOM_CHOICES = (
@@ -50,10 +59,6 @@ class SimpleForm(forms.Form):
     #years = range(now.year, now.year-30, -1)
     #print years
     
-    address = forms.CharField(max_length=200, required=True, widget=forms.TextInput(attrs={'placeholder': 'Street, City, State, Zip'}))
-
-    #zip_code = forms.CharField(max_length=10, required=True)
-
     property_type = forms.ChoiceField(choices=DWELLING_CHOICES, widget=forms.Select(attrs={'data-bind':"value: property_type"}))
     rent = forms.FloatField(widget=forms.TextInput(attrs={'size': '9'}), required=False)
     
@@ -65,15 +70,6 @@ class SimpleForm(forms.Form):
 
     gas = forms.FloatField(label='Natural Gas', widget=forms.TextInput(attrs={'size': '9'}), required=False)
 
-    #city = forms.ChoiceField(options, widget=forms.Select(attrs={'data-bind':"value: city"}))    
-    ## alt_type = forms.CharField(max_length=100, required=False)    
-    ## file = forms.FileField()
-    ## vendor = forms.CharField(max_length=200, required=False)
-    ## move_in = forms.DateField(widget=extras.SelectDateWidget(years=years), required=False)
-    ## energy_options = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple(choices=ENERGY_TYPES), choices=ENERGY_TYPES, required=False)
-    ## alt_energy = forms.CharField(max_length=100, required=False)
-    ## sqft = forms.CharField(max_length=5, required=False)
-    ## email = forms.EmailField(required=False)
 
 def simple_data(request):
     """
@@ -83,108 +79,105 @@ def simple_data(request):
     results = ''
 
     #probably OK to show the calculator worksheet either way
-    show_calculator = True
-
+    #once we're on the short form destination page
+    #show_calculator = True
+    show_calculator = False
     
+    unitform = None
+    bldgform = None
     if request.method == 'POST':
-        #form = SimpleForm(request.POST, request.FILES)
-        form = SimpleForm(request.POST)
+        #make this either way
+        simpleform = SimpleForm(request.POST, prefix='simple')
 
-        #image button must submit a hybrid value with x and y...
-        #discovered by printing POST
-        #print request.POST
-        if 'calculator.x' in request.POST or 'calculator.y' in request.POST:
-            show_calculator = True
-            print "SHOWING CALCULATOR!!"
+        #make and test the bldgform (and unitform, if necessary)
+        (result, bldgform, unitform) = validate_building_and_unit(request)
 
-        if form.is_valid(): # All validation rules pass
+        if result.errors:
+            #we had difficulty finding the corresponding building
+            #add errors to the form
+            errors = bldgform._errors.setdefault(forms.forms.NON_FIELD_ERRORS, ErrorList())
 
-            errors = False
+            #http://stackoverflow.com/questions/188886/inject-errors-into-already-validated-form
+            #although once this is on django 1.7:
+            #https://docs.djangoproject.com/en/dev/ref/forms/api/#django.forms.Form.add_error
+            for error in result.errors:                    
+                errors.append(error)
 
-            #results = address_search(form.cleaned_data['address'])
-            results = search_building(form.cleaned_data['address'])
-            print "OPTIONS!:"
-            print results
+        #should already be errors if not result.building, 
+        #so this could just be else, but this is more clear:
+        elif result.building and result.unit:
 
-            if not form.cleaned_data['alt_city']:
-                form.errors['alt_city'] = "Please specify the city."
-                errors = True
+            #TODO
+            #consider filling in any empty fields in the form
+            #with data we have previously collected about chosen building
 
-            #if options == 1:
-            #see if we have the city specified in selected option
-            #if not, create it
+            #image button must submit a hybrid value with x and y...
+            #discovered by printing POST results:
+            #print request.POST
+            if 'calculator.x' in request.POST or 'calculator.y' in request.POST:
+                show_calculator = True
+                print "SHOWING CALCULATOR!!"
 
-            #then see if we have a matching building
+            if simpleform.is_valid(): # All validation rules pass
 
-            #if so, and if unit or apartment
-            #ask if this is a unit that is part of the building
+                errors = False
 
-            #if not, create building + unit
-            #add supplied details to building
+                #now check if rental / rent combo is complete...
+                #custome validation check
+                if simpleform.cleaned_data['property_type'] == 'rental':
+                    result.unit.status = 'rented'
+                    if not simpleform.cleaned_data['rent']:
+                        simpleform.errors['rent'] = "Please specify the rent."
+                        errors = True
+                    else:
+                        result.unit.rent = simpleform.cleaned_data['rent']
+                else:
+                    result.unit.status = 'owner-occupied'
 
 
-            #if we have details for utility usage
-            #process (and save) those here
+                #check if we have electricity
+                #or natural gas average bill amounts
+
+                if not errors:
+                    #save what ever we have
+                    result.unit.bedroom = simpleform.cleaned_data['bedrooms']
+                    if not simpleform.cleaned_data['electricity'] is None:
+                        result.unit.average_electricity = simpleform.cleaned_data['electricity']
+                    if not simpleform.cleaned_data['gas'] is None:
+                        result.unit.average_gas = simpleform.cleaned_data['gas']
+
+                    result.unit.save_and_update(request)
+
+                    #redirect to unit details page with an edit message
+                    #TODO:
+                    #redirect to thank you page instead!
+                    
+                    messages.add_message(request, messages.INFO, 'Saved changes to unit.')
+                    if result.unit.tag:
+                        finished_url = reverse('building.views.unit_details', kwargs={'city_tag':result.building.city.tag, 'bldg_tag':result.building.tag, 'unit_tag':result.unit.tag})
+                    else:
+                        finished_url = reverse('building.views.unit_details', kwargs={'city_tag':result.building.city.tag, 'bldg_tag':result.building.tag})
 
 
 
+                    thank_you = "/simple-thankyou?next=%s" % quote(finished_url)
+                        
+                    #args=(updated.building.tag, city.tag, updated.tag)
+                    #return redirect(finished_url)
+                    return redirect(thank_you)
 
 
-            #need to do a specialized validation here..
-            #alt_city and alt_state only required if city == other
-            
-            ## if bldg_tag:
-            ##     statement.building_address = bldg_tag
-            ## else:
-            ##     #if form.cleaned_data.has_key('email'):
-            ##     statement.building_address = form.cleaned_data['address']
-            ## statement.unit_number = unit_tag
+                    #in chrome, the original post url stays in the address bar.
+                    #finished_url = reverse('utility.views.thank_you')
+                    #return redirect(finished_url)
 
-            ## statement.ip_address = get_client_ip(request)
-            ## #if form.cleaned_data.has_key('email'):
-            ## statement.person_email = form.cleaned_data['email']
+        else:
+            errors.append("There was a problem locating the requested building")
 
-            ## #print request.user
-            ## #print dir(request.user)
-            ## if request.user and not request.user.is_anonymous():
-            ##     statement.user = request.user
-
-            ## #if form.cleaned_data.has_key('vendor'):
-            ## statement.vendor = form.cleaned_data['vendor']
-
-            ## #if form.cleaned_data.has_key('utility_type'):
-            ## if form.cleaned_data['utility_type'] == 'other':
-            ##     #if form.cleaned_data.has_key('alt_type'):
-            ##     statement.type = form.cleaned_data['alt_type']
-            ## else:
-            ##     statement.type = form.cleaned_data['utility_type']
-
-            ## #if form.cleaned_data.has_key('move_in'):
-            ## statement.move_in = form.cleaned_data['move_in']
-
-            ## #if form.cleaned_data.has_key('energy_options'):
-            ## #statement.energy_options = form.cleaned_data['energy_options']
-            ## options = form.cleaned_data['energy_options']
-            ## if 'other' in options:
-            ##     options.remove('other')
-            ##     if form.cleaned_data['alt_energy']:
-            ##         options.append(form.cleaned_data['alt_energy'])
-
-            ## statement.energy_sources = options
-
-            ## statement.unit_details = { 'bedrooms': form.cleaned_data['bedrooms'], 'sqft': form.cleaned_data['sqft'], }
-
-            ## statement.save()
-            ## #print statement
-            ## #form.save()
-            ## #return HttpResponseRedirect(view_url)
-            ## #return redirect(view_url, permanent=True)
-            ## #in chrome, the original post url stays in the address bar...
-            ## finished_url = reverse('utility.views.thank_you')
-            ## return redirect(finished_url)
 
     else:
-        form = SimpleForm()
+        bldgform = NewBuildingForm(prefix='building')
+        simpleform = SimpleForm(prefix='simple')
         
     #view_url = reverse('utility.views.upload_handler')
     view_url = request.path
@@ -193,7 +186,6 @@ def simple_data(request):
     upload_data = {}
 
     action_url = reverse('content.views.simple_data')
-
     
     #print form['utility_type'].errors
     #print form['utility_type'].label
@@ -201,23 +193,48 @@ def simple_data(request):
     #print dir(form['energy_options'])
     #print form['energy_options']
 
-    context = {
-        #'city': city_name,
-        #'state': state,
-        #'bldg': bldg_tag,
-        'form': form,
+    context = { 
+        'user': request.user,
+        'bldgform': bldgform,
+        'unitform': unitform,
+        'form': simpleform,
         'show_calculator': show_calculator,
         'action_url': action_url, 
         }
 
     return render(request, 'simple.html', context )
 
+def simple_thankyou(request):
+    """
+    this is the controller for the simple form found on the front page
+    bare minimum needed for data collection
+    """
+    results = ''
+
+    dest = request.GET.get('next', '')
+    
+    form = SignupForm
+
+    context = { 
+        'user': request.user,
+        'form': form,
+        'next': dest,
+        #'bldgform': bldgform,
+        #'unitform': unitform,
+        #'form': simpleform,
+        #'show_calculator': show_calculator,
+        #'action_url': action_url, 
+        }
+    
+    return render(request, 'simple-thankyou.html', context )
 
 def welcome(request):
     """
     place to start developing a real home page for the project
     """
-    form = SimpleForm()
+    #form = SimpleForm()
+    bldgform = NewBuildingForm(prefix='building')
+    simpleform = SimpleForm(prefix='simple')
         
     #view_url = reverse('utility.views.upload_handler')
     #view_url = request.path
@@ -236,7 +253,8 @@ def welcome(request):
         #'city': city_name,
         #'state': state,
         #'bldg': bldg_tag,
-        'form': form,
+        'form': simpleform,
+        'bldgform': bldgform,
         #'results': results,
         'action_url': action_url, 
         }

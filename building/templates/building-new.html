@@ -15,8 +15,11 @@
   {% csrf_token %}
 
   {% include "building-new-form.html" with form=bldgform%}
-
+  
+  {% if bldgform.unit_select_visible %}
   {% include "building-new-unit_select.html" with form=unitform%}
+  {% endif %}
+
 
   {# { form.as_p } #}
     

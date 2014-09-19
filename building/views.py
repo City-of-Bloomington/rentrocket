@@ -9,10 +9,12 @@ from django.contrib.auth.decorators import login_required
 from django.forms import ModelForm, extras, widgets
 from django import forms
 
+from django.forms.util import ErrorList
+
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 
-from models import Building, Unit, Listing, BuildingPerson, ChangeDetails, search_building
+from models import Building, Unit, Listing, BuildingPerson, ChangeDetails, search_building, RentHistory
 
 from city.models import City, to_tag, all_cities
 from rentrocket.helpers import get_client_ip, address_search
@@ -199,9 +201,6 @@ def search_geo(request, query=None, limit=100):
 ##     pass
 
 class ChooseUnitForm(forms.Form):
-    #unit_options = ()
-    #unit_select = forms.ChoiceField(unit_options, label='Available Units', required=False, widget=forms.Select(attrs={'onchange':"this.form.submit()"}))
-    #unit_text = "BLAH BLAH"
     unit_text = forms.CharField(max_length=15, label='New Unit', required=False, widget=forms.TextInput(attrs={ 'placeholder': 'Apt #', 'size': '10' }))
 
     def __init__(self, *args, **kwargs):
@@ -211,11 +210,10 @@ class ChooseUnitForm(forms.Form):
         
         self.fields['unit_select'] = forms.ChoiceField(choices, label='Available Units', required=False, widget=forms.Select(attrs={'onchange':"this.form.submit()"}))
         
-        #for i, question in enumerate(extra):
-        #    self.fields['custom_%s' % i] = forms.CharField(label=question)
 
 class NewBuildingForm(forms.Form):
-    address = forms.CharField(max_length=200, required=True, widget=forms.TextInput(attrs={ 'placeholder': 'Street + Apt#, City, State, Zip', 'class': 'typeahead', 'size': '40' }))
+    #address = forms.CharField(max_length=200, required=True, widget=forms.TextInput(attrs={ 'placeholder': 'Street + Apt#, City, State, Zip', 'class': 'typeahead', 'size': '40' }))
+    address = forms.CharField(max_length=200, required=True, widget=forms.TextInput(attrs={ 'placeholder': 'Street + Apt#, City, State, Zip', 'class': 'typeahead'}))
 
     #these are handled by autocomplete now
     #search_options_visible = False
@@ -223,79 +221,181 @@ class NewBuildingForm(forms.Form):
 
     unit_select_visible = False
 
-    def clean(self):
-        print "cleaning called!"
-        cleaned_data = super(NewBuildingForm, self).clean()
+    #moving this logic into the controller
+    #it would be nice to have access to the search result for later checks
+    ## def clean(self):
+    ##     print "cleaning called!"
+    ##     cleaned_data = super(NewBuildingForm, self).clean()
 
-        result = search_building(cleaned_data.get("address"))
-        #result = search_building(cleaned_data.get("address"))
-        #print result
+    ##     result = search_building(cleaned_data.get("address"))
+    ##     #result = search_building(cleaned_data.get("address"))
+    ##     #print result
 
-        if result.errors:
-            for error in result.errors:
-                raise forms.ValidationError(error)
+    ##     if result.errors:
+    ##         for error in result.errors:
+    ##             raise forms.ValidationError(error)
 
-        # wait on creating... handle this in view:
-        ## elif not result.building:
-        ##     #we don't have something that matches an existing building
-        ##     #should be ok to make a new one!
-        ##     result = search_building(cleaned_data.get("address"), make=True)
-        ##     if result.errors:
-        ##         for error in result.errors:
-        ##             raise forms.ValidationError(error)
+    ##     # wait on creating... handle this in view:
+    ##     ## elif not result.building:
+    ##     ##     #we don't have something that matches an existing building
+    ##     ##     #should be ok to make a new one!
+    ##     ##     result = search_building(cleaned_data.get("address"), make=True)
+    ##     ##     if result.errors:
+    ##     ##         for error in result.errors:
+    ##     ##             raise forms.ValidationError(error)
 
-        elif (not result.unit) and (result.building.units.count() > 1):
-            #what about one unit, but unit.number != ''?
-            #also want to add then
-            self.unit_select_visible = True
+    ##     elif (not result.unit) and (result.building.units.count() > 1):
+    ##         #what about one unit, but unit.number != ''?
+    ##         #also want to add then
+    ##         self.unit_select_visible = True
 
-            #self.__init__()
-            #print dir(self.fields['unit_select'])
-            #self.fields['unit_select'].choices = choices
-            #self.unit_options = False
-            #print "UNIT TEXT: ", self.unit_text
+    ##         #self.__init__()
+    ##         #print dir(self.fields['unit_select'])
+    ##         #self.fields['unit_select'].choices = choices
+    ##         #self.unit_options = False
+    ##         #print "UNIT TEXT: ", self.unit_text
 
-            raise forms.ValidationError("Please specify a unit or apartment number")
+    ##         raise forms.ValidationError("Please specify a unit or apartment number")
 
-        #http://stackoverflow.com/questions/15946979/django-form-cleaned-data-is-none
-        #must return cleaned_data!!
-        return cleaned_data
+    ##     #http://stackoverflow.com/questions/15946979/django-form-cleaned-data-is-none
+    ##     #must return cleaned_data!!
+    ##     return cleaned_data
+
+
+def validate_building_and_unit(request):
+    """
+    common process for showing and validating the multipart form
+    to create a new building, plus a new unit if needed.
+    
+    should only be called after a request has been posted!
+    """
+    unitform = None
+    bldgform = NewBuildingForm(request.POST, prefix='building')
+
+    #want to keep this around for all checks:
+    result = None
+
+    if bldgform.is_valid(): # All validation rules pass
+
+        result = search_building(bldgform.cleaned_data.get("address"))
+
+        ## #in case we need to add errors to the form
+        ## errors = bldgform._errors.setdefault(forms.forms.NON_FIELD_ERRORS, ErrorList())
+        ## if result.errors:
+        ##     #http://stackoverflow.com/questions/188886/inject-errors-into-already-validated-form
+        ##     #although once this is on django 1.7:
+        ##     #https://docs.djangoproject.com/en/dev/ref/forms/api/#django.forms.Form.add_error
+        ##     for error in result.errors:                    
+        ##         errors.append(error)
+
+        ##     #no need to go any further... handle those errors first
+
+        ## else:
+        if not result.errors:
+            if (result.building) and (not result.unit) and (result.building.units.count() > 1):
+                #what about one unit, but unit.number != ''?
+                #also want to add then
+                bldgform.unit_select_visible = True
+                result.errors.append("Please specify a unit or apartment number")
+                
+            elif (not result.building):
+                #need to make a new building here!
+                result = search_building(bldgform.cleaned_data.get("address"), make=True)
+            else:
+                #must have a building, and don't need to make anything:
+                #result will get sent back
+                pass
+
+            if bldgform.unit_select_visible:
+                #we've discovered that there are units available
+                #ask for clarification
+
+                choices = [ ('', '') ]
+                for unit in result.building.units.all():
+                    choices.append( (unit.number, unit.number) )
+
+                unitform = ChooseUnitForm(request.POST, prefix='unit', choices=choices)
+                #maybe the form has the clarification we need
+                #this is always true, since neither field is required
+                #but it should handle the processing of the form
+                if unitform.is_valid():
+                    unit = ''
+                    if unitform.cleaned_data['unit_text'] and unitform.cleaned_data['unit_select']:
+                        #clear out the old ones
+                        #del errors[:]
+                        result.errors.append("Please choose an existing unit, or specify an new one; not both")
+                    elif unitform.cleaned_data['unit_text']:
+                        unit = unitform.cleaned_data['unit_text']
+                    elif unitform.cleaned_data['unit_select']:
+                        unit = unitform.cleaned_data['unit_select']
+
+                    if not unit:
+                        if not "Please specify a unit or apartment number" in result.errors:
+                            result.errors.append("Please specify a unit or apartment number")
+                    else:
+                        #should have everything we need
+
+                        #check if the building has the specified unit
+                        #if not, make it..
+                        #we don't have something that matches an existing building
+                        #should be ok to make a new one!
+                        #result = search_building(cleaned_data.get("address"), make=True)
+                        result = search_building(bldgform.cleaned_data.get("address"), unit=unit, make=True)
+                        #if result.errors:
+                        #    for error in result.errors:                    
+                        #        errors.append(error)
+
+                        ## else:
+                        ##     #redirect to new building page
+                        ##     #print "MADE BUILDING! %s" % result.matches
+                        ##     #print result
+
+    return (result, bldgform, unitform)
 
 #@login_required
 def new(request, query=None):
     unitform = None
+    bldgform = None
     if request.method == 'POST':
-        bldgform = NewBuildingForm(request.POST, prefix='building')
+        (result, bldgform, unitform) = validate_building_and_unit(request)
 
-        if bldgform.is_valid(): # All validation rules pass
-            #print form.cleaned_data
-            #results = address_search(form.cleaned_data['address'])
-            #print "OPTIONS!:"
-            #print results
-            print "Bldgform valid!"
+        if result.errors:
+            #in case we need to add errors to the form
+            errors = bldgform._errors.setdefault(forms.forms.NON_FIELD_ERRORS, ErrorList())
 
-        ##     result = search_building(cleaned_data.get("address"), make=True)
-        ##     if result.errors:
-        ##         for error in result.errors:
-        ##             raise forms.ValidationError(error)
+            #http://stackoverflow.com/questions/188886/inject-errors-into-already-validated-form
+            #although once this is on django 1.7:
+            #https://docs.djangoproject.com/en/dev/ref/forms/api/#django.forms.Form.add_error
+            for error in result.errors:                    
+                errors.append(error)
 
-        #maybe we've discovered that there are units available...
-        #ask for clarification
-        if bldgform.unit_select_visible:
-            #should only be able to get here if 
-            result = search_building(bldgform.data['building-address'])
-            choices = [ ('', '') ]
-            for unit in result.building.units.all():
-                choices.append( (unit.number, unit.number) )
+        elif result.building:
+            if not result.city:
+                result.city = result.building.city
 
-            unitform = ChooseUnitForm(request.POST, prefix='unit', choices=choices)
-            if unitform.is_valid():
-                if unitform.cleaned_data[
-                print "Unit form valid!!!"
+            print result
+            if (not result.unit) or (not result.unit.tag):
+                #redirect to building details with an edit message
+                if result.created:
+                    messages.add_message(request, messages.INFO, 'Created building')
+                else:
+                    messages.add_message(request, messages.INFO, 'Located existing building')
+                    
+                finished_url = reverse('building.views.details', args=(result.building.tag, result.city.tag))
+                
+            else:
+                if result.created:
+                    messages.add_message(request, messages.INFO, 'Created new unit')
+                else:
+                    messages.add_message(request, messages.INFO, 'Located existing unit')
 
+                print "UNIT TAG: %s" % result.unit.tag
+                finished_url = reverse('building.views.unit_details', args=(result.city.tag, result.building.tag, result.unit.tag))
+
+            return redirect(finished_url)
         
     else:
-        bldgform = NewBuildingForm()
+        bldgform = NewBuildingForm(prefix='building')
         
     context = { 
         'user': request.user,
@@ -577,8 +677,6 @@ class UnitForm(ModelForm):
 
 @login_required
 def unit_edit(request, city_tag, bldg_tag, unit_tag=''):
-    #TODO: probably many instances where this is not right
-    #city = City.objects.filter(tag=city_tag)
     cities = City.objects.filter(tag=city_tag)
     city = None
     if cities.count():
@@ -586,6 +684,7 @@ def unit_edit(request, city_tag, bldg_tag, unit_tag=''):
     buildings = Building.objects.filter(city=city).filter(tag=bldg_tag)
     if buildings.count():
         building = buildings[0]
+        
         units = building.units.filter(tag=unit_tag)
         if units.count():
             unit = units[0]
@@ -593,6 +692,11 @@ def unit_edit(request, city_tag, bldg_tag, unit_tag=''):
             unit = None
             #raise 404
             pass
+
+        #TODO:
+        #not sure that this will work with unit_tag yet...
+        #(unit, error, matches) = building.find_unit(unit_tag)
+        #maybe above filter approach is sufficient (and more efficient?) here
         
     else:
         building = None
@@ -604,25 +708,7 @@ def unit_edit(request, city_tag, bldg_tag, unit_tag=''):
         if form.is_valid(): # All validation rules pass
             updated = form.save(commit=False)
 
-            #print json.dumps(updated.diff)
-            
-            #print updated.diff
-            changes = ChangeDetails()
-            changes.ip_address = get_client_ip(request)
-            changes.user = request.user
-            changes.diffs = json.dumps(updated.diff)
-            changes.building = building
-            #not required
-            changes.unit = updated
-            changes.save()
-            
-            #now it's ok to save the building details:
-            updated.save()
-
-            #now that we've saved the unit,
-            #update the averages for the whole building:
-            building.update_utility_averages()
-            building.update_rent_details()
+            updated.save_and_update(request)
 
             #redirect to unit details page with an edit message
             messages.add_message(request, messages.INFO, 'Saved changes to unit.')

@@ -8,6 +8,13 @@ from south.modelsinspector import add_introspection_rules
 
 from geopy.geocoders import GoogleV3
 
+
+#rentrocket/scripts 
+#python columbia-find_apartment_keys.py
+#[u'APT', u'UNIT', u'HOUSE', u'RM', u'HM', u'BLDG', u'LOT', u'TRLR', u'STE', u'SPK', u'DUP', u'ROOM', u'SUITE', u'HM1', u'OFC', u'GAR', u'HMRM', u'SHOP']
+unit_prefixes = ['unit', 'apartment', 'apt', 'suite', 'ste', 'trlr', 'trailer', 'room', 'rm']
+unit_substitutes = { 'unit':'Unit', 'apartment':'Apt', 'apt':'Apt', 'suite':"Ste", 'ste':"Ste", 'trlr':"Trlr", 'trailer':"Trlr", 'room':"Rm", 'rm':"Rm" }
+
 class SearchResults(object):
     """
     Object to make it easier to track and pass
@@ -15,16 +22,31 @@ class SearchResults(object):
     from using external geocoders to looking internally
     """
     def __init__(self):
+        #TODO:
+        #not being used, yet:
+        self.query = ''
+        self.unit_prefix = ''
+        self.unit_suffix = ''
+
+        
+        #this should also be in all of matches, if found
+        self.unit_text = ''
+
+        self.errors = []
+        self.created = False
+        self.matches = []
+
+        #actual found City object
         self.city = None
+        #actual found Building object
         self.building = None
         #for storing an actual Unit object if it is a single match
         self.unit = None
-        #this should also be in all of matches, if found
-        self.unit_text = None
+
         #this should be equivalent to self.building.units.all()
+        #may be redundant / unnecessary
         self.units = []
-        self.errors = []
-        self.matches = []
+
 
     def __repr__(self):
         return str(self.__dict__)
@@ -109,9 +131,52 @@ def handle_place(search_result, place, lat, lng, unit):
 
         search_result.matches.append(match)
 
-def address_search(query):
+def normalize_unit(unit, result):
+    """
+    very similar to the process that happens in address_search
+    when looking for found_unit key
+
+    want to do the same steps for anything passed in
+    but they vary slightly based on the context (not a full address)
+    """
+    parts = unit.split()
+    if len(parts) == 1:
+        if re.search('#', parts[0]):
+            blank, found_unit = parts[0].split('#')
+            found_unit = '#' + found_unit
+            unit = found_unit
+        else:
+            #just a single digit/string
+            #add a 'unit' prefix to it and call it a day:
+            unit = "Unit " + unit
+    elif len(parts) == 2:
+        matched = False
+        for prefix in unit_prefixes:
+            match = re.search(prefix, parts[0], re.I)
+            if match:
+                matched = True
+                unit_num = parts[1].strip()
+                unit = unit_substitutes[prefix] + ' ' + unit_num
+
+        if not matched:
+            result.errors.append("Could not find a valid unit prefix: %s" % unit)
+            #unit = ''
+    elif len(parts) > 2:
+        result.errors.append("Too many parts for a unit: %s" % unit)
+
+    return unit
+
+def address_search(query, unit=''):
+    """
+    allowing an optional unit to be passed in here,
+    if it was specified elsewhere, separately
+    """
     result = SearchResults()
-    unit = ''
+
+    if unit:
+        unit = normalize_unit(unit, result)
+
+    found_unit = ''
 
     #error = None
     #building = None
@@ -121,17 +186,14 @@ def address_search(query):
     if query:
         #before searching for the normalized address
         #check if there is a unit or apartment in the string
-        #Google seems to have difficulty with different unit and apartment strings
+        #Google seems to have difficulty
+        #with different unit and apartment strings,
         #especially if they are not numbers
         #https://code.google.com/p/gmaps-api-issues/issues/detail?id=5587
 
-        #rentrocket/scripts 
-        #python columbia-find_apartment_keys.py
-        #[u'APT', u'UNIT', u'HOUSE', u'RM', u'HM', u'BLDG', u'LOT', u'TRLR', u'STE', u'SPK', u'DUP', u'ROOM', u'SUITE', u'HM1', u'OFC', u'GAR', u'HMRM', u'SHOP']
-        units = ['unit', 'apartment', 'apt', 'suite', 'ste', 'trlr', 'trailer', 'room', 'rm']
-        substitutes = { 'unit':'Unit', 'apartment':'Apt', 'apt':'Apt', 'suite':"Ste", 'ste':"Ste", 'trlr':"Trlr", 'trailer':"Trlr", 'room':"Rm", 'rm':"Rm" }
+        #so extract that information before passing it on
 
-        for item in units:
+        for item in unit_prefixes:
             search = '(.+)( %s )(.+)' % item
             #print "looking for ", search
             #print "in: ", query
@@ -142,7 +204,7 @@ def address_search(query):
                 unit_num = parts.pop(0)
                 unit_num = unit_num.replace(',', '')
                 unit_num = unit_num.strip()
-                unit = substitutes[item] + ' ' + unit_num
+                found_unit = unit_substitutes[item] + ' ' + unit_num
                 #print unit
                 city_state = ' '.join(parts)
 
@@ -161,16 +223,27 @@ def address_search(query):
         street_parts = street.split()
         last_part = street_parts[-1]
         if re.search('#', last_part):
-            if unit:
-                result.errors.append("Found multiple Unit identifiers. Please fix: %s, %s" % (unit, last_part))
+            if found_unit:
+                result.errors.append("Found multiple Unit identifiers. Please fix: %s, %s" % (found_unit, last_part))
             else:
                 #matched a unit in the address
                 #take care of splitting and merging these
-                street, unit = street.split('#')
-                unit = '#' + unit
+                street, found_unit = street.split('#')
+                found_unit = '#' + found_unit
+
+        if not result.errors:
+            if found_unit and unit:
+                if found_unit == unit:
+                    #no problem then.
+                    pass
+                else:
+                    result.errors.append("Found multiple Unit identifiers. Please fix: %s, %s" % (found_unit, unit))
+            if not found_unit and unit:
+                #this is what gets used from this point on:
+                found_unit = unit
                 
         if not result.errors:
-            result.unit_text = unit
+            result.unit_text = found_unit
             
             #google = geocoders.GoogleV3(scheme="http")
             google = GoogleV3(scheme="http")
@@ -180,10 +253,10 @@ def address_search(query):
                 if isinstance(options[0], unicode):
                     #must only have one... different format:
                     (place, (lat, lng)) = options
-                    handle_place(result, place, lat, lng, unit)
+                    handle_place(result, place, lat, lng, found_unit)
                 else:
                     for place, (lat, lng) in options:
-                        handle_place(result, place, lat, lng, unit)
+                        handle_place(result, place, lat, lng, found_unit)
 
     #return matches, error, unit
     return result

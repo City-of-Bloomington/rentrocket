@@ -153,6 +153,7 @@ def make_unit(apt_num, building):
                 else:
                     blank_unit.number = apt_num
                     blank_unit.save()
+                    blank_unit.create_tag(force=True)
                     unit = blank_unit
 
             #or create a new one
@@ -164,6 +165,7 @@ def make_unit(apt_num, building):
                 # don't want to set this unless it's different:
                 #unit.address = building.address + ", " + unit
                 unit.save()    
+                unit.create_tag(force=True)
 
     return unit
 
@@ -268,6 +270,7 @@ def make_building(search_results, bldg_id=None, parcel_id=None, source=None, req
         #every building should have at least one Unit associated with it though
 
         search_results.building = bldg
+        search_results.created = True
         #return (bldg, error)
 
 def find_building(result):
@@ -359,6 +362,7 @@ def lookup_building_with_geo(search_results, make=False, request=None):
                 unit = make_unit(search_results.unit_text, building)
                 #print "Made new unit: ", unit
                 search_results.unit = unit
+                search_results.created = True
                 
             if error:
                 search_results.errors.append(error)
@@ -420,7 +424,7 @@ def lookup_building_with_geo(search_results, make=False, request=None):
 
 ##     return (building, unit, error)
     
-def search_building(query, make=False, request=None):
+def search_building(query, unit='', make=False, request=None):
     """
     in this version, we'll do the geo query to normalize the search
     then pass it on to lookup_building_with_geo...
@@ -432,7 +436,7 @@ def search_building(query, make=False, request=None):
     if this is made from a web request, pass the request in so we can log source
     """
 
-    result = address_search(query)
+    result = address_search(query, unit)
     if not result.errors:
         lookup_building_with_geo(result, make=make, request=request)
         
@@ -528,6 +532,20 @@ class Building(models.Model, ModelDiffMixin):
         ('other', 'Other'),
         )
     type = models.CharField(max_length=30, choices=TYPE_CHOICES, default="", blank=True)
+
+
+    #if getting data from unknown sources,
+    #it may not always be a rental property
+    #or, it may have been a rental at one point, but is not a rental now
+    #might not want to hide it either, depending on situation
+    #
+    #this is defined under unit.status... can vary from unit to unit:
+    #rental = models.BooleanField(default=True)
+
+    #eventually can use this to hide results
+    visible = models.BooleanField(default=True)
+
+
     
     #this could also be a property of
     #how many Units are associated with the building
@@ -795,9 +813,6 @@ class Building(models.Model, ModelDiffMixin):
     #aka feed_source:
     #would like to leave this null if it's from the web
     source = models.ForeignKey(Source, blank=True, null=True)
-
-    #eventually can use this to hide results
-    visible = models.BooleanField(default=True)
 
     added = models.DateTimeField('date published', auto_now_add=True)
     updated = models.DateTimeField('date updated', auto_now=True)
@@ -1179,7 +1194,61 @@ class Unit(models.Model, ModelDiffMixin):
             
         #either it exists or it won't
         return self.tag
+
+    def save_and_update(self, request):
+        """
+        there are now many steps to saving a unit 
+        and updating related fields...
+        wrapping these up in a single call
+
+        changes should have already been applied to the Unit before calling this
+        """
+        #print json.dumps(updated.diff)
+
+        if self.get_field_diff('rent'):
+            #rent has been changed... add a new entry to rent history
+            rh = RentHistory()
+            rh.rent = self.rent
+            rh.unit = self
+            rh.save()
+
+        #print self.diff
+        changes = ChangeDetails()
+        changes.ip_address = get_client_ip(request)
+
+        #with simple form, may have an anonymous user, in which case, ignore
+        if request.user and not request.user.is_anonymous and request.user.is_authenticated:
+            #print request.user
+            #print type(request.user)
+            #print dir(request.user)
+            changes.user = request.user
+        changes.diffs = json.dumps(self.diff)
+        changes.building = self.building
+        #not required
+        changes.unit = self
+        changes.save()
+
+        #now it's ok to save the building details:
+        self.save()
+
+        #now that we've saved the unit,
+        #update the averages for the whole building:
+        self.building.update_utility_averages()
+        self.building.update_rent_details()
+        
     
+
+class RentHistory(models.Model):
+    """
+    Place to keep track of older rent values for a given unit
+    """
+    rent = models.FloatField(default=0)
+    unit = models.ForeignKey(Unit, related_name="rent_history")
+    added = models.DateTimeField('date published', auto_now_add=True)
+    updated = models.DateTimeField('date updated', auto_now=True)
+    #not sure if we'll want to keep this here, or just with ChangeDetails
+    #ip_address = models.GenericIPAddressField(blank=True, null=True)
+
 
 class Listing(models.Model):
     """

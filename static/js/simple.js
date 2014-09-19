@@ -5,7 +5,7 @@ Simple javascript helper to only show rent amount when rent selected
 
 */
 
-define(['jquery', 'lodash', 'ko'], function($, _, ko) {
+//define(['jquery', 'lodash', 'ko'], function($, _, ko) {
   function appViewModel() {
     var self = this;
     
@@ -30,4 +30,4 @@ define(['jquery', 'lodash', 'ko'], function($, _, ko) {
   //using this so page title can be bound as well:
   ko.applyBindings(new appViewModel(), document.getElementById("htmlTop"));
   
-});
+//});

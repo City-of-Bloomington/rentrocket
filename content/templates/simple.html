@@ -7,10 +7,15 @@
 <div class="page-background">
 </div>
 <div class="page">
-  
+
+  <h1>Share energy data about your apartment:</h1>
+  <p>(it only takes a second!)</p>
+  <div id="quick-form-container">
   <div id="quick-form">
       <form action="{{ action_url }}" method="post">
         {% csrf_token %}
+
+        {{ form.non_field_errors }}        
 
         <div class="leftcolumn">
           {% include "simple_form_pt1.html" with form=form %}
@@ -24,22 +29,38 @@
           {% include "average_calculator.html" with form=form %}
         {% endif %}
 
-        
-        <div class="centered">
-          <input type="submit" value="Save" />
-        </div>
-
+        <div style="clear: both">&nbsp;</div>
       </form>
     
+  </div>
   </div>
     
 <br>
 </div>
 {% endblock %} {# content #}
 
+{% block require %}
+{% endblock %} {# require #}
+
 {% block script %}
+<script type="text/javascript" src="/static/js/lib/jquery.autocomplete.js"></script>
+<script type="text/javascript" src="/static/js/lib/knockout-2.2.1.js"></script>
+
+<script type="text/javascript" src="/static/js/simple.js"></script>
+
 <script type="text/javascript">
-  require(['simple'], function(simple) {});
+  
+  $('#id_building-address').autocomplete({
+    serviceUrl: '/building/search/',
+    minChars: 4,
+    onSelect: function(suggestion) {
+      //console.log("chose: ", suggestion.data);
+      //window.location.href = '/building/' + suggestion.data + '/' + city_tag ;
+    }
+  });
+  
 </script>
+
 {% endblock %}
+
 

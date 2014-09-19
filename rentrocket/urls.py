@@ -28,6 +28,7 @@ urlpatterns = patterns(
     url(r'^crowdsourcing$', 'content.views.crowdsourcing', name='crowdsourcing'),
 
     url(r'^welcome$', 'content.views.welcome', name='welcome'),
+    url(r'^simple-thankyou$', 'content.views.simple_thankyou', name='simple-thankyou'),
     url(r'^simple$', 'content.views.simple_data', name='simple'),
 
 

@@ -1,10 +1,12 @@
-        {{ form.non_field_errors }}        
-
-        {% include "field_snippet.html" with field=form.address %}
+        {% include "building-new-form.html" with form=bldgform%}
+  
+        {% if bldgform.unit_select_visible %}
+        {% include "building-new-unit_select.html" with form=unitform%}
+        {% endif %}
 
         <div class="simple-widget centered">
           <span class="simple-half">
-            This {{ form.property_type }} a rental.
+            This address {{ form.property_type }} a rental.
           </span>
           <span class="simple-half" data-bind="visible: show_rent()">
             The rent is: ${{ form.rent }}

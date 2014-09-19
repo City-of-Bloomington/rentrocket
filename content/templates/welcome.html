@@ -26,9 +26,7 @@
         
         {% include "simple_form_pt2.html" with form=form %}
         
-        <div class="centered">
-          <input type="submit" value="Save" />
-        </div>
+        <div style="clear: both">&nbsp;</div>
 
       </form>
       
@@ -42,7 +40,7 @@
 
   <div class="centered">
     <h3>Search Apartments:</h3>
-    <input><button>Search</button>
+    <input id="map-search"><button>Search</button>
   </div>
   
     
@@ -51,9 +49,37 @@
 </div>
 {% endblock %} {# content #}
 
+{% block require %}
+{% endblock %} {# require #}
+
 {% block script %}
+<script type="text/javascript" src="/static/js/lib/jquery.autocomplete.js"></script>
+<script type="text/javascript" src="/static/js/lib/knockout-2.2.1.js"></script>
+
+<script type="text/javascript" src="/static/js/simple.js"></script>
+
 <script type="text/javascript">
-  require(['simple'], function(simple) {});
+  
+  $('#id_building-address').autocomplete({
+    serviceUrl: '/building/search/',
+    minChars: 4,
+    onSelect: function(suggestion) {
+      //console.log("chose: ", suggestion.data);
+      //window.location.href = '/building/' + suggestion.data + '/' + city_tag ;
+    }
+  });
+
+  $('#map-search').autocomplete({
+    serviceUrl: '/building/search/',
+    minChars: 4,
+    onSelect: function(suggestion) {
+      //console.log("chose: ", suggestion.data);
+      //window.location.href = '/building/' + suggestion.data + '/' + city_tag ;
+    }
+  });
+  
 </script>
+
 {% endblock %}
+
 
