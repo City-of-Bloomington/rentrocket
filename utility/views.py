@@ -12,8 +12,9 @@ from django.core.urlresolvers import reverse
 from django import forms
 from django.forms import extras
 from django.forms import widgets
+from django.forms.formsets import formset_factory
 
-from building.models import Building, Unit, BuildingPerson
+from building.models import Building, Unit, BuildingPerson, find_by_tags
 
 from city.models import City, to_tag, all_cities
 from utility.models import UTILITY_TYPES, StatementUpload
@@ -116,6 +117,201 @@ class ExtendedCitySelectForm(forms.Form):
 
     alt_city = forms.CharField(max_length=100, required=False)
     alt_state = forms.ChoiceField(STATES, widget=forms.Select(attrs={}), required=False)
+
+
+
+class UtilityForm(forms.Form):
+    #energy_options = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple(choices=ENERGY_TYPES), choices=ENERGY_TYPES, required=False)
+    utility_options = [ ('', '') ]
+    utility_options.extend(UTILITY_TYPES)
+    ## UTILITY_TYPES[:]
+    ## utility_options.insert( ('', ''), 0)
+    utility_type = forms.ChoiceField(choices=utility_options, widget=forms.Select(attrs={'data-bind':"value: utility"}), required=True)
+    
+    company = forms.CharField(max_length=200, required=False)
+
+    start_date = forms.DateField(widget=forms.DateInput(attrs={'type':'date', 'data-bind':"value: utility"}), required=False)
+    end_date = forms.DateField(required=False)
+
+    #should be hidden unless amounts toggled
+    #Common units acceptable (gallon, liter, kW, lb, kg, etc)
+    #reading_unit = string (required=yes)
+    #aka increment
+    #not going with "unit" to avoid confusion with a unit in a building
+    unit_of_measurement = forms.CharField(max_length=50, required=False)
+
+
+    
+class UtilityOneForm(forms.Form):
+    """
+    form for sharing utility data manually
+    """
+    #now = datetime.now()
+    #years = range(now.year, now.year-30, -1)
+    #print years
+    
+    ## utility_type = forms.ChoiceField(choices=UTILITY_TYPES, widget=forms.Select(attrs={'data-bind':"value: utility"}))
+    
+    ## alt_type = forms.CharField(max_length=100, required=False)
+
+
+    start_date = forms.DateField(required=False)
+
+    #Billing cost for utility consumption.
+    #reading_cost = currency (required=no)
+    #cost = models.FloatField(blank=True)
+    cost = forms.DecimalField(required=False)
+
+    #these should be optional fields, only visible if enabled by user:
+
+    #Numerical value of reading (may need to consider other options like (on, off) for acceptable values
+    #reading_value = number (required=yes)
+    #aka value
+    amount = forms.DecimalField(required=False)
+
+
+
+    #Last day of the utility service billing period in YYYY-MM-DD format
+    #to simplify data entry, will only require a start date...
+    #can infer end date
+    #reading_period_end_date = date (required=no)
+    #end_date = models.DateTimeField(blank=True)
+
+    #this should be handled in parent form (or based on context)
+    #One of the following categories (water, sewer, storm water, gas, electricity, trash, recycling, compost, data, video, phone, data+video, video+phone, data+phone, data+video+phone, wifi). It would be nice to keep the nomenclature common across cities for analytical purposes.
+    #reading_type = string (required=yes)
+    #type = models.CharField(max_length=12, choices=UTILITY_TYPES, default="electricity")
+
+    #again, this should be handled in parent form (or based on context)
+    #Vendor for utility service. Examples: City of Bloomington Utilities, Comcast, AT&T, Duke Energy, etc)
+    #vendor = string (required=no)
+    #vendor = models.CharField(max_length=200, blank=True)
+
+
+
+def edit(request, city_tag=None, bldg_tag=None, unit_tag=None):
+    (city, building, unit) = find_by_tags(city_tag, bldg_tag, unit_tag)
+
+    results = ''
+    UtilityFormSet = formset_factory(UtilityOneForm, extra=12)
+    
+    if request.method == 'POST':
+        meta = UtilityForm(request.POST, prefix='meta')
+        utility_set = UtilityFormSet(request.POST, prefix='months')
+        #form = ShareForm(request.POST)
+
+        if form.is_valid(): # All validation rules pass
+            #need to do a specialized validation here..
+            #alt_city and alt_state only required if city == other
+
+            errors = False
+
+            if request.FILES.has_key("file"):
+                #blob_key = request.FILES["blobkey"].blobstore_info._BlobInfo__key
+
+                blob_key = request.FILES['file'].blobstore_info.key()
+
+                #print "BLOBKEY: ", blob_key
+                #obj.blobstore_key = blob_key
+                statement = StatementUpload()
+                statement.blob_key = blob_key
+                
+                statement.city_tag = to_tag(city_name + " " + state)
+
+                if bldg_tag:
+                    statement.building_address = bldg_tag
+                else:
+                    #if form.cleaned_data.has_key('email'):
+                    statement.building_address = form.cleaned_data['address']
+                statement.unit_number = unit_tag
+
+                statement.ip_address = get_client_ip(request)
+                #if form.cleaned_data.has_key('email'):
+                statement.person_email = form.cleaned_data['email']
+
+                #print request.user
+                #print dir(request.user)
+                if request.user and not request.user.is_anonymous():
+                    statement.user = request.user
+                
+                #if form.cleaned_data.has_key('vendor'):
+                statement.vendor = form.cleaned_data['vendor']
+
+                #if form.cleaned_data.has_key('utility_type'):
+                if form.cleaned_data['utility_type'] == 'other':
+                    #if form.cleaned_data.has_key('alt_type'):
+                    statement.type = form.cleaned_data['alt_type']
+                else:
+                    statement.type = form.cleaned_data['utility_type']
+
+                #if form.cleaned_data.has_key('move_in'):
+                statement.move_in = form.cleaned_data['move_in']
+
+                #if form.cleaned_data.has_key('energy_options'):
+                #statement.energy_options = form.cleaned_data['energy_options']
+                options = form.cleaned_data['energy_options']
+                if 'other' in options:
+                    options.remove('other')
+                    if form.cleaned_data['alt_energy']:
+                        options.append(form.cleaned_data['alt_energy'])
+                
+                statement.energy_sources = options
+
+                statement.unit_details = { 'bedrooms': form.cleaned_data['bedrooms'], 'sqft': form.cleaned_data['sqft'], }
+                                
+                statement.save()
+                #print statement
+                #form.save()
+                #return HttpResponseRedirect(view_url)
+                #return redirect(view_url, permanent=True)
+                #in chrome, the original post url stays in the address bar...
+                finished_url = reverse('utility.views.thank_you')
+                return redirect(finished_url)
+
+            ## else:
+            ##     print "NO BLOBKEY!!!", str(request)
+            ##     print dir(request)
+            ##     print request.FILES
+            ##     if request.FILES.has_key('file'):
+            ##         print request.FILES['file']
+            ##         print dir(request.FILES['file'])
+            ##         print request.FILES['file'].blobstore_info.key()
+            ##     print 
+
+    else:
+        #form = ShareForm()
+        meta = UtilityForm(prefix='meta')
+        utility_set = UtilityFormSet(prefix='months')
+        
+    #view_url = reverse('utility.views.upload_handler')
+    view_url = request.path
+
+    print unit
+    context = {
+        'city': city.name,
+        #'state': state,
+        'bldg': building,
+        'unit': unit,
+        'meta': meta,
+        'utility': utility_set,
+        'results': results,
+        #'upload_url': upload_url, 
+        }
+
+    return render(request, 'utility_generic.html', context )
+
+
+def details(request, city_tag, bldg_tag, unit_tag=''):
+    (city, building, unit) = find_by_tags(city_tag, bldg_tag, unit_tag='')
+
+    #print unit.full_address()
+    context = { 'building': building,
+                'units': [unit],
+                'unit': unit,
+                'user': request.user,
+                #'redirect_field': REDIRECT_FIELD_NAME,
+                }
+    return render(request, 'unit_details.html', context)
 
 
 

@@ -13,28 +13,44 @@
 
   {{ form.non_field_errors }}
 
+  <h3>Share Utility Data </h3>
+      
   <div class="leftcolumn">
     
-    <h3>Upload Utility Data </h3>
-      
     <div>
       <p>
-	{% if bldg %}  
+	{% if bldg %}
+        {% include "building_summary.html" with building=bldg unit=unit %}
 	{% endif %}
-	
-	{{ city }}, {{ state }} <a href="/utility/">[Change]</a>
       </p>
     </div>
 
+  </div>
+  <div class="rightcolumn">
+    <div class="block">
+      {% include "field_snippet.html" with field=meta.utility_type %}
+      {% include "field_snippet.html" with field=meta.company %}
+      {% include "field_snippet.html" with field=meta.start_date %}
+      {% include "field_snippet.html" with field=meta.end_date %}
+      {{ meta.unit_of_measurement.as_hidden }}
+    </div>
 
+  </div>
+  <div class="centered"></div>
+  <div class="leftcolumn">
     
-    <div class="question">
+    <div class="block">
+      {{ utility.as_p }}
+    </div>
+
+    <!--
+    <div class="block">
       {{ form.file.errors }}
       {{ form.file }}
     </div>
 
     <p>What type of utility is the billing data for?</p>
-    <div class="question"> 
+    <div class="block"> 
       {{ form.utility_type.errors }}
       {{ form.utility_type }}
     </div> 
@@ -59,7 +75,7 @@
 
     </div>
     
-
+    -->
 
 
   </div>
@@ -67,24 +83,24 @@
   <div class="rightcolumn">
   
 
-  
+    <!--
     {% if bldg %}  
     {% else %}
     <p>What is the address of the property? </p>
-    <div class="question">
+    <div class="block">
       {{ form.address.errors }}
       {{ form.address }}
     </div>
     {% endif %}
 
     <p>When did you move to this address?</p>
-    <div class="question">
+    <div class="block">
       {{ form.move_in.errors }}
       {{ form.move_in }}
     </div>
 
     <p>How big is your residence?</p>
-    <div class="question">
+    <div class="block">
       {{ form.sqft.errors }}
       {{ form.sqft.label }}: 
       {{ form.sqft }}
@@ -92,19 +108,22 @@
 
 
     <p>How many bedrooms are in your residence?</p>
-    <div class="question"> 
+    <div class="block"> 
       {{ form.bedrooms.errors }}
       {{ form.bedrooms }}
     </div> 
 
     {% if not user.is_authenticated %}
     <p>What is your email address?</p>
-    <div class="question">
+    <div class="block">
       {{ form.email.errors }}
       {{ form.email }}
     </div>
     {% endif %}
 
+
+    -->
+    
   </div>
 
   <div class="centered">
@@ -112,10 +131,6 @@
   </div>
 
 </form>
-
-<p><b>Terms & Conditions:</b></p>
-
-<p>By choosing and submitting a file to upload, I understand that utility data submitted to RentRocket.org will be used in a public, online database, website, smart phone application, and may be used in future analyses of energy usage patterns and/or other studies related to this project. Any names and account numbers in data uploaded here will not be shared publicly.</p>
 
 
 </div>

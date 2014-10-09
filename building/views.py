@@ -14,7 +14,7 @@ from django.forms.util import ErrorList
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 
-from models import Building, Unit, Listing, BuildingPerson, ChangeDetails, search_building, RentHistory
+from models import Building, Unit, Listing, BuildingPerson, ChangeDetails, search_building, RentHistory, find_by_tags
 
 from city.models import City, to_tag, all_cities
 from rentrocket.helpers import get_client_ip, address_search
@@ -98,15 +98,15 @@ def lookup(request, lat1, lng1, lat2, lng2, city_tag=None, type="rental", limit=
 
     http://stackoverflow.com/questions/2428092/creating-a-json-response-using-django-and-python
     """
+    city = None
     if city_tag:
         city_q = City.objects.filter(tag=city_tag)
         if len(city_q):
             city = city_q[0]
-        else:
-            city = None
 
     if city:
         bq = Building.objects.all().filter(city=city).filter(latitude__gte=float(lat1)).filter(longitude__gte=float(lng1)).filter(latitude__lte=float(lat2)).filter(longitude__lte=float(lng2)).order_by('-energy_score')
+
     else:
         bq = Building.objects.all().filter(latitude__gte=float(lat1)).filter(longitude__gte=float(lng1)).filter(latitude__lte=float(lat2)).filter(longitude__lte=float(lng2)).order_by('-energy_score')
         
@@ -617,35 +617,7 @@ def edit(request, bldg_tag, city_tag):
     return render(request, 'building-edit.html', context)
 
 def details(request, bldg_tag, city_tag):
-
-    city = City.objects.filter(tag=city_tag)
-    #old way... this doesn't work very reliably:
-    #address = re.sub('_', ' ', bldg_tag)
-    #buildings = Building.objects.filter(city=city).filter(address=address)
-    buildings = Building.objects.filter(city=city).filter(tag=bldg_tag)
-    if buildings.count():
-        building = buildings[0]
-
-        if not building.units.count():
-            #must have a building with no associated units...
-            #may only have one unit
-            #or others may have been incorrectly created as separate buildings
-            #either way we can start by making a new unit here
-            #(and then merging in any others manually)
-
-            unit = Unit()
-            unit.building = building
-            unit.number = ''
-            # don't want to set this unless it's different:
-            #unit.address = building.address 
-
-            ## bedrooms
-            ## bathrooms
-            ## sqft
-            ## max_occupants
-            unit.save()
-    else:
-        building = None
+    (city, building, unit) = find_by_tags(city_tag, bldg_tag, unit_tag='')
 
     #print building.units.all()[0].tag
     #unit_url = reverse('unit_details', kwargs={'city_tag':building.city.tag, 'bldg_tag':building.tag, 'unit_tag':building.units.all()[0].tag})
@@ -677,30 +649,7 @@ class UnitForm(ModelForm):
 
 @login_required
 def unit_edit(request, city_tag, bldg_tag, unit_tag=''):
-    cities = City.objects.filter(tag=city_tag)
-    city = None
-    if cities.count():
-        city = cities[0]
-    buildings = Building.objects.filter(city=city).filter(tag=bldg_tag)
-    if buildings.count():
-        building = buildings[0]
-        
-        units = building.units.filter(tag=unit_tag)
-        if units.count():
-            unit = units[0]
-        else:
-            unit = None
-            #raise 404
-            pass
-
-        #TODO:
-        #not sure that this will work with unit_tag yet...
-        #(unit, error, matches) = building.find_unit(unit_tag)
-        #maybe above filter approach is sufficient (and more efficient?) here
-        
-    else:
-        building = None
-        unit = None
+    (city, building, unit) = find_by_tags(city_tag, bldg_tag, unit_tag='')
 
     if request.method == 'POST':
         form = UnitForm(request.POST, instance=unit)
@@ -731,25 +680,7 @@ def unit_edit(request, city_tag, bldg_tag, unit_tag=''):
     return render(request, 'unit_edit.html', context)
 
 def unit_details(request, city_tag, bldg_tag, unit_tag=''):
-    cities = City.objects.filter(tag=city_tag)
-    city = None
-    if cities.count():
-        city = cities[0]
-    buildings = Building.objects.filter(city=city).filter(tag=bldg_tag)
-    if buildings.count():
-        building = buildings[0]
-        units = building.units.filter(tag=unit_tag)
-        if units.count():
-            unit = units[0]
-        else:
-            unit = None
-            #raise 404
-            pass
-        
-    else:
-        building = None
-        unit = None
-
+    (city, building, unit) = find_by_tags(city_tag, bldg_tag, unit_tag='')
 
     print unit.full_address()
     context = { 'building': building,

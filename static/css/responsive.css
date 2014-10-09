@@ -479,6 +479,11 @@ h5 {
   filter: blur(1px);
   z-index: -1;
 }
+.half {
+  width: 49%;
+  display: inline-block;
+  vertical-align: top;
+}
 .error {
   color: #dc322f;
   list-style-type: none;
@@ -500,6 +505,11 @@ h5 {
   font-size: 18px;
   font-weight: bold;
   color: #859900;
+}
+.block {
+  display: inline-block;
+  vertical-align: top;
+  margin-right: 2em;
 }
 .section {
   margin-top: 2em;
@@ -645,7 +655,7 @@ footer {
   text-align: center;
   width: 100%;
 }
-.block {
+.question {
   margin: 10px;
 }
 .edit {

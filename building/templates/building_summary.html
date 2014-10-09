@@ -1,0 +1,36 @@
+<div class="building">
+  <a class="big-link" href="{{ building.url }}">
+    <div class="block">
+      <div id="street_view">
+	<img src="http://maps.googleapis.com/maps/api/streetview?size=300x300&location={{ building.address|urlencode }},{{ building.city.name }},{{ building.state }}&sensor=false" width="150">
+      </div>
+    </div>
+
+    <div class="half">
+      <div class="address">{{ building.address }}</div>
+      
+      {% if building.name %}
+      <div class="name">{{ building.name }}</div>
+      {% endif %}
+    
+      {% if unit %}
+      <div class="unit">{{ unit.number }}</div>
+      {% endif %}
+      
+      {% comment %} 
+      do not include any unit details here
+      unless they are summarized on the building object itself
+      otherwise the lookups could be more expensive than they already are
+      
+      {% if units|length == 1 %}
+      {% include "unit_snippet.html" with unit=building.units.all|first %}
+      {% endif %}
+      
+      {% endcomment %}
+
+    </div>
+
+
+    
+  </a>
+</div>

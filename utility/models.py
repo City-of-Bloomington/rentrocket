@@ -119,7 +119,7 @@ class UtilitySummary(models.Model):
     adapted from:
     https://docs.google.com/document/d/1bwcGTgGkdnu8LjjYiyg6YBocwdzEsk5mqeU9GhjW4so/edit?pli=1
 
-    seems like this can also include the original uploaded statement?
+    this can also reference the original uploaded statement
     """
 
     #not going to require building and unit...
@@ -147,7 +147,9 @@ class UtilitySummary(models.Model):
     #source of report.
     #could be: city data, utility data, or crowd-sourced public reporting
     #reading_source = string (required=yes)
-    source = models.ForeignKey(Source)
+    #source = models.ForeignKey(Source)
+    #would like to leave this null if it's from the web
+    source = models.ForeignKey(Source, blank=True, null=True)
 
     #Date of the reading event in YYYY-MM-DD format.
     #reading_date = date (required=yes)
@@ -158,8 +160,10 @@ class UtilitySummary(models.Model):
     start_date = models.DateTimeField()
 
     #Last day of the utility service billing period in YYYY-MM-DD format
+    #to simplify data entry, will only require a start date...
+    #can infer end date
     #reading_period_end_date = date (required=no)
-    end_date = models.DateTimeField()
+    end_date = models.DateTimeField(blank=True)
 
     #One of the following categories (water, sewer, storm water, gas, electricity, trash, recycling, compost, data, video, phone, data+video, video+phone, data+phone, data+video+phone, wifi). It would be nice to keep the nomenclature common across cities for analytical purposes.
     #reading_type = string (required=yes)
@@ -173,12 +177,12 @@ class UtilitySummary(models.Model):
     #reading_unit = string (required=yes)
     #aka increment
     #not going with "unit" to avoid confusion with a unit in a building
-    unit_of_measurement = models.CharField(max_length=50)
+    unit_of_measurement = models.CharField(max_length=50, blank=True)
 
     #Numerical value of reading (may need to consider other options like (on, off) for acceptable values
     #reading_value = number (required=yes)
     #aka value
-    amount = models.FloatField()
+    amount = models.FloatField(blank=True)
 
     #Billing cost for utility consumption.
     #reading_cost = currency (required=no)

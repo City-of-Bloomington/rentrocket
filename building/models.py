@@ -447,8 +447,59 @@ def search_building(query, unit='', make=False, request=None):
     ##     (building, unit, error) = lookup_building_with_geo(search_options, unit_search=unit, make=make, request=request)
         
     ## return (building, unit, error, search_options)    
-
     
+def find_by_tags(city_tag, bldg_tag, unit_tag=''):
+    """
+    this is a common task for locating a building or unit
+    after a url request with specific tags
+    abstracting here so it can be re-used for those calls
+    """
+    city = None
+    building = None
+    unit = None
+
+    cities = City.objects.filter(tag=city_tag)
+    if cities.count():
+        city = cities[0]
+
+    #old way... this doesn't work very reliably:
+    #address = re.sub('_', ' ', bldg_tag)
+    #buildings = Building.objects.filter(city=city).filter(address=address)
+    buildings = Building.objects.filter(city=city).filter(tag=bldg_tag)
+    if buildings.count():
+        building = buildings[0]
+        
+        if not building.units.count():
+            #temporary fix for incomplete buildings (no units)
+            
+            #must have a building with no associated units...
+            #may only have one unit
+            #or others may have been incorrectly created as separate buildings
+            #either way we can start by making a new unit here
+            #(and then merging in any others manually)
+
+            unit = Unit()
+            unit.building = building
+            unit.number = ''
+            # don't want to set this unless it's different:
+            #unit.address = building.address 
+
+            unit.save()
+
+        units = building.units.filter(tag=unit_tag)
+        if units.count():
+            unit = units[0]
+        else:
+            #could raise 404 if desired
+            pass
+
+        #TODO:
+        #not sure that this will work with unit_tag yet...
+        #(unit, error, matches) = building.find_unit(unit_tag)
+        #maybe above filter approach is sufficient (and more efficient?) here
+        
+    return (city, building, unit)
+
 
 
 def tally_energy_total(building, source):
@@ -876,20 +927,27 @@ class Building(models.Model, ModelDiffMixin):
         calculate the average utility cost for each type of service
         and store that in the corresponding local variable
         """
+        average_types = ['average_electricity', 'average_gas', 'average_water', 'average_trash', 'sqft']
         #group all valid (non-zero) values by type
         building_values = {}
         for unit in self.units.all():
-            for average_type in ['average_electricity', 'average_gas', 'average_water', 'average_trash', 'sqft']:
+            for average_type in average_types:
                 value = getattr(unit, average_type)
+                #only want to compute the average for units with values
                 if value:
                     #rather than checking if key exists in dictionary:
                     #(or using a defaultdict)
                     building_values.setdefault(average_type, []).append(value)
                     
         #then compute the average_value for each type with valid values
-        for key in building_values.keys():
-            total = sum(building_values[key])
-            average_value = total * 1.0 / len(building_values[key])
+        #for key in building_values.keys():
+        for key in average_types:
+            if building_values.has_key(key):
+                total = sum(building_values[key])
+                average_value = total * 1.0 / len(building_values[key])
+            else:
+                #set it back to zero, incase invalid values were removed:
+                average_value = 0
 
             #special case for sqft... 
             if key == 'sqft':
@@ -965,6 +1023,17 @@ class Building(models.Model, ModelDiffMixin):
             cost_per_sqft = self.energy_average * 1.0 / self.average_sqft
         return cost_per_sqft
 
+    #TODO:
+    #either need to track average_bedrooms here (good for summaries?)
+    #or just run through all units and average each of their cost_per_bedrooom
+    #values
+    
+    ## def cost_per_bedroom(self):
+    ##     cost_per_bedroom = 0
+    ##     if self.energy_average and self.average_bedrooms:
+    ##         cost_per_bedroom = total * 1.0 / self.average_bedrooms
+    ##     return cost_per_bedroom
+
     def create_tag(self, force=False):
         if ((not self.tag) and self.address) or force:
             #update stored tag so it also exists
@@ -1032,6 +1101,17 @@ class Unit(models.Model, ModelDiffMixin):
     #only use it if it differs from building (do not use if the same!)
     address = models.CharField(max_length=200, blank=True, default='')
 
+    #should be able to use this with the building.address (property)
+    #to arrive at the unit.address:
+    #this is the main ID for a unit
+    number = models.CharField(max_length=20)
+
+    #tag should be able to accomodate address *AND* number,
+    #so it should be longer than just 20
+    #this is only used in urls and looking up units based on the url's unit_tag
+    #it is formed as a combination of number, and address if applicable
+    tag = models.CharField(max_length=255, default='')
+
     #this is more for noting that a property is no longer going to be available
     #similar to setting building to not visible, but gives a reason...
     #not necessary to use if it's redundant
@@ -1048,10 +1128,6 @@ class Unit(models.Model, ModelDiffMixin):
 
     #eventually can use this to hide results
     visible = models.BooleanField(default=True)
-
-    #should be able to use this with the building.address (property)
-    #to arrive at the unit.address:
-    number = models.CharField(max_length=20)
 
     bedrooms = models.IntegerField(default=0)
     bathrooms = models.IntegerField(default=0)
@@ -1094,10 +1170,6 @@ class Unit(models.Model, ModelDiffMixin):
     added = models.DateTimeField('date published', auto_now_add=True)
     updated = models.DateTimeField('date updated', auto_now=True)
 
-    #tag should be able to accomodate address *AND* number,
-    #so it should be longer than just 20
-    tag = models.CharField(max_length=255, default='')
-
     class Meta:
         ordering = ['number']
 
@@ -1111,6 +1183,13 @@ class Unit(models.Model, ModelDiffMixin):
             cost_per_sqft = total * 1.0 / self.sqft
         return cost_per_sqft
 
+    def cost_per_bedroom(self):
+        total, complete = tally_energy_total(self.building, self)
+
+        cost_per_bedroom = 0
+        if total and self.bedrooms:
+            cost_per_bedroom = total * 1.0 / self.bedrooms
+        return cost_per_bedroom
 
     def url_tag(self):
         """
@@ -1235,8 +1314,7 @@ class Unit(models.Model, ModelDiffMixin):
         #update the averages for the whole building:
         self.building.update_utility_averages()
         self.building.update_rent_details()
-        
-    
+            
 
 class RentHistory(models.Model):
     """
