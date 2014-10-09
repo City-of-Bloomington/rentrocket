@@ -7,7 +7,7 @@ threadsafe: true
 libraries:
 
 - name: django
-  version: "1.4"
+  version: "1.5"
 - name: MySQLdb
   version: "latest"
 - name: ssl

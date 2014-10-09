@@ -196,9 +196,9 @@
 	<h4 class="unit_number">{{ unit.unit_address }}</h4> 
 	<div class="edit">
 	  {% if user.is_authenticated %}
-	  <a href="{% url building.views.unit_edit city_tag=building.city.tag bldg_tag=building.tag unit_tag=unit.tag|urlencode %}">
+	  <a href="{% url 'building.views.unit_edit' city_tag=building.city.tag bldg_tag=building.tag unit_tag=unit.tag|urlencode %}">
 	  {% else %}
-	  <a href="/login/?{{ redirect_field }}={% url building.views.unit_edit city_tag=building.city.tag bldg_tag=building.tag unit_tag=unit.tag %}">
+	  <a href="/login/?{{ redirect_field }}={% url 'building.views.unit_edit' city_tag=building.city.tag bldg_tag=building.tag unit_tag=unit.tag %}">
 	  {% endif %}
 	  <img src="/static/img/edit.png" class="icon"></a>
 	</div>

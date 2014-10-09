@@ -28,7 +28,7 @@
 {% if user.is_authenticated %}
 <a href="/logout/" class="nav-link">Log out</a>
 {% else %}
-<a href="/login/" class="nav-link">Log in</a> / <a href="{% url account_signup %}" class="nav-link">Sign up</a>
+<a href="/login/" class="nav-link">Log in</a> / <a href="{% url 'account_signup' %}" class="nav-link">Sign up</a>
 {% endif %}
 </li>
 

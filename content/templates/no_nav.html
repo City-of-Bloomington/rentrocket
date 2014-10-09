@@ -50,7 +50,7 @@
 {% if user.is_authenticated %}
     <p>Welcome back, {{ user.username }}. <a href="logout">Log out.</a></p>
 {% else %}
-    {#<p>Please <a href="login">log in</a> or <a href="{% url registration.views.register %}">sign up</a>. </p>#}
+    {#<p>Please <a href="login">log in</a> or <a href="{% url 'registration.views.register' %}">sign up</a>. </p>#}
 {% endif %}
 
     {% block content %}{% endblock %}
