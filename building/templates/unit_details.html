@@ -14,7 +14,7 @@
 
   <h2 id="address">{{ unit.full_address_with_link|safe }}</h2> 
 
-  {% include "edit_unit.html" with unit=units|first %}
+  {% include "edit_unit.html" with building=building unit=units|first %}
   
   <div class="details">
     <h4>Details</h4>

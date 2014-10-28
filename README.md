@@ -54,6 +54,8 @@ may need to do this manually... good way to verify it works if values not shown
 
      python manage.py loaddata rentrocket/fixtures/initial_data.json
 
+     ./rentrocket/scripts/make_service_providers.py
+     
 field type reference:
 https://docs.djangoproject.com/en/1.5/ref/models/fields/#django.db.models.CharField
 
@@ -67,13 +69,13 @@ https://docs.djangoproject.com/en/1.5/ref/models/fields/#django.db.models.CharFi
     ./manage.py schemamigration source --auto
 
 
-    ./manage.py migrate building
+    ./manage.py migrate utility
 
+    ./manage.py migrate building
     ./manage.py migrate city
     ./manage.py migrate content
     ./manage.py migrate inspection
     ./manage.py migrate manager
-    ./manage.py migrate utility
     ./manage.py migrate source
     ./manage.py migrate person
     ./manage.py migrate allauth.socialaccount

@@ -1,5 +1,5 @@
 import json, re
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from google.appengine.ext import blobstore
 
@@ -17,7 +17,7 @@ from django.forms.formsets import formset_factory
 from building.models import Building, Unit, BuildingPerson, find_by_tags
 
 from city.models import City, to_tag, all_cities
-from utility.models import UTILITY_TYPES, StatementUpload
+from utility.models import UTILITY_TYPES, StatementUpload, CityServiceProvider
 from rentrocket.helpers import get_client_ip
         
 #from filetransfers.api import prepare_upload
@@ -127,11 +127,20 @@ class UtilityForm(forms.Form):
     ## UTILITY_TYPES[:]
     ## utility_options.insert( ('', ''), 0)
     utility_type = forms.ChoiceField(choices=utility_options, widget=forms.Select(attrs={'data-bind':"value: utility"}), required=True)
-    
-    company = forms.CharField(max_length=200, required=False)
 
-    start_date = forms.DateField(widget=forms.DateInput(attrs={'type':'date', 'data-bind':"value: utility"}), required=False)
-    end_date = forms.DateField(required=False)
+    #will update choices and initial on creation (once we know location)
+    utility_provider = forms.ChoiceField(widget=forms.Select(attrs={'data-bind':"value: provider"}), choices=(), required=False)
+    company = forms.CharField(label="Company name", max_length=200,
+                              required=False)
+
+    start_date = forms.DateField(widget=forms.DateInput(attrs={'type':'date', 'data-bind':"value: start_date"}), required=False)
+    end_date = forms.DateField(widget=forms.DateInput(attrs={'type':'date', 'data-bind':"value: end_date"}), required=False)
+
+    #this will cause knockout to grab the date from the sent data...
+    #but we will need to do other manipulations in javascript,
+    #so we can just reset it there
+    #start_date = forms.DateField(widget=forms.DateInput(attrs={'type':'date', 'data-bind':"valueWithInit: 'start_date'"}), required=False)
+    #end_date = forms.DateField(widget=forms.DateInput(attrs={'type':'date', 'data-bind':"valueWithInit: 'end_date'"}), required=False)
 
     #should be hidden unless amounts toggled
     #Common units acceptable (gallon, liter, kW, lb, kg, etc)
@@ -155,19 +164,19 @@ class UtilityOneForm(forms.Form):
     ## alt_type = forms.CharField(max_length=100, required=False)
 
 
-    start_date = forms.DateField(required=False)
+    start_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class':'utility-input', 'type':'date'}) )
 
     #Billing cost for utility consumption.
     #reading_cost = currency (required=no)
     #cost = models.FloatField(blank=True)
-    cost = forms.DecimalField(required=False)
+    cost = forms.DecimalField(required=False, widget=forms.TextInput(attrs={'class':'utility-input'}) )
 
     #these should be optional fields, only visible if enabled by user:
 
     #Numerical value of reading (may need to consider other options like (on, off) for acceptable values
     #reading_value = number (required=yes)
     #aka value
-    amount = forms.DecimalField(required=False)
+    amount = forms.DecimalField(required=False, widget=forms.TextInput(attrs={'class':'utility-input'}) )
 
 
 
@@ -193,16 +202,42 @@ def edit(request, city_tag=None, bldg_tag=None, unit_tag=None):
     (city, building, unit) = find_by_tags(city_tag, bldg_tag, unit_tag)
 
     results = ''
-    UtilityFormSet = formset_factory(UtilityOneForm, extra=12)
+    #UtilityFormSet = formset_factory(UtilityOneForm, extra=12)
+    UtilityFormSet = formset_factory(UtilityOneForm, extra=0)
+
+    city_provider_options = CityServiceProvider.objects.filter(city=city)
+    #send in a dictionary of providers for this city, grouped by utility type
+    #utility_providers = { '': ['Other'] }
+    utility_providers = { }
+    provider_names = [('', '')]
+    for cpo in city_provider_options:
+        for utility in cpo.provider.utilities.all():
+            if utility.type in utility_providers.keys():
+                utility_providers[utility.type].append(cpo.provider.name)
+            else:
+                utility_providers[utility.type] = [cpo.provider.name]
+        if not (cpo.provider.name, cpo.provider.name) in provider_names:
+            provider_names.append( (cpo.provider.name, cpo.provider.name) )
+
+    for ut in UTILITY_TYPES:
+        print ut
+        if not ut[0] in utility_providers.keys():
+            utility_providers[ut[0]] = [ "Other" ]
+
+    provider_names.append( ('Other', 'Other') )
+            
+
+    #print utility_providers
+    #print provider_names
     
     if request.method == 'POST':
         meta = UtilityForm(request.POST, prefix='meta')
+        #http://stackoverflow.com/questions/657607/setting-the-selected-value-on-a-django-forms-choicefield
+        meta.fields['utility_provider'].choices = provider_names
         utility_set = UtilityFormSet(request.POST, prefix='months')
-        #form = ShareForm(request.POST)
 
-        if form.is_valid(): # All validation rules pass
-            #need to do a specialized validation here..
-            #alt_city and alt_state only required if city == other
+        if meta.is_valid(): # All validation rules pass
+            #continue with custom validation
 
             errors = False
 
@@ -268,20 +303,22 @@ def edit(request, city_tag=None, bldg_tag=None, unit_tag=None):
                 finished_url = reverse('utility.views.thank_you')
                 return redirect(finished_url)
 
-            ## else:
-            ##     print "NO BLOBKEY!!!", str(request)
-            ##     print dir(request)
-            ##     print request.FILES
-            ##     if request.FILES.has_key('file'):
-            ##         print request.FILES['file']
-            ##         print dir(request.FILES['file'])
-            ##         print request.FILES['file'].blobstore_info.key()
-            ##     print 
-
     else:
         #form = ShareForm()
-        meta = UtilityForm(prefix='meta')
-        utility_set = UtilityFormSet(prefix='months')
+        
+        now = datetime.now()
+        months = previous_months()
+        #for i in range(1,13):
+        #    print i
+        initial = []
+        for month in months:
+            initial.append( {'start_date': month} )
+        utility_set = UtilityFormSet(initial=initial, prefix='months')
+
+        meta = UtilityForm(initial={'start_date':months[-1], 'end_date':months[0]}, prefix='meta')
+        meta.fields['utility_provider'].choices = provider_names
+        #meta.start_date = months[-1]
+        #meta.end_date = months[0]
         
     #view_url = reverse('utility.views.upload_handler')
     view_url = request.path
@@ -292,14 +329,32 @@ def edit(request, city_tag=None, bldg_tag=None, unit_tag=None):
         #'state': state,
         'bldg': building,
         'unit': unit,
+        #forms:
         'meta': meta,
         'utility': utility_set,
+
+        'providers': json.dumps(utility_providers),
         'results': results,
         #'upload_url': upload_url, 
         }
 
-    return render(request, 'utility_generic.html', context )
+    return render(request, 'utility_generic.html', context)
 
+def previous_months(total=12):
+    """
+    return a list of datetimes that span the total number of previous months
+    """
+    cur_month = datetime.utcnow().replace(day=1)
+    months = [ cur_month ]
+    for i in range(total):
+        prev_month = cur_month - timedelta(days=1)
+        prev_month = prev_month.replace(day=1)
+        months.append(prev_month)
+        cur_month = prev_month
+
+    return months
+
+    
 
 def details(request, city_tag, bldg_tag, unit_tag=''):
     (city, building, unit) = find_by_tags(city_tag, bldg_tag, unit_tag='')
@@ -337,7 +392,6 @@ class UploadForm(forms.Form):
     bedrooms = forms.ChoiceField(widget=widgets.RadioSelect(choices=BEDROOMS), choices=BEDROOMS, required=False)
     sqft = forms.CharField(max_length=5, required=False)
     email = forms.EmailField(required=False)
-
 
 def upload(request, state=None, city_name=None, bldg_tag=None, unit_tag=None):
     results = ''
@@ -449,6 +503,126 @@ def upload(request, state=None, city_name=None, bldg_tag=None, unit_tag=None):
 
     return render(request, 'upload_generic.html', context )
 
+
+class UploadSimpleForm(forms.Form):
+    utility_type = forms.ChoiceField(choices=UTILITY_TYPES, widget=forms.Select(attrs={'data-bind':"value: utility"}))
+    alt_type = forms.CharField(max_length=100, required=False)
+    
+    file = forms.FileField()
+    vendor = forms.CharField(max_length=200, required=False)
+
+
+#TODO:
+#still need to clean this up!
+def upload_simple(request, state=None, city_name=None, bldg_tag=None, unit_tag=None):
+    results = ''
+    
+    if request.method == 'POST':
+        form = UploadSimpleForm(request.POST, request.FILES)
+
+        if form.is_valid(): # All validation rules pass
+            #need to do a specialized validation here..
+            #alt_city and alt_state only required if city == other
+
+            errors = False
+
+            if request.FILES.has_key("file"):
+                #blob_key = request.FILES["blobkey"].blobstore_info._BlobInfo__key
+
+                blob_key = request.FILES['file'].blobstore_info.key()
+
+                #print "BLOBKEY: ", blob_key
+                #obj.blobstore_key = blob_key
+                statement = StatementUpload()
+                statement.blob_key = blob_key
+                
+                statement.city_tag = to_tag(city_name + " " + state)
+
+                if bldg_tag:
+                    statement.building_address = bldg_tag
+                else:
+                    #if form.cleaned_data.has_key('email'):
+                    statement.building_address = form.cleaned_data['address']
+                statement.unit_number = unit_tag
+
+                statement.ip_address = get_client_ip(request)
+                #if form.cleaned_data.has_key('email'):
+                statement.person_email = form.cleaned_data['email']
+
+                #print request.user
+                #print dir(request.user)
+                if request.user and not request.user.is_anonymous():
+                    statement.user = request.user
+                
+                #if form.cleaned_data.has_key('vendor'):
+                statement.vendor = form.cleaned_data['vendor']
+
+                #if form.cleaned_data.has_key('utility_type'):
+                if form.cleaned_data['utility_type'] == 'other':
+                    #if form.cleaned_data.has_key('alt_type'):
+                    statement.type = form.cleaned_data['alt_type']
+                else:
+                    statement.type = form.cleaned_data['utility_type']
+
+                #if form.cleaned_data.has_key('move_in'):
+                statement.move_in = form.cleaned_data['move_in']
+
+                #if form.cleaned_data.has_key('energy_options'):
+                #statement.energy_options = form.cleaned_data['energy_options']
+                options = form.cleaned_data['energy_options']
+                if 'other' in options:
+                    options.remove('other')
+                    if form.cleaned_data['alt_energy']:
+                        options.append(form.cleaned_data['alt_energy'])
+                
+                statement.energy_sources = options
+
+                statement.unit_details = { 'bedrooms': form.cleaned_data['bedrooms'], 'sqft': form.cleaned_data['sqft'], }
+                                
+                statement.save()
+                #print statement
+                #form.save()
+                #return HttpResponseRedirect(view_url)
+                #return redirect(view_url, permanent=True)
+                #in chrome, the original post url stays in the address bar...
+                finished_url = reverse('utility.views.thank_you')
+                return redirect(finished_url)
+
+            ## else:
+            ##     print "NO BLOBKEY!!!", str(request)
+            ##     print dir(request)
+            ##     print request.FILES
+            ##     if request.FILES.has_key('file'):
+            ##         print request.FILES['file']
+            ##         print dir(request.FILES['file'])
+            ##         print request.FILES['file'].blobstore_info.key()
+            ##     print 
+
+    else:
+        form = UploadForm()
+        
+    #view_url = reverse('utility.views.upload_handler')
+    view_url = request.path
+    #upload_url, upload_data = prepare_upload(request, view_url)
+    upload_url = create_upload_url(view_url)
+    upload_data = {}
+    
+    #print form['utility_type'].errors
+    #print form['utility_type'].label
+    #print form['utility_type']
+    #print dir(form['energy_options'])
+    #print form['energy_options']
+
+    context = {
+        'city': city_name,
+        'state': state,
+        'bldg': bldg_tag,
+        'form': form,
+        'results': results,
+        'upload_url': upload_url, 
+        }
+
+    return render(request, 'upload_generic.html', context )
 
 
 

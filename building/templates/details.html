@@ -38,10 +38,8 @@
     {% if units|length != 1 %}
     <p>{{ units|length }} Units</p>
     {% else %}
-    <p><div class="num_units">{{ units|length }} Unit</div>
-      
-	{% include "edit_unit.html" with unit=units|first %}
-
+    <p>
+      <div class="num_units">{{ units|length }} Unit</div>
     </p>
     {% endif %}
 
@@ -118,7 +116,7 @@
 	    {{ unit.unit_address }}
 	</a></h4> 
 
-	{% include "edit_unit.html" with unit=unit %}
+	{% include "edit_unit.html" with building=building unit=unit %}
 
 	<div class="unit">
 	  {% if unit.rent %}

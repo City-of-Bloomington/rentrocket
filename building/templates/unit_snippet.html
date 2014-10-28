@@ -20,7 +20,28 @@ Maximum Occupants: {{ unit.max_occupants }}<br>
 
 <ul class="actions">
   
-  <li class="action"><form class="button_link" action="/utility/upload/{{ unit.building.city.state }}/{{ unit.building.city.name_tag }}/{{ unit.building.tag }}/{{ unit.tag|urlencode }}"><button type="submit"><img src="/static/img/up.png" class="icon"> Upload Energy Data</button></form></li>
+  <li class="action">
+    {% if unit.tag %}
+    <form class="button_link" action="{% url 'utility.views.upload' state=building.state city_name=building.city.tag bldg_tag=building.tag unit_tag=unit.tag %}">
+    {% else %}
+    <form class="button_link" action="{% url 'utility.views.upload' state=building.state city_name=building.city.tag bldg_tag=building.tag %}">
+    {% endif %}
+      <button type="submit"><img src="/static/img/up.png" class="icon" /> Upload Utility Data
+      </button>
+    </form>
+  </li>
+
+  <li class="action">
+    {% if unit.tag %}
+    <form class="button_link" action="{% url 'utility.views.edit' city_tag=building.city.tag bldg_tag=building.tag unit_tag=unit.tag %}">
+    {% else %}
+    <form class="button_link" action="{% url 'utility.views.edit' city_tag=building.city.tag bldg_tag=building.tag %}">
+    {% endif %}
+      <button type="submit"><img src="/static/img/edit.png" class="icon" /> Edit Utility Data
+      </button>
+    </form>
+  </li>
+  
 </ul>
 
 <br>

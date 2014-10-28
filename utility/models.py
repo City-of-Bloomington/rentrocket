@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from building.models import Building, Unit
 from source.models import Source
 from person.models import Person
+from city.models import City
 
 from jsonfield import JSONField
 
@@ -36,8 +37,14 @@ UTILITY_TYPES = (
 
     )
 
+
 class StatementUpload(models.Model):
     """
+    2014.10.16 15:03:56 
+    DEPRECATED...
+    start using Statement object instead...
+    will keep around for old form that uses it, until that process is retired
+    
     object to represent an uploaded statement.
     This starts off as unprocessed data,
     and eventually gets converted into one or more
@@ -109,6 +116,93 @@ class StatementUpload(models.Model):
     processed = models.BooleanField(default=False)
 
 
+class Statement(models.Model):
+    """
+    A simplified version of StatementUpload
+
+    this one requires that a unit be associated with the Statment
+    now that anyone can add a new building via the site,
+    this doesn't seem like a restrictive requirement
+    it also helps eliminate a lot of extra data associate with StatementUpload
+
+    Represent an uploaded statement.
+    This starts off as unprocessed data,
+    and gets converted into one or more corresponding UtilitySummary objects
+    """
+
+    #if a file (statement) was uploaded, this is where it will be stored:
+    blob_key = models.TextField()
+
+    #unit_number = models.CharField(max_length=20, blank=True, null=True)
+    #just using strings, in case the supplied value is not in the database yet 
+
+    #don't think we need the building here...
+    #will always be at least one unit per building,
+    #and unit links to building
+    #building = models.ForeignKey(Building, blank=True)
+    
+    unit = models.ForeignKey(Unit)  
+
+    #track what IP address supplied the statement...
+    #might help if someone decides to upload garbage
+    #especially if logins are not required
+    ip_address = models.GenericIPAddressField()
+
+    added = models.DateTimeField('date published', auto_now_add=True)
+
+    vendor = models.CharField(max_length=200, blank=True)
+
+    type = models.CharField(max_length=12, choices=UTILITY_TYPES, default="electricity")
+
+    #if the person has logged in with an account at the time of upload,
+    #capture that here
+    #will accept uploads from non-logged in users though
+    user = models.ForeignKey(User, blank=True, null=True)
+
+    #processing (extracting and importing data) may need to happen separately:
+    #processed = models.BooleanField(default=False)
+    processed = models.DateTimeField(blank=True)
+
+    processed_by = models.ForeignKey(User, related_name="processed_statements", blank=True, null=True)
+
+
+
+class ServiceProvider(models.Model):
+    """
+    AKA Vendor, Utility
+
+    If a ServiceProvider serves multiple utility types,
+    make separate entries for each...
+    seems cumbersome to do another relation for that
+    although... DRY...
+    """
+    #gotta have this
+    name = models.CharField(max_length=200)
+    instructions = models.TextField(blank=True)
+    website = models.TextField(blank=True)
+    #website = models.CharField(max_length=255, blank=True)
+    phone = models.CharField(max_length=30)
+
+class ServiceUtility(models.Model):
+    """
+    many-to-one for the services / utilities that a ServiceProvider provides
+    """
+    provider = models.ForeignKey(ServiceProvider, related_name="utilities")
+    #as long as we're consistent in the application,
+    #shouldn't need a separate table for this
+    type = models.CharField(max_length=30)
+
+class CityServiceProvider(models.Model):
+    """
+    A City will have more than one ServiceProvider
+    a ServiceProvider may offer services in more than one City
+    this is a place to match up the two (many-to-many)
+    """
+    provider = models.ForeignKey(ServiceProvider)
+    city = models.ForeignKey(City)
+    #in case there is a city specific site:
+    #(e.g. company provides service to many different cities.)
+    website = models.TextField(blank=True)
 
 class UtilitySummary(models.Model):
     """
@@ -142,7 +236,7 @@ class UtilitySummary(models.Model):
 
     #if this was taken from a statement, associate it here
     #(but it could be added directly via a form... manually add bill, etc)
-    statement = models.ForeignKey(StatementUpload, blank=True)
+    statement = models.ForeignKey(Statement, blank=True)
 
     #source of report.
     #could be: city data, utility data, or crowd-sourced public reporting
@@ -171,7 +265,13 @@ class UtilitySummary(models.Model):
 
     #Vendor for utility service. Examples: City of Bloomington Utilities, Comcast, AT&T, Duke Energy, etc)
     #vendor = string (required=no)
+    #going to use this as an "Other" field
+    #in the case when an existing ServiceProvider is not in the system
     vendor = models.CharField(max_length=200, blank=True)
+
+    #may not be in system... not required in that case
+    provider = models.ForeignKey(ServiceProvider, blank=True, null=True)
+
 
     #Common units acceptable (gallon, liter, kW, lb, kg, etc)
     #reading_unit = string (required=yes)

@@ -1,0 +1,27 @@
+        <div class="threecolumn">
+          <span>
+            {{ form.start_date }}
+          </span>
+          <span class="error">
+            {{ form.start_date.errors }}
+          </span>
+        </div>
+        
+        <div class="threecolumn">
+          <span>
+            {{ form.cost }}
+          </span>
+          <span class="error">
+            {{ form.cost.errors }}
+          </span>
+        </div>
+        
+        <div class="threecolumn">
+          <span>
+            {{ form.amount.as_hidden }}
+          </span>
+          <span class="error">
+            {{ form.amount.errors }}
+          </span>
+        </div>
+        

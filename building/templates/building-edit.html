@@ -19,7 +19,13 @@
 
   {{ form.non_field_errors }}
 
-  {% include "form_template.html" %}
+  {% if unitform %}
+  <p>Unit Details:</p>
+  {% include "form_template.html" with form=unitform %}
+  <p>Building Details:</p>
+  {% endif %}
+
+  {% include "form_template.html" with form=buildingform%}
 
   {# form.as_p #}
     

@@ -480,7 +480,7 @@ h5 {
   z-index: -1;
 }
 .half {
-  width: 49%;
+  width: 43%;
   display: inline-block;
   vertical-align: top;
 }
@@ -497,7 +497,6 @@ h5 {
 }
 .icon {
   width: 50px;
-  margin-top: .53em;
   opacity: 0.6;
 }
 .big-link {
@@ -514,6 +513,7 @@ h5 {
 .section {
   margin-top: 2em;
   margin-bottom: 2em;
+  display: inline-block;
 }
 #quick-form-container {
   text-align: center;
@@ -531,6 +531,7 @@ h5 {
   margin-top: .75em;
   margin-top: 2em;
   margin-bottom: 2em;
+  display: inline-block;
   max-width: 1020px;
   text-align: center;
   margin: 0 auto;
@@ -548,6 +549,7 @@ h5 {
   margin-top: .75em;
   margin-top: 2em;
   margin-bottom: 2em;
+  display: inline-block;
   max-width: 600px;
   text-align: center;
   margin: 0 auto;
@@ -562,6 +564,16 @@ h5 {
 .simple-widget {
   margin-bottom: .33em;
 }
+.simple-left {
+  width: 48%;
+  display: inline-block;
+  text-align: right;
+}
+.simple-right {
+  width: 48%;
+  display: inline-block;
+  text-align: left;
+}
 .simple-label {
   width: 30%;
   display: inline-block;
@@ -573,7 +585,7 @@ h5 {
   text-align: center;
 }
 .simple-field {
-  width: 65%;
+  width: 60%;
   display: inline-block;
   text-align: left;
 }
@@ -664,11 +676,6 @@ footer {
   margin-left: .5em;
   padding: 0px;
 }
-.row {
-  display: inline-block;
-  margin: 0px;
-  padding: 0px;
-}
 .messages {
   list-style: none;
 }
@@ -696,6 +703,22 @@ footer {
   width: 97.91666666666666%;
   margin: 0 1.0416666666666665%;
 }
+.threecolumn {
+  display: inline;
+  float: left;
+  width: 31.25%;
+  margin: 0 1.0416666666666665%;
+}
+.row {
+  display: inline-block;
+  margin: 0px;
+  padding: 0px;
+  clear: both;
+  width: 100%;
+}
+.utility-input {
+  width: 200px;
+}
 #id_building-address {
   width: 300px;
 }
@@ -713,6 +736,9 @@ footer {
     float: left;
     width: 97.91666666666666%;
     margin: 0 1.0416666666666665%;
+  }
+  .utility-input {
+    width: 91%;
   }
   #map-canvas {
     width: 100%;

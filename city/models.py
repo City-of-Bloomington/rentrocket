@@ -79,24 +79,80 @@ def lookup_city_with_geo(search_results, make=False):
         if city:
             search_results.city = city
         if error:
-            search_result.errors.append(error)
+            search_results.errors.append(error)
 
         #else:
-        #    search_result.errors.append(error)
+        #    search_results.errors.append(error)
                 
     elif len(search_results.matches) > 1:
         error = "More than one (%s) city found %s" % (len(search_results.matches), search_results.matches)
-        search_result.errors.append(error)
+        search_results.errors.append(error)
 
         #city = None
 
     elif len(search_results.matches) < 1: 
         #print "WARNING! no match found: ", search_results.matches
         error = "No city found"
-        search_result.errors.append(error)
+        search_results.errors.append(error)
         #city = None
 
     #return (city, error)
+
+def search_city(query, make=False):
+    """
+    in this version, we'll do the geo query to normalize the search
+    then see if we have a matching city
+
+    if not, and if make is True, then we can call make_city
+    """
+    results = address_search(query)
+    #(results, error, unit) = address_search(query)
+    #results = address_search(query)
+    #(city, error) = lookup_city_with_geo(results, make)
+    lookup_city_with_geo(results, make)
+    #return (city, error, results)    
+    return results
+
+
+# really need both city_name and state_name...
+# if you only have one, it's going to cause problems
+# too many chances for ambiguity!
+## def search_city_local(city_name):
+##     """
+##     check for existing...
+##     useful if no state data is available
+##     but may return more than one
+##     but also avoids a geo lookup request (address_search())
+##     """
+##     city_options = City.objects.filter(name=city_name)
+    
+##     #print "Number of cities available: %s" % len(city_options)
+##     #if not len(city_options):
+##     #    (city, error) = search_city("%s, %s" % (city_name, city_state), make)
+##     #if len(city_options):    
+##     #    city = city_options[0]
+##     return city_options
+
+
+## def find_by_city_state(city_name, city_state, make=False):
+##     """
+##     want to call this as part of other searches...
+##     don't want to include make here
+    
+##     first check for existing...
+##     if not found, create new.
+##     """
+
+##     error = None
+##     city_tag = to_tag("%s_%s" % (city_name, city_state))
+##     city_options = City.objects.filter(tag=city_tag)
+    
+##     #print "Number of cities available: %s" % len(city_options)
+##     if not len(city_options):
+##         (city, error) = search_city("%s, %s" % (city_name, city_state), make)
+##     else:
+##         city = city_options[0]
+##     return (city, error)    
 
 ## original version that did not use SearchResults object
 ## def lookup_city_with_geo(search_options, make=False):
@@ -127,41 +183,6 @@ def lookup_city_with_geo(search_results, make=False):
 
 ##     return (city, error)
     
-def search_city(query, make=False):
-    """
-    in this version, we'll do the geo query to normalize the search
-    then see if we have a matching city
-
-    if not, and if make is True, then we can call make_city
-    """
-    results = address_search(query)
-    #(results, error, unit) = address_search(query)
-    #results = address_search(query)
-    #(city, error) = lookup_city_with_geo(results, make)
-    lookup_city_with_geo(results, make)
-    #return (city, error, results)    
-    return results
-
-## def find_by_city_state(city_name, city_state, make=False):
-##     """
-##     want to call this as part of other searches...
-##     don't want to include make here
-    
-##     first check for existing...
-##     if not found, create new.
-##     """
-
-##     error = None
-##     city_tag = to_tag("%s_%s" % (city_name, city_state))
-##     city_options = City.objects.filter(tag=city_tag)
-    
-##     #print "Number of cities available: %s" % len(city_options)
-##     if not len(city_options):
-##         (city, error) = search_city("%s, %s" % (city_name, city_state), make)
-##     else:
-##         city = city_options[0]
-##     return (city, error)    
-
 class City(models.Model):
     """
     Details to define a specific City

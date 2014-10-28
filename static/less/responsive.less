@@ -84,7 +84,7 @@ h5 {
 }
 
 .half {
-    width: 49%;
+    width: 43%;
     display: inline-block;
     vertical-align: top;
 }
@@ -105,7 +105,7 @@ h5 {
 
 .icon {
     width: 50px;
-    margin-top: .53em;
+    //margin-top: .53em;
     opacity: 0.6;
 }
 
@@ -125,6 +125,7 @@ h5 {
 .section {
     margin-top: 2em;
     margin-bottom: 2em;
+    display: inline-block;
 }
 
 #quick-form-container {
@@ -157,6 +158,20 @@ h5 {
 .simple-widget {
     margin-bottom: .33em;
 }
+
+.simple-left {
+    width: 48%;
+    display: inline-block;
+    text-align: right;
+    //vertical-align: top;
+}
+.simple-right {
+    width: 48%;
+    display: inline-block;
+    text-align: left;
+    //vertical-align: top;
+}
+
 .simple-label {
     width: 30%;
     display: inline-block;
@@ -172,7 +187,7 @@ h5 {
 }
 
 .simple-field {
-    width: 65%;
+    width: 60%;
     display: inline-block;
     text-align: left;
     //vertical-align: top;
@@ -278,12 +293,6 @@ footer {
     padding: 0px;
 }
 
-.row {
-    display: inline-block;
-    margin: 0px;
-    padding: 0px;
-}
-
 .messages {
     list-style: none; 
 }
@@ -308,6 +317,23 @@ footer {
     .column(12);
 }
 
+.threecolumn {
+    .column(4);
+}
+
+.row {
+    display: inline-block;
+    margin: 0px;
+    padding: 0px;
+    clear: both;
+    width: 100%;
+}
+
+.utility-input {
+    width: 200px;
+}
+
+
 #id_building-address {
     width: 300px;
 }
@@ -325,6 +351,10 @@ footer {
 	//margin-bottom: 1em;
 	width: 100%;
 	.column(12);
+    }
+
+    .utility-input {
+        width: 91%;
     }
     
     #map-canvas {

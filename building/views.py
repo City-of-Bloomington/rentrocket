@@ -105,10 +105,17 @@ def lookup(request, lat1, lng1, lat2, lng2, city_tag=None, type="rental", limit=
             city = city_q[0]
 
     if city:
-        bq = Building.objects.all().filter(city=city).filter(latitude__gte=float(lat1)).filter(longitude__gte=float(lng1)).filter(latitude__lte=float(lat2)).filter(longitude__lte=float(lng2)).order_by('-energy_score')
+        #https://docs.djangoproject.com/en/dev/topics/db/queries/#spanning-multi-valued-relationships
+        #rather than multiple filters:
+        #(subjectively, this seems slower, or the same)
+        #bq = Building.objects.all().filter(city=city).filter(latitude__gte=float(lat1)).filter(longitude__gte=float(lng1)).filter(latitude__lte=float(lat2)).filter(longitude__lte=float(lng2)).order_by('-energy_score')
+        
+        #it may be better to provide all parameters to on call to filter:
+        bq = Building.objects.all().filter(city=city, latitude__gte=float(lat1), longitude__gte=float(lng1), latitude__lte=float(lat2), longitude__lte=float(lng2)).order_by('-energy_score')
 
     else:
-        bq = Building.objects.all().filter(latitude__gte=float(lat1)).filter(longitude__gte=float(lng1)).filter(latitude__lte=float(lat2)).filter(longitude__lte=float(lng2)).order_by('-energy_score')
+        #bq = Building.objects.all().filter(latitude__gte=float(lat1)).filter(longitude__gte=float(lng1)).filter(latitude__lte=float(lat2)).filter(longitude__lte=float(lng2)).order_by('-energy_score')
+        bq = Building.objects.all().filter(latitude__gte=float(lat1), longitude__gte=float(lng1), latitude__lte=float(lat2), longitude__lte=float(lng2)).order_by('-energy_score')
         
     all_bldgs = []
     for building in bq[:limit]:
@@ -527,22 +534,20 @@ class BuildingForm(ModelForm):
                    
 @login_required
 def edit(request, bldg_tag, city_tag):
-    city = City.objects.filter(tag=city_tag)
-    buildings = Building.objects.filter(city=city).filter(tag=bldg_tag)
-    if buildings.count():
-        building = buildings[0]
+    (city, building, unit) = find_by_tags(city_tag, bldg_tag, unit_tag='')
 
-    else:
-        building = None
-
+    #unless we figure out it should be set, keep it None
+    unitform = None
+    
     if request.method == 'POST':
-        form = BuildingForm(request.POST, instance=building)
+        buildingform = BuildingForm(request.POST, instance=building,
+                                    prefix='building')
 
-        if form.is_valid(): # All validation rules pass
+        if buildingform.is_valid(): # All validation rules pass
             #https://docs.djangoproject.com/en/dev/topics/forms/modelforms/#the-save-method
             #by passing commit=False, we get a copy of the model before it
             #has been saved. This allows diff to work below
-            updated = form.save(commit=False)
+            updated = buildingform.save(commit=False)
 
             #update any summary boolean fields here
             #(this should help with searching)
@@ -601,20 +606,36 @@ def edit(request, bldg_tag, city_tag):
             #now it's ok to save the building details:
             updated.save()
 
-            #redirect to building details with an edit message
-            messages.add_message(request, messages.INFO, 'Saved changes to building.')
-            finished_url = reverse('building.views.details', args=(updated.tag, updated.city.tag))
-            
-            return redirect(finished_url)
+            unit_ok = False
+            if building.units.count() == 1:
+                unitform = UnitForm(request.POST, instance=unit, prefix='unit')
+                if unitform.is_valid(): # All validation rules pass
+                    updated_unit = unitform.save(commit=False)
+                    updated_unit.save_and_update(request)
+                    unit_ok = True
+            else:
+                unit_ok = True
+
+            if unit_ok:
+                #redirect to building details with an edit message
+                messages.add_message(request, messages.INFO, 'Saved changes to building.')
+                finished_url = reverse('building.views.details', args=(updated.tag, updated.city.tag))
+                
+                return redirect(finished_url)
+
     else:
-        form = BuildingForm(instance=building)
-        form.fields['name'].label = "Building Name"
+        buildingform = BuildingForm(instance=building, prefix='building')
+        buildingform.fields['name'].label = "Building Name"
+        if building.units.count() == 1:
+            unitform = UnitForm(instance=unit, prefix='unit')
 
     context = { 'building': building,
                 'user': request.user,
-                'form': form,
+                'buildingform': buildingform,
+                'unitform': unitform,
                 }
     return render(request, 'building-edit.html', context)
+
 
 def details(request, bldg_tag, city_tag):
     (city, building, unit) = find_by_tags(city_tag, bldg_tag, unit_tag='')
@@ -649,7 +670,7 @@ class UnitForm(ModelForm):
 
 @login_required
 def unit_edit(request, city_tag, bldg_tag, unit_tag=''):
-    (city, building, unit) = find_by_tags(city_tag, bldg_tag, unit_tag='')
+    (city, building, unit) = find_by_tags(city_tag, bldg_tag, unit_tag=unit_tag)
 
     if request.method == 'POST':
         form = UnitForm(request.POST, instance=unit)
@@ -680,7 +701,7 @@ def unit_edit(request, city_tag, bldg_tag, unit_tag=''):
     return render(request, 'unit_edit.html', context)
 
 def unit_details(request, city_tag, bldg_tag, unit_tag=''):
-    (city, building, unit) = find_by_tags(city_tag, bldg_tag, unit_tag='')
+    (city, building, unit) = find_by_tags(city_tag, bldg_tag, unit_tag=unit_tag)
 
     print unit.full_address()
     context = { 'building': building,
