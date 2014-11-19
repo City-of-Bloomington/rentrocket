@@ -61,7 +61,7 @@
   $('#map-search .typeahead').autocomplete({
     serviceUrl: '/building/in/{{ city_tag }}/matching/',
     onSelect: function (suggestion) {
-      window.location.href = '/building/' + suggestion.data + '/' + city_tag ;
+      window.location.href = '/building/' + suggestion.data.building_tag + '/' + suggestion.data.city_tag ;
     }
   });
 

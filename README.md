@@ -70,14 +70,14 @@ https://docs.djangoproject.com/en/1.5/ref/models/fields/#django.db.models.CharFi
 
 
     ./manage.py migrate utility
-
     ./manage.py migrate building
+    ./manage.py migrate person
+    
     ./manage.py migrate city
     ./manage.py migrate content
     ./manage.py migrate inspection
     ./manage.py migrate manager
     ./manage.py migrate source
-    ./manage.py migrate person
     ./manage.py migrate allauth.socialaccount
 
     python ./scripts/make_cities.py

@@ -1,4 +1,4 @@
-import re, json
+import re, json, copy
 
 from django.db import models
 
@@ -345,11 +345,13 @@ def lookup_building_with_geo(search_results, make=False, request=None):
             make_building(search_results, request=request)
             building = search_results.building
             
-        #regardless of if we have a value for unit_search
-        # (aka search_results.unit_text)
-        #want to look up the unit (blank ones included)
         if building:
             search_results.building = building
+
+            #regardless of if we have a value for unit_search
+            # (aka search_results.unit_text)
+            #want to look up the unit (blank ones included)
+
             (match, error, matches) = building.find_unit(search_results.unit_text)
             #print "Find Unit Results: ->%s<- ->%s<- ->%s<-" % (match, error, matches)
             
@@ -357,12 +359,20 @@ def lookup_building_with_geo(search_results, make=False, request=None):
                 #unit = match
                 search_results.unit = match
             elif not match and not error and make:
-                #if search_results.unit_text is '',
-                #this should create a blank unit:
-                unit = make_unit(search_results.unit_text, building)
-                #print "Made new unit: ", unit
-                search_results.unit = unit
-                search_results.created = True
+                print "BUILDING UNITS: %s, (%s)" % (building.units, building.units.count())
+                if not search_results.unit_text and building.units.count():
+                    #*but* if the unit_search is blank
+                    #and the building already has units,
+                    #we don't want to create another blank one
+                    print "Already have units. Not making a blank one!"
+                    search_results.unit = None
+                else:
+                    #if search_results.unit_text is '',
+                    #this should create a blank unit:
+                    unit = make_unit(search_results.unit_text, building)
+                    #print "Made new unit: ", unit
+                    search_results.unit = unit
+                    search_results.created = True
                 
             if error:
                 search_results.errors.append(error)
@@ -807,7 +817,16 @@ class Building(models.Model, ModelDiffMixin):
 
 
     #amenities
-    air_conditioning = models.BooleanField(default=False)
+    #old version:
+    #air_conditioning = models.BooleanField(default=False)
+    AC_CHOICES = (
+        ('central', 'Central A/C'),
+        ('window', 'Window A/C'),
+        ('other', 'Other'),
+        ('', 'None'),
+        )
+    air_conditioning = models.CharField(max_length=50, choices=AC_CHOICES, default="", blank=True)
+
 
     #laundry = models.BooleanField(default=False)
     #laundry = models.CharField(max_length=50, default='')
@@ -826,6 +845,7 @@ class Building(models.Model, ModelDiffMixin):
         ('onstreet', 'On-street'),
         ('garage', 'Garage'),
         ('assigned', 'Assigned'),
+        ('other', 'Other'),
         )
     parking_options = MultiSelectField(max_length=100, choices=PARKING_CHOICES, default='', blank=True)
 
@@ -872,6 +892,53 @@ class Building(models.Model, ModelDiffMixin):
     #tag = models.CharField(max_length=200, default=to_tag(str(address)))
     tag = models.CharField(max_length=200, default='')
 
+
+    def set_booleans(self):
+        """
+        #update any summary boolean fields here
+        #(this should help with searching)
+        """
+        if self.energy_saving_details or self.energy_saving_other :
+            self.energy_saving_features = True
+        else:
+            self.energy_saving_features  = False
+
+        if self.renewable_energy_details or self.renewable_energy_other :
+            self.renewable_energy = True
+        else:
+            self.renewable_energy = False
+
+        if self.garden_details or self.garden_other:
+            self.garden = True
+        else:
+            self.garden = False
+
+        if self.bike_friendly_details or self.bike_friendly_other :
+            self.bike_friendly = True
+        else:
+            self.bike_friendly = False
+
+        if self.walk_friendly_details or self.walk_friendly_other :
+            self.walk_friendly = True
+        else:
+            self.walk_friendly = False
+
+        if self.transit_friendly_details or self.transit_friendly_other :
+            self.transit_friendly = True
+        else:
+            self.transit_friendly = False
+
+        if self.parking_options:
+            self.parking = True
+        else:
+            self.parking = False
+
+        if self.pets_options or self.pets_other :
+            self.pets = True
+        else:
+            self.pets = False
+
+        #saving is left to caller
 
     def update_rent_details(self):
         """
@@ -966,18 +1033,37 @@ class Building(models.Model, ModelDiffMixin):
                      ('average_water', 'who_pays_water'),
                      ('average_trash', 'who_pays_trash'), ]:
 
+            #TODO:
+            #This needs attention
+            #this is appropriate for total_average_utility_cost for a tenant
+            #which will factor in to cost of rent
+            #
+            #but to make an apples to apples comparison of all properties
+            #for how efficient the property is
+            #it shouldn't matter who pays for it
+            #only the ammount used
+            #and for that, we probably only need to look at gas + electric
+            #the only time that gas can be skipped is if the heat type != gas
+            #TODO:
+            #doesn't this overlap with tally_energy function below???
+
+            
             who_pays = getattr(self, opt[1])
             if ((who_pays == 'tenant_via_landlord') or
                 (who_pays == 'tenant')):
                 #5 is arbitrary...
-                #trying to avoid someone putting in a fake low value
+                #want to skip zero values
+                #also trying to avoid someone putting in a fake low value
                 value = getattr(self, opt[0])
                 if value > 5:
                     total += value
                 else:
+                    #only marking things as incomplete
+                    #if they are designated as being paid by tenant
+                    #but the amount is not available.
                     complete = False
 
-        #only storing total_average if it complete 
+        #only storing total_average if it's complete 
         if complete:
             self.total_averge = total
         else:
@@ -1005,7 +1091,7 @@ class Building(models.Model, ModelDiffMixin):
                 #want lower (better) values to have higher score
                 #that way can sort by score, higher ones show up first
                 self.energy_score = 100.0 / cost_per_sqft
-            #TODO:
+
             #could check for self.sqft value
             #divide by number of units for alternative to self.average_sqft
             #(especially if self.average_sqft is not available)
@@ -1145,6 +1231,9 @@ class Unit(models.Model, ModelDiffMixin):
     #this way we can give an estimate of the rent
     #aka current_rent
     rent = models.FloatField(default=0)
+
+    #this is duplicated in a Listing:
+    deposit = models.FloatField(default=0)
     
     #allow photos *(more than 1)* to be submitted for the listing
     #photos and floor plans will be handled by:
@@ -1166,6 +1255,11 @@ class Unit(models.Model, ModelDiffMixin):
     #energy_min
     #when utility details are updated, call self.update_averages
 
+    #going to store these here, even if they're redundant
+    electricity_min = models.FloatField(default=0)
+    electricity_max = models.FloatField(default=0)
+    gas_min = models.FloatField(default=0)
+    gas_max = models.FloatField(default=0)
     
     added = models.DateTimeField('date published', auto_now_add=True)
     updated = models.DateTimeField('date updated', auto_now=True)
@@ -1173,6 +1267,9 @@ class Unit(models.Model, ModelDiffMixin):
     class Meta:
         ordering = ['number']
 
+    def __repr__(self):
+        temp_d = copy.copy(self.__dict__)        
+        return str(temp_d)
 
     def cost_per_sqft(self):
         #total, complete = tally_energy_total(building, source)
@@ -1373,7 +1470,9 @@ class Listing(models.Model):
     available_end = models.DateTimeField()
 
     active = models.BooleanField(default=True)
-    
+
+    #these may be duplicated at the unit level:
+    #aka rent?
     cost = models.FloatField()
     cost_cycle = models.CharField(max_length=10, choices=CYCLE_CHOICES, default="month")
     deposit = models.FloatField()

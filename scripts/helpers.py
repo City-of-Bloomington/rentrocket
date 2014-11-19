@@ -230,7 +230,7 @@ def make_unit(apt_num, building):
 
     return unit
 
-def make_person(name, building, relation, address=None, city=None):
+def make_person(name, building, relation, address=None, city=None, website=None, phone=None):
 
     #now associate applicant with building:
 
@@ -252,7 +252,13 @@ def make_person(name, building, relation, address=None, city=None):
 
         if address:
             person.address = address
-            
+
+        if website:
+            person.website = website
+
+        if phone:
+            person.phone = phone
+
         person.save()
 
     #then find/make association:

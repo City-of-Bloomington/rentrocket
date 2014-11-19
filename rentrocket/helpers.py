@@ -1,4 +1,4 @@
-import re
+import re, copy
 
 from django.core import exceptions
 from django.db import models
@@ -51,6 +51,45 @@ class SearchResults(object):
     def __repr__(self):
         return str(self.__dict__)
     
+    def to_dict(self):
+        """
+        simplified version of creating a simple dict object
+        """
+        temp_d = copy.copy(self.__dict__)
+        #make sure to ignore anything you don't want to include:
+        #temp_d.pop("contents", None)
+
+        #these items won't be JSON serializable
+        if self.unit: 
+            temp_d['unit'] = self.unit.tag
+
+        if self.building: 
+            temp_d['building'] = self.building.tag
+
+        if self.city: 
+            temp_d['city'] = self.city.tag
+
+        #print temp_d
+            
+        return temp_d
+
+    def from_dict(self, item, debug=False):
+        """
+        apply the previously created / loaded dictionary to this object
+        """
+        #get rid of anything that shouldn't be there:
+        #del result['root'] 
+        
+        if debug:
+            print "Loading: %s" % item
+        self.__dict__.update(item)
+
+        #could load from tags here, if needed.
+        self.city = None
+        self.building = None
+        self.unit = None
+
+
 def check_result(result):
     """
     do some common checks on any matches returned by address_search()

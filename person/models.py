@@ -19,3 +19,5 @@ class Person(models.Model):
 
     #especially useful for property managers
     website = models.CharField(max_length=200, blank=True)
+
+    phone = models.CharField(max_length=20, default='', blank=True)

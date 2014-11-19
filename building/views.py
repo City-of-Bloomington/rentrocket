@@ -142,12 +142,11 @@ def match_existing(request, query=None, city_tag=None, limit=100):
         print "Empty query... skipping"
         
     else:
+        city = None
         if city_tag:
             city_q = City.objects.filter(tag=city_tag)
             if len(city_q):
                 city = city_q[0]
-            else:
-                city = None
 
         if city:
             bq = Building.objects.all().filter(city=city).filter(address__icontains=query).order_by('-energy_score')
@@ -158,7 +157,7 @@ def match_existing(request, query=None, city_tag=None, limit=100):
         for building in bq[:limit]:
             #all_bldgs.append(building.to_dict())
             #all_bldgs.append(render_as_json(request, building))
-            all_bldgs.append( { 'value': building.address, 'data': building.tag } )
+            all_bldgs.append( { 'value': building.address, 'data': { 'building_tag': building.tag, 'city_tag': building.city.tag } } )
 
     print all_bldgs
     #this is the format required by jquery.autocomplete (devbridge) plugin:
@@ -549,48 +548,7 @@ def edit(request, bldg_tag, city_tag):
             #has been saved. This allows diff to work below
             updated = buildingform.save(commit=False)
 
-            #update any summary boolean fields here
-            #(this should help with searching)
-            if updated.energy_saving_details or updated.energy_saving_other :
-                updated.energy_saving_features = True
-            else:
-                updated.energy_saving_features  = False
-            
-            if updated.renewable_energy_details or updated.renewable_energy_other :
-                updated.renewable_energy = True
-            else:
-                updated.renewable_energy = False
-            
-            if updated.garden_details or updated.garden_other:
-                updated.garden = True
-            else:
-                updated.garden = False
-            
-            if updated.bike_friendly_details or updated.bike_friendly_other :
-                updated.bike_friendly = True
-            else:
-                updated.bike_friendly = False
-            
-            if updated.walk_friendly_details or updated.walk_friendly_other :
-                updated.walk_friendly = True
-            else:
-                updated.walk_friendly = False
-            
-            if updated.transit_friendly_details or updated.transit_friendly_other :
-                updated.transit_friendly = True
-            else:
-                updated.transit_friendly = False
-            
-            if updated.parking_options:
-                updated.parking = True
-            else:
-                updated.parking = False
-            
-            if updated.pets_options or updated.pets_other :
-                updated.pets = True
-            else:
-                updated.pets = False
-
+            updated.set_booleans()
             #print json.dumps(updated.diff)
             
             #print updated.diff
