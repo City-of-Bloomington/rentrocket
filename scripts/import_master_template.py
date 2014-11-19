@@ -611,7 +611,8 @@ def read_csv(source_csv, city_tag, feed_date):
         results = current['results']
         #print results
         sr = SearchResults()
-        sr.from_dict(results, debug=True)
+        #sr.from_dict(results, debug=True)
+        sr.from_dict(results, debug=False)
         #print sr
         current['results'] = sr
 
@@ -663,7 +664,7 @@ def read_csv(source_csv, city_tag, feed_date):
 
         count = 0
         #start = 6439
-        start = 3720
+        start = 1290
 
         #if you want to randomize the order... to distribute options more evenly
         #just do this in the original spreadsheet.

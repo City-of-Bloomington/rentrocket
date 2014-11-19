@@ -566,6 +566,8 @@ class Building(models.Model, ModelDiffMixin):
 
     #State where the property is located.
     #In the U.S. this should be the two-letter code for the state
+    #not always set?
+    #safer to rely on city.state:
     state = models.CharField(max_length=2)
 
     postal_code = models.CharField(max_length=10)
