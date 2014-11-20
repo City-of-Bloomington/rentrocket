@@ -16,6 +16,12 @@ however, this one utilized the master template format
 this should be more comprehensive, and ultimately, more standard too.
 
 utilize as much functionality from the site codebase as possible for adding data
+
+WARNING:
+be very careful if terminating this script early...
+if the script is in the middle of saving the cached data to the local json file
+it can result in a corrupt file
+be sure to back up the json data regularly
 """
 
 import os, sys, codecs, re, copy
@@ -607,17 +613,25 @@ def read_csv(source_csv, city_tag, feed_date):
     #need to go through and load SearchResults separately
     local_cache = {}
     for key in loaded_cache.keys():
-        current = loaded_cache[key]
-        results = current['results']
-        #print results
-        sr = SearchResults()
-        #sr.from_dict(results, debug=True)
-        sr.from_dict(results, debug=False)
-        #print sr
-        current['results'] = sr
+        #this is useful if there is a cached value 
+        #that was not parsed correctly... this will remove it:
+        #if key.strip() == "314 North Washington Street Apt. C":
+        if key.strip() == "some address with bad cached data":
+            print "not adding: ", key
+            #exit()
+            pass
+        else:
+            current = loaded_cache[key]
+            results = current['results']
+            #print results
+            sr = SearchResults()
+            #sr.from_dict(results, debug=True)
+            sr.from_dict(results, debug=False)
+            #print sr
+            current['results'] = sr
 
-        #print current['results']
-        local_cache[key] = current
+            #print current['results']
+            local_cache[key] = current
         
     #use street address as the key
     #for each address, store SearchResults object
@@ -664,7 +678,7 @@ def read_csv(source_csv, city_tag, feed_date):
 
         count = 0
         #start = 6439
-        start = 1290
+        start = 0
 
         #if you want to randomize the order... to distribute options more evenly
         #just do this in the original spreadsheet.
@@ -689,7 +703,9 @@ def read_csv(source_csv, city_tag, feed_date):
                 local_cache[address] = current
                 #save every time...
                 #never know when a crash will happen:
-                save_results(cache_destination, local_cache)
+                #however, this does make things run considerably slower
+                #especially once the cached file size grows.
+                #save_results(cache_destination, local_cache)
 
                 #exit()
             

@@ -12,8 +12,8 @@ from geopy.geocoders import GoogleV3
 #rentrocket/scripts 
 #python columbia-find_apartment_keys.py
 #[u'APT', u'UNIT', u'HOUSE', u'RM', u'HM', u'BLDG', u'LOT', u'TRLR', u'STE', u'SPK', u'DUP', u'ROOM', u'SUITE', u'HM1', u'OFC', u'GAR', u'HMRM', u'SHOP']
-unit_prefixes = ['unit', 'apartment', 'apt', 'suite', 'ste', 'trlr', 'trailer', 'room', 'rm']
-unit_substitutes = { 'unit':'Unit', 'apartment':'Apt', 'apt':'Apt', 'suite':"Ste", 'ste':"Ste", 'trlr':"Trlr", 'trailer':"Trlr", 'room':"Rm", 'rm':"Rm" }
+unit_prefixes = ['unit', 'apartment', 'apt.', 'apt', 'suite', 'ste.', 'ste', 'trlr.', 'trlr', 'trailer', 'room', 'rm.', 'rm', ]
+unit_substitutes = { 'unit':'Unit', 'apartment':'Apt', 'apt':'Apt', 'apt.':'Apt', 'suite':"Ste", 'ste':"Ste", 'ste.':"Ste", 'trlr':"Trlr", 'trlr.':"Trlr", 'trailer':"Trlr", 'room':"Rm", 'rm':"Rm", 'rm.':"Rm" }
 
 class SearchResults(object):
     """
