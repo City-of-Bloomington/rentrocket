@@ -31,24 +31,25 @@ Next:
 
 vagrant ssh
 
-#for now, create tables manually:
-cd /vagrant
-python manage.py syncdb
+for now, create tables manually:
 
-./manage.py migrate utility
-./manage.py migrate building
-./manage.py migrate person
-./manage.py migrate city
-./manage.py migrate content
-./manage.py migrate inspection
-./manage.py migrate manager
-./manage.py migrate source
-./manage.py migrate allauth.socialaccount
+    cd /vagrant
+    python manage.py syncdb
 
-cd /vagrant/scripts
-python make_cities.py
+    ./manage.py migrate utility
+    ./manage.py migrate building
+    ./manage.py migrate person
+    ./manage.py migrate city
+    ./manage.py migrate content
+    ./manage.py migrate inspection
+    ./manage.py migrate manager
+    ./manage.py migrate source
+    ./manage.py migrate allauth.socialaccount
 
-/home/vagrant/google_appengine/dev_appserver.py --host 0.0.0.0 /vagrant
+    cd /vagrant/scripts
+    python make_cities.py
+
+    /home/vagrant/google_appengine/dev_appserver.py --host 0.0.0.0 /vagrant
 
 
 
