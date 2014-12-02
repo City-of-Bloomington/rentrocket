@@ -1,6 +1,8 @@
 import sys, os
 
-sys.path.append(os.path.dirname(os.getcwd()))
+parent = os.path.dirname(os.getcwd())
+print "Adding path: %s" % parent
+sys.path.append(parent)
 
 #http://stackoverflow.com/questions/8047204/django-script-to-access-model-objects-without-using-manage-py-shell
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "rentrocket.settings")

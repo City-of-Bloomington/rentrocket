@@ -539,7 +539,7 @@ class Geo(object):
         #http://developer.yahoo.com/forum/General-Discussion-at-YDN/Yahoo-GeoCode-404-Not-Found/1362061375511-7faa66ba-191d-4593-ba63-0bb8f5d43c06
         #yahoo = geocoders.Yahoo('PCqXY9bV34G8P7jzm_9JeuOfIviv37mvfyTvA62Ro_pBrwDtoIaiNLT_bqRVtETpb79.avb0LFV4U1fvgyz0bQlX_GoBA0s-')
         self.usgeo = geocoders.GeocoderDotUS() 
-        self.geonames = geocoders.GeoNames()
+        #self.geonames = geocoders.GeoNames()
         self.bing = geocoders.Bing('AnFGlcOgRppf5ZSLF8wxXXN2_E29P-W9CMssWafE1RC9K9eXhcAL7nqzTmjwzMQD')
         self.openmq = geocoders.OpenMapQuest()
         self.mq = geocoders.MapQuest('Fmjtd%7Cluub2hu7nl%2C20%3Do5-9uzg14')
