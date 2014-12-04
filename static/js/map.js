@@ -22,6 +22,7 @@ var RRMap = function(args) {
     url += 'between/' + 
 	sw.lat() + '/' + sw.lng() + '/and/' +
 	ne.lat() + '/' + ne.lng()
+
     
     $.ajax({
       url: url
@@ -36,6 +37,11 @@ var RRMap = function(args) {
       //clear the array:
       //http://stackoverflow.com/questions/1232040/how-to-empty-an-array-in-javascript
       self.markers.length = 0;
+
+      var low = result['cutoffs'][0];
+      var med_low = result['cutoffs'][1];
+      var med_high = result['cutoffs'][2];
+      var high = result['cutoffs'][3];
       
       //add the new markers to the map
       for (var i = 0, len = result['buildings'].length; i < len; i++) {
@@ -47,23 +53,23 @@ var RRMap = function(args) {
 	  title: building.address
 	});
 	var image;
-	if (building.score > 500) {
-	  image = '/static/img/marker-green.png';
-	}
-	else if (building.score > 250) {
-	  image = '/static/img/marker-yellow.png';
-	}
-	else if (building.score > 50) {
-	  image = '/static/img/marker-orange.png';
-	}
-	else if (building.score > .0001) {
-	  image = '/static/img/marker-red.png';
+	if (building.score == 0) {
+	  image = '/static/img/marker-light_gray.png';
 	}
 	else if (building.score == .0001) {
 	  image = '/static/img/marker-dark_gray.png';
 	}
-	else if (building.score == 0) {
-	  image = '/static/img/marker-light_gray.png';
+	else if (building.score <= low) {
+	  image = '/static/img/marker-red.png';
+	}
+	else if (building.score <= med_low) {
+	  image = '/static/img/marker-orange.png';
+	}
+	else if (building.score <= med_high) {
+	  image = '/static/img/marker-yellow.png';
+	}
+	else if (building.score <= high) {
+	  image = '/static/img/marker-green.png';
 	}
 	else {
 	  //shouldn't get this, but... 
@@ -77,9 +83,9 @@ var RRMap = function(args) {
 	  scaledSize: new google.maps.Size(23, 40),
 	  
 	  // The origin for this image is 0,0.
-	  //origin: new google.maps.Point(0,10),
+	  //origin: new google.maps.Point(0, 40),
 	  // The anchor for this image is the base of the flagpole at 0,32.
-	  anchor: new google.maps.Point(0, 12)
+	  anchor: new google.maps.Point(12, 40)
 	};
         
 	marker.setIcon(icon);

@@ -76,7 +76,6 @@
   width: 23px;
 }
 .half {
-  width: 100px;
   display: inline-block;
   vertical-align: top;
 }
@@ -91,4 +90,7 @@
 .building a {
   text-decoration: none;
   color: #555a3c;
+}
+.building {
+  min-width: 200px;
 }

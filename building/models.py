@@ -539,6 +539,13 @@ def tally_energy_total(building, source):
         else:
             complete = False
 
+    if complete and total:
+        #now that both units and buildings are tracking energy_average
+        #can save it here if it is different
+        if source.energy_average != total:
+            source.energy_average = total
+            source.save()
+
     return total, complete
 
 class Building(models.Model, ModelDiffMixin):
@@ -996,7 +1003,7 @@ class Building(models.Model, ModelDiffMixin):
         calculate the average utility cost for each type of service
         and store that in the corresponding local variable
         """
-        average_types = ['average_electricity', 'average_gas', 'average_water', 'average_trash', 'sqft']
+        average_types = ['average_electricity', 'average_gas', 'average_water', 'average_trash', 'sqft', 'energy_average', 'energy_score']
         #group all valid (non-zero) values by type
         building_values = {}
         for unit in self.units.all():
@@ -1007,7 +1014,20 @@ class Building(models.Model, ModelDiffMixin):
                     #rather than checking if key exists in dictionary:
                     #(or using a defaultdict)
                     building_values.setdefault(average_type, []).append(value)
-                    
+
+        #special case for energy_scores...
+        #get rid of all '.0001' (incomplete) values
+        if building_values.has_key('energy_score'):
+            filtered = []
+            for value in building_values['energy_score']:
+                if value != .0001:
+                    filtered.append(value)
+
+            if len(filtered):
+                building_values['energy_score'] = filtered
+            else:
+                del building_values['energy_score']
+                
         #then compute the average_value for each type with valid values
         #for key in building_values.keys():
         for key in average_types:
@@ -1024,6 +1044,7 @@ class Building(models.Model, ModelDiffMixin):
             else:
                 setattr(self, key, average_value)
 
+
         #now that the averages have been tallied (as best as possible)
         #update other values that depend on those:
 
@@ -1035,21 +1056,13 @@ class Building(models.Model, ModelDiffMixin):
                      ('average_water', 'who_pays_water'),
                      ('average_trash', 'who_pays_trash'), ]:
 
-            #TODO:
-            #This needs attention
-            #this is appropriate for total_average_utility_cost for a tenant
+            #this is appropriate for 'total_average' utility cost for a tenant
             #which will factor in to cost of rent
             #
-            #but to make an apples to apples comparison of all properties
-            #for how efficient the property is
-            #it shouldn't matter who pays for it
-            #only the ammount used
-            #and for that, we probably only need to look at gas + electric
-            #the only time that gas can be skipped is if the heat type != gas
-            #TODO:
-            #doesn't this overlap with tally_energy function below???
-
-            
+            #should *NOT* be used as an indicator
+            #of how efficient the property is
+            #for that, use tally_energy_total and update energy_score below
+                        
             who_pays = getattr(self, opt[1])
             if ((who_pays == 'tenant_via_landlord') or
                 (who_pays == 'tenant')):
@@ -1070,39 +1083,26 @@ class Building(models.Model, ModelDiffMixin):
             self.total_averge = total
         else:
             self.total_averge = 0
-    
-        #only gas and electric included here:
-        #(use this / sqft for energy score)
-        #energy_average = models.FloatField(default=0)
 
-        #assume we have everything, until we find a missing value
 
-        #total, complete = tally_energy_total(building, source)
-        total, complete = tally_energy_total(self, self)
 
-        ## #regardless of who pays utilities, 
-        ## #once we have energy data,
-        ## #we will want to summarize the results here
-        ## #so that we can use this to color code appropriately
-        ## energy_score = models.IntegerField(default=0)
 
-        if complete and total:
-            self.energy_average = total
-            if self.energy_average and self.average_sqft:
-                cost_per_sqft = self.energy_average * 1.0 / self.average_sqft
-                #want lower (better) values to have higher score
-                #that way can sort by score, higher ones show up first
-                self.energy_score = 100.0 / cost_per_sqft
+        #doing this as part of the averages above:
+        #self.update_energy_score()
 
-            #could check for self.sqft value
-            #divide by number of units for alternative to self.average_sqft
-            #(especially if self.average_sqft is not available)
-        elif total:
-            #using this to signal that we have some data, but it is incomplete
-            self.energy_score = .0001
-        else:
-            self.energy_score = 0
-
+        #old approach for update_energy_score() at building level:
+        #other functionality moved out to Unit.update_energy_score()
+        
+        ## if self.energy_average and self.average_sqft:
+        ##     cost_per_sqft = self.energy_average * 1.0 / self.average_sqft
+        ##     #want lower (better) values to have higher score
+        ##     #that way can sort by score, higher ones show up first
+        ##     self.energy_score = max_utility_cost / cost_per_sqft
+        
+        #could check for self.sqft value
+        #divide by number of units for alternative to self.average_sqft
+        #(especially if self.average_sqft is not available)
+                
         self.save()
         
     def cost_per_sqft(self):
@@ -1111,16 +1111,19 @@ class Building(models.Model, ModelDiffMixin):
             cost_per_sqft = self.energy_average * 1.0 / self.average_sqft
         return cost_per_sqft
 
-    #TODO:
-    #either need to track average_bedrooms here (good for summaries?)
-    #or just run through all units and average each of their cost_per_bedrooom
-    #values
+
+    #either need to track average_bedrooms in building (good for summaries?)
+    #or just run through all units 
+    #and average each of their cost_per_bedrooom values
+    #waiting to see if this is needed...
+    #it is currently estimated as part of energy_score... that may suffice
     
     ## def cost_per_bedroom(self):
     ##     cost_per_bedroom = 0
     ##     if self.energy_average and self.average_bedrooms:
     ##         cost_per_bedroom = total * 1.0 / self.average_bedrooms
     ##     return cost_per_bedroom
+
 
     def create_tag(self, force=False):
         if ((not self.tag) and self.address) or force:
@@ -1217,6 +1220,7 @@ class Unit(models.Model, ModelDiffMixin):
     #eventually can use this to hide results
     visible = models.BooleanField(default=True)
 
+    #-1 for studio
     bedrooms = models.IntegerField(default=0)
     bathrooms = models.IntegerField(default=0)
 
@@ -1257,11 +1261,24 @@ class Unit(models.Model, ModelDiffMixin):
     #energy_min
     #when utility details are updated, call self.update_averages
 
-    #going to store these here, even if they're redundant
+    #storing these here, even if they're redundant
+    #potential for data loss if this is the only place they're stored
+    #(subsequent updates from utility data could over-write)
     electricity_min = models.FloatField(default=0)
     electricity_max = models.FloatField(default=0)
     gas_min = models.FloatField(default=0)
     gas_max = models.FloatField(default=0)
+
+    #these are the same as in Building, but specific to this unit
+    
+    #only gas and electric included here:  (use this / sqft for energy score)
+    energy_average = models.FloatField(default=0)
+    
+    #regardless of who pays utilities, 
+    #once we have energy data,
+    #we will want to summarize the results here
+    #so that we can use this to color code appropriately
+    energy_score = models.FloatField(default=0)
     
     added = models.DateTimeField('date published', auto_now_add=True)
     updated = models.DateTimeField('date updated', auto_now=True)
@@ -1287,8 +1304,90 @@ class Unit(models.Model, ModelDiffMixin):
 
         cost_per_bedroom = 0
         if total and self.bedrooms:
-            cost_per_bedroom = total * 1.0 / self.bedrooms
+            #handle studios:
+            if self.bedrooms == -1:
+                cost_per_bedroom = total * 1.0 / (self.bedrooms * -1)
+            else:
+                cost_per_bedroom = total * 1.0 / self.bedrooms
+                
         return cost_per_bedroom
+
+    def update_energy_score(self, bedrooms=True):
+        """
+        this functionality was originally part of:
+        building.update_utility_averages
+
+        if keeping track of this on a unit level, can take care of it here.
+
+        two main ways to generate a score...
+        based on number of bedrooms or the total squarefeet
+        it is important to be consistent in the system
+        we're going with bedrooms in hopes that it is more intuitive and
+        also easier to get that information
+
+        regardless of who pays utilities, 
+        once we have energy data,
+        we will want to summarize the results in self.energy_score
+        so that we can use this to color code appropriately
+        #energy_score = models.IntegerField(default=0)
+
+        it shouldn't matter who pays for it
+        only the ammount used
+        and for that, we probably only need to look at gas + electric
+        the only time that gas can be skipped is if the heat type != gas        
+
+        only gas and electric included here:
+        (use this / sqft for energy score)
+        #energy_average = models.FloatField(default=0)
+        
+        updating self.energy_average is handled in tally_energy_total now
+        #self.energy_average = total
+        """
+        
+        #NOW CALCULATE ENERGY SCORE:
+
+        #want lower (better) values to have higher score
+        #that way can sort by score, higher ones show up first
+        #divide max_utility_cost with actual value to invert
+
+        #max cost will vary based on what the units are
+        #could be lower for sqft vs bedrooms
+        #ideally this is the maximum possible cost anywhere
+        #so all scores end up comparable / related
+        #keep as float:
+        max_utility_cost = 500.0
+
+        #tally_energy_total() will get called
+        #in both self.cost_per_bedroom() and self.cost_per_sqft()
+        #but we need to know if a total was found here, so duplicating the call
+        
+        #total, complete = tally_energy_total(building, source)
+        #total, complete = tally_energy_total(self, self)
+        total, complete = tally_energy_total(self.building, self)
+
+        if complete and total:
+            if bedrooms:
+                cpbr = self.cost_per_bedroom()
+                if cpbr:
+                    self.energy_score = max_utility_cost / cpbr
+                else:
+                    self.energy_score = .0001
+            else:
+                #must be using sqft
+                #might want to print a warning though!
+                cpsqft = self.cost_per_sqft()
+                if cpsqft:
+                    self.energy_score = max_utility_cost / cpsqft
+                else:
+                    self.energy_score = .0001
+
+        elif total:
+            #using this to signal that we have some data, but it is incomplete
+            self.energy_score = .0001
+        else:
+            self.energy_score = 0
+
+        self.save()
 
     def url_tag(self):
         """
@@ -1406,9 +1505,12 @@ class Unit(models.Model, ModelDiffMixin):
         changes.unit = self
         changes.save()
 
-        #now it's ok to save the building details:
+        #now it's ok to save the unit details:
         self.save()
 
+        #see if we have enough info now to make a score:
+        self.update_energy_score()
+        
         #now that we've saved the unit,
         #update the averages for the whole building:
         self.building.update_utility_averages()

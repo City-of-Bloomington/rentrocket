@@ -210,6 +210,11 @@ class City(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
 
+    #these are the values used to assign a marker
+    #based on where a building's energy score falls in these.
+    #these are set while running "generate_city_stats.py" script
+    cutoffs = models.CharField(max_length=200, default="50,250,500,1000")
+
     added = models.DateTimeField('date published', auto_now_add=True)
     updated = models.DateTimeField('date updated', auto_now=True)
 

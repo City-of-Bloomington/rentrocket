@@ -121,10 +121,20 @@ def lookup(request, lat1, lng1, lat2, lng2, city_tag=None, type="rental", limit=
     for building in bq[:limit]:
         #all_bldgs.append(building.to_dict())
         all_bldgs.append(render_as_json(request, building))
+
+    #at this point we need a city to have cutoffs...
+    #if we don't have that, just use Bloomington for now:
+    if not city:
+        city_q = City.objects.filter(tag="bloomington_in")
+        if len(city_q):
+            city = city_q[0]
+
+    cutoffs = city.cutoffs.split(',')        
         
-    bldg_dict = {'buildings': all_bldgs, 'total': len(bq)}
+    bldg_dict = {'buildings': all_bldgs, 'total': len(bq), 'cutoffs': cutoffs}
 
     #print bldg_dict
+    #print cutoffs
     
     return HttpResponse(json.dumps(bldg_dict), content_type="application/json")
 

@@ -102,14 +102,19 @@ def check_number(value):
     """
     value = value.replace('N/A', '')
     value = value.replace('n/a', '')
-    value = value.replace('Studio', '0')
-    value = value.replace('studio', '0')
-    value = value.replace('STUDIO', '0')
     value = value.replace(',', '')
     value = value.replace('$', '')
     value = value.replace('+', '')
     parts = value.split('-')
     value = parts[-1]
+    
+    #0 is the default value for no data... can't use that for studio...
+    #it will get lost
+    #keep this after split for '-'
+    value = value.replace('Studio', '-1')
+    value = value.replace('studio', '-1')
+    value = value.replace('STUDIO', '-1')
+
     value = value.strip()
     return value
             

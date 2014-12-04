@@ -8,3 +8,4 @@ local_settings.py
 .DS_Store
 configuration.inc
 .vagrant/*
+scripts/energy_score_summary-temp.csv
