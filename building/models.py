@@ -1102,8 +1102,10 @@ class Building(models.Model, ModelDiffMixin):
         #could check for self.sqft value
         #divide by number of units for alternative to self.average_sqft
         #(especially if self.average_sqft is not available)
-                
-        self.save()
+
+        #use model diff to help:
+        if self.has_changed:
+            self.save()
         
     def cost_per_sqft(self):
         cost_per_sqft = 0
@@ -1343,6 +1345,9 @@ class Unit(models.Model, ModelDiffMixin):
         updating self.energy_average is handled in tally_energy_total now
         #self.energy_average = total
         """
+
+        #keep this around to see if we need to call save or not:
+        original_energy_score = self.energy_score
         
         #NOW CALCULATE ENERGY SCORE:
 
@@ -1387,7 +1392,10 @@ class Unit(models.Model, ModelDiffMixin):
         else:
             self.energy_score = 0
 
-        self.save()
+        #trying to only do this if something has changed...
+        #hoping that improves performance for bulk updates
+        if self.energy_score != original_energy_score:
+            self.save()
 
     def url_tag(self):
         """

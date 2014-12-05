@@ -36,8 +36,9 @@ else:
 
 # Only set this to true when generating a new csv file:
 add_header = False
-add_header = True
+#add_header = True
 
+now = datetime.now()
 
 city_options = City.objects.all()
 print "Number of cities available: %s" % len(city_options)
@@ -101,7 +102,7 @@ for city in city_options:
     city.save()
 
     #now generate statistics for current city (re-run loop)
-    now = datetime.now()
+    
     low = 0
     med_low = 0
     med_high = 0
@@ -131,9 +132,10 @@ for city in city_options:
         add_header = False
 
     [ low, med_low, med_high, high ] = counts
-    row = [ now, city.name, city.state, count, incomplete_count, scored_count, low, med_low, med_high, high, 'bedrooms' ]
+    row = [ now, city.name, city.state, count, incomplete_count, scored_count, low, med_low, med_high, high, ]
     row.extend(cutoffs)
-
+    row.append('bedrooms')
+    
     row_str = []
     for item in row:
         row_str.append(str(item))

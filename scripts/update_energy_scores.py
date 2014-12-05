@@ -23,15 +23,21 @@ print "Number of cities available: %s" % len(city_options)
 if not len(city_options):
     raise ValueError, "CITY NOT FOUND! run make_cities.py first"
 
-for city in city_options:
-    print "Looking at city: %s" % (city.name)
-    buildings = Building.objects.filter(city=city)
-    print len(buildings)
-    print buildings.count()
-    count = 0
+city_count = 7
+for city in city_options[city_count:]:
     
-    #for building in buildings[100:103]:
-    for building in buildings:
+    print "Looking at city: %s, %s, %s, %s" % (city_count, city.name, city.state, city.tag)
+    city_count += 1
+    buildings = Building.objects.filter(city=city)
+    #print len(buildings)
+    print buildings.count()
+    print 
+    count = 0
+    #count = 8160
+    
+    ## #for building in buildings[3095:]:
+    ## #for building in buildings:
+    for building in buildings[count:]:
 
         print 
         print "starting: %04d: %s" % (count, building.address)
