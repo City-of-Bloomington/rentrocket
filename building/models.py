@@ -15,6 +15,34 @@ from rentrocket.helpers import to_tag, MultiSelectField, check_result, address_s
 
 from urllib import urlencode
 
+#originally in utility/models.py
+#but they are needed here and this gets imported first
+UTILITY_TYPES = (
+    ('electricity', 'Electricity'),
+    ('gas', 'Natural Gas'),
+    ('oil', 'Heating Oil'),    
+    ('water', 'Water'),
+    ('sewage', 'Sewage'),
+    ('trash', 'Trash'),
+    ('recycling', 'Recycling'),
+
+    ('other', 'Other'),
+
+    ## ('storm', 'Storm Water'),
+    ## ('compo', 'Compost'),
+    ## ('data', 'Data'),
+    ## ('video', 'Video'),
+    ## ('phone', 'Phone'),
+    ## ('dv', 'Data+Video'),
+    ## ('video', 'Video+Phone'),
+    ## ('dp', 'Data+Phone'),
+    ## ('dvp', 'Data+Video+Phone'),
+    ## ('wifi', 'Wifi'),
+
+    )
+
+
+
 #http://stackoverflow.com/questions/1355150/django-when-saving-how-can-you-check-if-a-field-has-changed
 class ModelDiffMixin(object):
     """
@@ -119,7 +147,7 @@ def make_unit(apt_num, building):
     #could disable check if that is working
     units = Unit.objects.filter(building=building).filter(number=apt_num)
 
-    #check if a previous building object in the db exists
+    #check if a previous unit object in the db exists
     if units.exists():
         unit = units[0]
         #print "Already had Unit: %s" % unit.address
@@ -139,10 +167,12 @@ def make_unit(apt_num, building):
                 blank_unit = bldg_unit
                 blank_count += 1
 
-            #could select/filter for this, but since we want blanks too
-            #loop is fine
-            elif bldg_unit.number == unit:
-                unit = bldg_unit
+            ## # shouldn't ever reach this case with initial filter
+            ## #
+            ## #could select/filter for this, but since we want blanks too
+            ## #loop is fine
+            ## elif bldg_unit.number == apt_num:
+            ##     unit = bldg_unit
 
         if not unit:
             #if we didn't have a matching unit already,
@@ -458,7 +488,7 @@ def search_building(query, unit='', make=False, request=None):
         
     ## return (building, unit, error, search_options)    
     
-def find_by_tags(city_tag, bldg_tag, unit_tag=''):
+def find_by_tags(city_tag, bldg_tag, unit_tag='', default_unit=True):
     """
     this is a common task for locating a building or unit
     after a url request with specific tags
@@ -496,13 +526,18 @@ def find_by_tags(city_tag, bldg_tag, unit_tag=''):
 
             unit.save()
 
+        #this doesn't seem to match when unit_tag is none
         units = building.units.filter(tag=unit_tag)
         if units.count():
             unit = units[0]
-        else:
+        elif default_unit:
+            for bldg_unit in building.units.all():
+                if not bldg_unit.number:
+                    unit = bldg_unit
+            
             #could raise 404 if desired
-            pass
-
+            #pass
+        
         #TODO:
         #not sure that this will work with unit_tag yet...
         #(unit, error, matches) = building.find_unit(unit_tag)
@@ -1008,6 +1043,15 @@ class Building(models.Model, ModelDiffMixin):
         building_values = {}
         for unit in self.units.all():
             for average_type in average_types:
+
+                #now that units have real utility data,
+                #could update those averages here
+                #however, that might get intensive for buildings with many units
+                #it's best to update the specific unit being modified
+                #(can only modify one at a time anyway)
+                #then this would work the same way
+                #see unit.update_averages()
+                
                 value = getattr(unit, average_type)
                 #only want to compute the average for units with values
                 if value:
@@ -1413,8 +1457,72 @@ class Unit(models.Model, ModelDiffMixin):
         generate an average for each,
         and store that in the corresponding local variable
         """
-        pass
+        for utility_type in UTILITY_TYPES:
+            #TODO:
+            #ideally see if we have a complete year's worth of data...
+            #if so, that should take priority
 
+            #but for now... just average everything that is there
+
+            #query = UtilitySummary.objects.filter(building=building, unit=unit, type=utility_type[0])
+            #print dir(self)
+            #print "checking type: %s" % utility_type[0]
+            query = self.utilitysummary_set.filter(type=utility_type[0])
+
+            updated = False
+            
+            #print "found: %s items" % len(query)
+            if len(query):
+                #print "HAVE DATA!"
+                count = 0
+                total = 0
+
+                #TODO:
+                #keep track of mins and maxes for assignment later
+                #not sure if we want to update the values yet...
+                #they were used to store data
+                #that didn't have anywhere else to go at the time
+                cur_max = 0
+                cur_min = 9999999
+                
+                for summary in query:
+                    if summary.cost:
+                        total += summary.cost
+                        count += 1
+                        if summary.cost > cur_max:
+                            cur_max = summary.cost
+                        if summary.cost < cur_min:
+                            cur_min = summary.cost
+
+                if count:
+                    average = total * 1.0 / count
+                else:
+                    average = 0
+
+                print "calculated average for %s to be: %s" % (utility_type[0], average)
+                #don't overwrite with 0?
+                if average:
+                    if utility_type[0] == 'gas':
+                        self.average_gas = average
+                        updated = True
+                    elif utility_type[0] == 'electricity':
+                        self.average_electricity = average
+                        updated = True
+                    elif utility_type[0] == 'water':
+                        self.average_water = average
+                        updated = True
+                    elif utility_type[0] == 'trash':
+                        self.average_trash = average
+                        updated = True
+                    #not yet tracked:
+                    ## elif utility_type[0] == 'sewage':
+                    ## elif utility_type[0] == 'recycling':
+                    ## elif utility_type[0] == 'other':
+                    ## elif utility_type[0] == 'oil':
+
+            if updated:
+                self.save()
+                
     def unit_address(self):
         """
         check if we have an address or number set
@@ -1515,6 +1623,10 @@ class Unit(models.Model, ModelDiffMixin):
 
         #now it's ok to save the unit details:
         self.save()
+
+        #may not need to do this every time,
+        #but certainly need to do it if any utility summaries have been updated
+        self.update_averages()
 
         #see if we have enough info now to make a score:
         self.update_energy_score()

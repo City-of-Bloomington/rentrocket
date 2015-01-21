@@ -1,7 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-from building.models import Building, Unit
+from building.models import Building, Unit, UTILITY_TYPES
+
 from source.models import Source
 from person.models import Person
 from city.models import City
@@ -12,30 +13,6 @@ from jsonfield import JSONField
 #water, sewer, storm water, gas, electricity, trash, recycling, compost, data, video, phone, data+video, video+phone, data+phone, data+video+phone, wifi
 
 #It would be nice to keep the nomenclature common across cities for analytical purposes.
-
-UTILITY_TYPES = (
-    ('electricity', 'Electricity'),
-    ('gas', 'Natural Gas'),
-    ('oil', 'Heating Oil'),    
-    ('water', 'Water'),
-    ('sewage', 'Sewage'),
-    ('trash', 'Trash'),
-    ('recycling', 'Recycling'),
-
-    ('other', 'Other'),
-
-    ## ('storm', 'Storm Water'),
-    ## ('compo', 'Compost'),
-    ## ('data', 'Data'),
-    ## ('video', 'Video'),
-    ## ('phone', 'Phone'),
-    ## ('dv', 'Data+Video'),
-    ## ('video', 'Video+Phone'),
-    ## ('dp', 'Data+Phone'),
-    ## ('dvp', 'Data+Video+Phone'),
-    ## ('wifi', 'Wifi'),
-
-    )
 
 
 class StatementUpload(models.Model):
@@ -177,6 +154,7 @@ class ServiceProvider(models.Model):
     although... DRY...
     """
     #gotta have this
+    #TODO: name unique?
     name = models.CharField(max_length=200)
     instructions = models.TextField(blank=True)
     website = models.TextField(blank=True)
@@ -232,11 +210,12 @@ class UtilitySummary(models.Model):
     #if every building has at least one unit, this is all that is needed.
     #probably easier to keep both though
     #unit_number = string (required=no)
+    #unit = models.ForeignKey(Unit, related_name="utilties")
     unit = models.ForeignKey(Unit)
 
     #if this was taken from a statement, associate it here
     #(but it could be added directly via a form... manually add bill, etc)
-    statement = models.ForeignKey(Statement, blank=True)
+    statement = models.ForeignKey(Statement, blank=True, null=True)
 
     #source of report.
     #could be: city data, utility data, or crowd-sourced public reporting
@@ -245,9 +224,21 @@ class UtilitySummary(models.Model):
     #would like to leave this null if it's from the web
     source = models.ForeignKey(Source, blank=True, null=True)
 
-    #Date of the reading event in YYYY-MM-DD format.
-    #reading_date = date (required=yes)
-    added = models.DateTimeField('date published', auto_now_add=True)
+    #One of the following categories (water, sewer, storm water, gas, electricity, trash, recycling, compost, data, video, phone, data+video, video+phone, data+phone, data+video+phone, wifi). It would be nice to keep the nomenclature common across cities for analytical purposes.
+    #reading_type = string (required=yes)
+    type = models.CharField(max_length=12, choices=UTILITY_TYPES, default="electricity")
+
+    #if vendor is in system, use provider attribute
+    #if it is specified as Other, use vendor
+    
+    #Vendor for utility service. Examples: City of Bloomington Utilities, Comcast, AT&T, Duke Energy, etc)
+    #vendor = string (required=no)
+    #going to use this as an "Other" field
+    #in the case when an existing ServiceProvider is not in the system
+    vendor = models.CharField(max_length=200, blank=True, null=True)
+
+    #may not be in system... not required in that case
+    provider = models.ForeignKey(ServiceProvider, blank=True, null=True)
 
     #Start of the utility service billing period in YYYY-MM-DD format
     #reading_period_start_date = date (required=no)
@@ -257,21 +248,11 @@ class UtilitySummary(models.Model):
     #to simplify data entry, will only require a start date...
     #can infer end date
     #reading_period_end_date = date (required=no)
-    end_date = models.DateTimeField(blank=True)
+    end_date = models.DateTimeField(blank=True, null=True)
 
-    #One of the following categories (water, sewer, storm water, gas, electricity, trash, recycling, compost, data, video, phone, data+video, video+phone, data+phone, data+video+phone, wifi). It would be nice to keep the nomenclature common across cities for analytical purposes.
-    #reading_type = string (required=yes)
-    type = models.CharField(max_length=12, choices=UTILITY_TYPES, default="electricity")
-
-    #Vendor for utility service. Examples: City of Bloomington Utilities, Comcast, AT&T, Duke Energy, etc)
-    #vendor = string (required=no)
-    #going to use this as an "Other" field
-    #in the case when an existing ServiceProvider is not in the system
-    vendor = models.CharField(max_length=200, blank=True)
-
-    #may not be in system... not required in that case
-    provider = models.ForeignKey(ServiceProvider, blank=True, null=True)
-
+    #Billing cost for utility consumption.
+    #reading_cost = currency (required=no)
+    cost = models.FloatField(blank=True, null=True)
 
     #Common units acceptable (gallon, liter, kW, lb, kg, etc)
     #reading_unit = string (required=yes)
@@ -282,11 +263,11 @@ class UtilitySummary(models.Model):
     #Numerical value of reading (may need to consider other options like (on, off) for acceptable values
     #reading_value = number (required=yes)
     #aka value
-    amount = models.FloatField(blank=True)
+    amount = models.FloatField(blank=True, null=True)
 
-    #Billing cost for utility consumption.
-    #reading_cost = currency (required=no)
-    cost = models.FloatField(blank=True)
 
+    #Date of the reading event in YYYY-MM-DD format.
+    #reading_date = date (required=yes)
+    added = models.DateTimeField('date published', auto_now_add=True)
 
 

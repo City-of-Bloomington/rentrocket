@@ -40,7 +40,7 @@
 
 
   <div class="rightcolumn">
-    <div class="block">
+    <div class="section">
       {% include "field_half.html" with field=meta.utility_type %}
       {% include "field_half.html" with field=meta.utility_provider %}
 
@@ -51,8 +51,11 @@
       {% include "field_half.html" with field=meta.start_date %}
       {% include "field_half.html" with field=meta.end_date %}
 
-      {{ meta.unit_of_measurement.as_hidden }}
-    
+
+      <div data-bind="visible: enable_units">
+      {% include "field_half.html" with field=meta.unit_of_measurement %}
+      </div>
+      
     </div>
 
   </div>
@@ -61,7 +64,7 @@
   <div class="section">
     <div class="threecolumn">Statement Month:</div>
     <div class="threecolumn">Cost ($):</div>
-    <div class="threecolumn">Specify Usage Amounts? <input type="checkbox"></div>
+    <div class="threecolumn">Specify Usage Amounts? <input type="checkbox" data-bind="checked: enable_units"></div>
     {{ utility.management_form }}
     {% for form in utility %}
     <div class="row">

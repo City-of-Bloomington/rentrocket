@@ -128,10 +128,10 @@ https://docs.djangoproject.com/en/1.5/ref/models/fields/#django.db.models.CharFi
     ./manage.py schemamigration source --auto
 
 
+    ./manage.py migrate utility
+
     ./manage.py migrate building
     ./manage.py migrate city
-
-    ./manage.py migrate utility
     ./manage.py migrate person
     ./manage.py migrate content
     ./manage.py migrate inspection

@@ -31,6 +31,16 @@ urlpatterns = patterns(
     url(r'(?P<city_tag>\w+)/(?P<bldg_tag>\w+)/upload/$', views.upload_simple),
     url(r'(?P<city_tag>\w+)/(?P<bldg_tag>\w+)/upload$', views.upload_simple),
 
+    url(r'(?P<city_tag>\w+)/(?P<bldg_tag>\w+)/(?P<unit_tag>[\w\%\#]+)/json/$', views.handle_json),
+    url(r'(?P<city_tag>\w+)/(?P<bldg_tag>\w+)/(?P<unit_tag>[\w\%\#]+)/json$', views.handle_json),
+    url(r'(?P<city_tag>\w+)/(?P<bldg_tag>\w+)/json/$', views.handle_json),
+    url(r'(?P<city_tag>\w+)/(?P<bldg_tag>\w+)/json$', views.handle_json),
+
+    url(r'(?P<city_tag>\w+)/(?P<bldg_tag>\w+)/(?P<unit_tag>[\w\%\#]+)/save/$', views.save_json),
+    url(r'(?P<city_tag>\w+)/(?P<bldg_tag>\w+)/(?P<unit_tag>[\w\%\#]+)/save$', views.save_json),
+    url(r'(?P<city_tag>\w+)/(?P<bldg_tag>\w+)/save/$', views.save_json),
+    url(r'(?P<city_tag>\w+)/(?P<bldg_tag>\w+)/save$', views.save_json),
+
     url(r'(?P<city_tag>\w+)/(?P<bldg_tag>\w+)/(?P<unit_tag>[\w\%\#]+)/$', views.details),
     url(r'(?P<city_tag>\w+)/(?P<bldg_tag>\w+)/(?P<unit_tag>[\w\%\#]+)$', views.details),
     url(r'(?P<city_tag>\w+)/(?P<bldg_tag>\w+)/$', views.details),

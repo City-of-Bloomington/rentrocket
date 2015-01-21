@@ -633,7 +633,7 @@ class UnitForm(ModelForm):
     class Meta:
         model = Unit
         fields = [ 'bedrooms', 'bathrooms', 'sqft', 'floor', 'max_occupants', 'rent', 'status',
-                   'average_electricity', 'average_gas', 'average_water', 'average_trash',
+                   #'average_electricity', 'average_gas', 'average_water', 'average_trash',
                    ]
 
 @login_required

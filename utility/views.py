@@ -1,5 +1,8 @@
 import json, re
 from datetime import datetime, timedelta
+#from datetime import timedelta
+
+from django.utils import timezone
 
 from google.appengine.ext import blobstore
 
@@ -17,7 +20,7 @@ from django.forms.formsets import formset_factory
 from building.models import Building, Unit, BuildingPerson, find_by_tags
 
 from city.models import City, to_tag, all_cities
-from utility.models import UTILITY_TYPES, StatementUpload, CityServiceProvider
+from utility.models import UTILITY_TYPES, StatementUpload, CityServiceProvider, UtilitySummary, ServiceProvider
 from rentrocket.helpers import get_client_ip
         
 #from filetransfers.api import prepare_upload
@@ -120,7 +123,10 @@ class ExtendedCitySelectForm(forms.Form):
 
 
 
-class UtilityForm(forms.Form):
+class MetaUtilityForm(forms.Form):
+    """
+    meta data for a utility form (only needed once)
+    """
     #energy_options = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple(choices=ENERGY_TYPES), choices=ENERGY_TYPES, required=False)
     utility_options = [ ('', '') ]
     utility_options.extend(UTILITY_TYPES)
@@ -130,7 +136,7 @@ class UtilityForm(forms.Form):
 
     #will update choices and initial on creation (once we know location)
     utility_provider = forms.ChoiceField(widget=forms.Select(attrs={'data-bind':"value: provider"}), choices=(), required=False)
-    company = forms.CharField(label="Company name", max_length=200,
+    company = forms.CharField(widget=forms.TextInput(attrs={'data-bind':'value: other_company_name'}), label="Company name", max_length=200,
                               required=False)
 
     start_date = forms.DateField(widget=forms.DateInput(attrs={'type':'date', 'data-bind':"value: start_date"}), required=False)
@@ -147,15 +153,16 @@ class UtilityForm(forms.Form):
     #reading_unit = string (required=yes)
     #aka increment
     #not going with "unit" to avoid confusion with a unit in a building
-    unit_of_measurement = forms.CharField(max_length=50, required=False)
+    unit_of_measurement = forms.CharField(widget=forms.TextInput(attrs={'data-bind':'visible: enable_units'}), max_length=50, required=False)
 
-
+    #widget=forms.CheckboxInput(attrs={'data-bind':"value: enable_units"}), 
     
-class UtilityOneForm(forms.Form):
+class UtilityOneRowForm(forms.Form):
     """
     form for sharing utility data manually
+    this represents one single row of data (one month's worth)
     """
-    #now = datetime.now()
+    #now = timezone.now()
     #years = range(now.year, now.year-30, -1)
     #print years
     
@@ -163,8 +170,7 @@ class UtilityOneForm(forms.Form):
     
     ## alt_type = forms.CharField(max_length=100, required=False)
 
-
-    start_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class':'utility-input', 'type':'date'}) )
+    start_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class':'utility-input', 'type':'date', 'readonly':'readonly'}) )
 
     #Billing cost for utility consumption.
     #reading_cost = currency (required=no)
@@ -176,9 +182,7 @@ class UtilityOneForm(forms.Form):
     #Numerical value of reading (may need to consider other options like (on, off) for acceptable values
     #reading_value = number (required=yes)
     #aka value
-    amount = forms.DecimalField(required=False, widget=forms.TextInput(attrs={'class':'utility-input'}) )
-
-
+    amount = forms.DecimalField(required=False, widget=forms.TextInput(attrs={'class':'utility-input', 'data-bind':'visible: enable_units'}) )
 
     #Last day of the utility service billing period in YYYY-MM-DD format
     #to simplify data entry, will only require a start date...
@@ -196,14 +200,173 @@ class UtilityOneForm(forms.Form):
     #vendor = string (required=no)
     #vendor = models.CharField(max_length=200, blank=True)
 
+#@csrf_exempt
+def handle_json(request, city_tag=None, bldg_tag=None, unit_tag=None):
+    (city, building, unit) = find_by_tags(city_tag, bldg_tag, unit_tag)
+
+    matches = {}
+    if request.is_ajax():
+        if request.method == 'POST':
+            ## print 'Raw Data: "%s"' % request.body
+            ## print dir(request.POST)
+            ## print request.POST.get('data')
+            data = json.loads(request.body)
+            #print data
+            #print building.id, unit.id
+            if data['utility']:
+                end = datetime.strptime(data['end'], '%Y-%m-%d')
+                end = timezone.make_aware(end, timezone.UTC())
+                start = datetime.strptime(data['start'], '%Y-%m-%d')
+                start = timezone.make_aware(start, timezone.UTC())
+                #print type(start)
+                #print start
+                
+                #can do lookup once we have the utility type
+                #everything else is needed for storing
+                main_query = UtilitySummary.objects.filter(building=building, unit=unit, type=data['utility'], start_date__lte=end, start_date__gte=start)
+                #main_query = UtilitySummary.objects.filter(building=building, unit=unit, type=data['utility'])
+                
+                #print "Matches: %s" % len(main_query)
+                for option in main_query.all():
+                    #print dir(option.start_date)
+                    #print type(option.start_date)
+                    #print option.start_date
+                    #print option.start_date.strftime('%Y-%m-01')
+                    date_key = option.start_date.strftime('%Y-%m-01')
+                    #date_key = option.start_date.strftime('%m/01/%Y')
+                    matches[date_key] = {  }
+                    if option.amount:
+                        matches[date_key]['amount'] = option.amount
+                    else:
+                        matches[date_key]['amount'] = ''
+
+                    if option.cost:
+                        matches[date_key]['cost'] = option.cost
+                    else:
+                        matches[date_key]['cost'] = ''
+
+                    #print option
+                #filter by dates
+                
+                #convert all results to json response
+
+    #http://stackoverflow.com/questions/2428092/creating-a-json-response-using-django-and-python
+    result = json.dumps(matches)
+    #print result
+    return HttpResponse(result, content_type="application/json")
+    #return HttpResponse("OK")
+
+def save_json(request, city_tag=None, bldg_tag=None, unit_tag=None):
+    """
+    very similar functionality to edit() POST processing...
+    TODO:
+    not sure if it's possible to combine
+    """
+    (city, building, unit) = find_by_tags(city_tag, bldg_tag, unit_tag)
+
+    if request.is_ajax():
+        if request.method == 'POST':
+            data = json.loads(request.body)
+            print data
+            print building.id, unit.id
+            if data['utility']:
+                other_company = None
+                provider = None
+                if data['company_name'] != "Other":
+
+                    provider_options = ServiceProvider.objects.filter(name=data['company_name'])
+                    if len(provider_options):
+                        provider = provider_options[0]
+                    else:
+                        print "error finding utility_provider: %s matches" % len(provider_options)                    
+                else:
+                    other_company = data['other_company']
+
+
+                unit_updated = False
+                
+                for key, value in data['values'].items():
+                    query = UtilitySummary.objects.filter(building=building, unit=unit, type=data['utility'], start_date=key)
+
+                    summary = None
+                    updated = False
+
+                    if len(query):
+
+                        summary = query[0]
+                        
+                        if summary.cost != value['cost']:
+                            summary.cost = value['cost']
+                            updated = True
+
+                        if summary.amount != value['amount']:
+                            summary.amount = value['amount']
+                            updated = True
+                            
+                        if provider:
+                            if summary.provider != provider:
+                                summary.provider = provider
+                                updated = True
+                        else:
+                            if summary.vendor != other_company:
+                                summary.vendor = other_company
+                                updated = True
+
+                    else:
+                        summary = UtilitySummary()
+                        summary.building = building
+                        summary.unit = unit
+                        summary.type = data['utility']
+
+                        #should set one of these
+                        if provider:
+                            summary.provider = provider
+                        else:
+                            summary.vendor = other_company
+                            
+                        summary.start_date = key
+                        summary.cost = value['cost']
+                        summary.amount = value['amount']
+                        updated = True
+                        #summary.save()
+                        #print "Saving new!!"
+
+                    if updated:
+                        #TODO:
+                        #consider logging any changes to prevent data loss
+                        summary.save()
+                        print "Changes saved"
+                        unit_updated = True
+
+
+                if unit_updated:
+                    unit.save_and_update(request)
+                    ## #only need to update this unit
+                    ## unit.update_averages()
+                    ## unit.update_energy_score()
+                    ## print "updated unit averages"
+                    ## #then update the whole building:
+                    ## building.update_utility_averages()
+                    ## print "updated building averages"
+                        
+
+    return HttpResponse("OK")
 
 
 def edit(request, city_tag=None, bldg_tag=None, unit_tag=None):
     (city, building, unit) = find_by_tags(city_tag, bldg_tag, unit_tag)
 
+    #we want a unit,
+    #even if it is the default / hidden one for a building with one unit
+    ## if not unit:
+    ##     for bldg_unit in building.units.all():
+    ##         if not bldg_unit.number:
+    ##             unit = bldg_unit
+    #moved this functionality to find_by_tags
+
     results = ''
-    #UtilityFormSet = formset_factory(UtilityOneForm, extra=12)
-    UtilityFormSet = formset_factory(UtilityOneForm, extra=0)
+    #UtilityFormSet = formset_factory(UtilityOneRowForm, extra=12)
+    UtilityFormSet = formset_factory(UtilityOneRowForm, extra=0)
 
     city_provider_options = CityServiceProvider.objects.filter(city=city)
     #send in a dictionary of providers for this city, grouped by utility type
@@ -220,94 +383,142 @@ def edit(request, city_tag=None, bldg_tag=None, unit_tag=None):
             provider_names.append( (cpo.provider.name, cpo.provider.name) )
 
     for ut in UTILITY_TYPES:
-        print ut
+        #print ut
         if not ut[0] in utility_providers.keys():
             utility_providers[ut[0]] = [ "Other" ]
 
     provider_names.append( ('Other', 'Other') )
             
-
-    #print utility_providers
-    #print provider_names
-    
     if request.method == 'POST':
-        meta = UtilityForm(request.POST, prefix='meta')
+        meta = MetaUtilityForm(request.POST, prefix='meta')
         #http://stackoverflow.com/questions/657607/setting-the-selected-value-on-a-django-forms-choicefield
         meta.fields['utility_provider'].choices = provider_names
         utility_set = UtilityFormSet(request.POST, prefix='months')
 
-        if meta.is_valid(): # All validation rules pass
-            #continue with custom validation
+        if meta.is_valid() and utility_set.is_valid(): # All validation rules pass
 
             errors = False
 
-            if request.FILES.has_key("file"):
-                #blob_key = request.FILES["blobkey"].blobstore_info._BlobInfo__key
+            #look up vendor / provider
+            #set those accordingly to assist with saving Summaries
 
-                blob_key = request.FILES['file'].blobstore_info.key()
+            #utility_provider = forms.ChoiceField(widget=forms.Select(attrs={'data-bind':"value: provider"}), choices=(), required=False)
+            #company = forms.CharField(label="Company name", max_length=200,
 
-                #print "BLOBKEY: ", blob_key
-                #obj.blobstore_key = blob_key
-                statement = StatementUpload()
-                statement.blob_key = blob_key
+            provider = None
+
+            #aka 'other field' aka 'company' (in form) aka 'vendor' in model
+            company_name = None
+            if meta.cleaned_data['utility_provider'] != "Other":
                 
-                statement.city_tag = to_tag(city_name + " " + state)
-
-                if bldg_tag:
-                    statement.building_address = bldg_tag
+                #this works, but seems like a roundabout way to get there
+                ## subset = city_provider_options.filter(provider__name=meta.cleaned_data['utility_provider'])
+                ## if len(subset):
+                ##     city_provider = subset[0]
+                ##     provider = city_provider.provider
+                ## else:
+                ##     print "error finding utility_provider: %s matches" % len(subset)
+                provider_options = ServiceProvider.objects.filter(name=meta.cleaned_data['utility_provider'])
+                if len(provider_options):
+                    provider = provider_options[0]
                 else:
-                    #if form.cleaned_data.has_key('email'):
-                    statement.building_address = form.cleaned_data['address']
-                statement.unit_number = unit_tag
+                    print "error finding utility_provider: %s matches" % len(provider_options)                    
+            else:
+                company_name = meta.cleaned_data['company']
 
-                statement.ip_address = get_client_ip(request)
-                #if form.cleaned_data.has_key('email'):
-                statement.person_email = form.cleaned_data['email']
+            ## print meta.cleaned_data['utility_provider']
+            ## print "COMPANY NAME: ", company_name
 
-                #print request.user
-                #print dir(request.user)
-                if request.user and not request.user.is_anonymous():
-                    statement.user = request.user
-                
-                #if form.cleaned_data.has_key('vendor'):
-                statement.vendor = form.cleaned_data['vendor']
+            
+            #keep query around for all rows
+            main_query = None
 
-                #if form.cleaned_data.has_key('utility_type'):
-                if form.cleaned_data['utility_type'] == 'other':
-                    #if form.cleaned_data.has_key('alt_type'):
-                    statement.type = form.cleaned_data['alt_type']
-                else:
-                    statement.type = form.cleaned_data['utility_type']
+            unit_updated = False
 
-                #if form.cleaned_data.has_key('move_in'):
-                statement.move_in = form.cleaned_data['move_in']
+            #go through each item in utility_set
+            for form in utility_set:
+                #see if there is data
+                if form.cleaned_data['cost'] or form.cleaned_data['amount']:
+                    #if we haven't done the initial lookup yet, do it now
+                    if not main_query:
+                        main_query = UtilitySummary.objects.filter(building=building, unit=unit, type=meta.cleaned_data['utility_type'])
+                        
+                    #look up the corresponding UtilitySummary model object
+                    subset = main_query.filter(start_date=form.cleaned_data['start_date'])
+                    updated = False
+                    #if len(subset):
+                    if subset.count():
+                        #already have something in the database...
+                        #look at that and update accordingly
+                        print "Updating existing entry:"
 
-                #if form.cleaned_data.has_key('energy_options'):
-                #statement.energy_options = form.cleaned_data['energy_options']
-                options = form.cleaned_data['energy_options']
-                if 'other' in options:
-                    options.remove('other')
-                    if form.cleaned_data['alt_energy']:
-                        options.append(form.cleaned_data['alt_energy'])
-                
-                statement.energy_sources = options
+                        #following equivalent?
+                        summary = subset[0]
+                        #summary = subset.first()
 
-                statement.unit_details = { 'bedrooms': form.cleaned_data['bedrooms'], 'sqft': form.cleaned_data['sqft'], }
-                                
-                statement.save()
-                #print statement
-                #form.save()
-                #return HttpResponseRedirect(view_url)
-                #return redirect(view_url, permanent=True)
-                #in chrome, the original post url stays in the address bar...
-                finished_url = reverse('utility.views.thank_you')
-                return redirect(finished_url)
+                        #if different, apply and save changes
+                        if summary.cost != form.cleaned_data['cost']:
+                            summary.cost = form.cleaned_data['cost']
+                            updated = True
+
+                        if summary.amount != form.cleaned_data['amount']:
+                            summary.amount = form.cleaned_data['amount']
+                            updated = True
+                            
+                        if provider:
+                            if summary.provider != provider:
+                                summary.provider = provider
+                                updated = True
+                        else:
+                            if summary.vendor != company_name:
+                                summary.vendor = company_name
+                                updated = True
+
+                    else:
+                        summary = UtilitySummary()
+                        summary.building = building
+                        summary.unit = unit
+                        summary.type = meta.cleaned_data['utility_type']
+
+                        #should set one of these
+                        if provider:
+                            summary.provider = provider
+                        else:
+                            summary.vendor = company_name
+                            
+                        summary.start_date = form.cleaned_data['start_date']
+                        summary.cost = form.cleaned_data['cost']
+                        summary.amount = form.cleaned_data['amount']
+                        #summary.save()
+                        #print "Saving new!!"
+                        updated = True
+
+                    if updated:
+                        #TODO:
+                        #consider logging any changes to prevent data loss
+                        summary.save()
+                        #print "Changes saved"
+                        unit_updated = True
+
+            if unit_updated:
+                #this takes care of updating corresponding averages and scores
+                unit.save_and_update(request)
+
+                                                                    
+            #TODO:
+            #would be better to redirect back to the building detail page
+            #and show a thank you message
+            #that message should include options to share, tweet, etc
+            
+            #in chrome, the original post url stays in the address bar...
+            finished_url = reverse('utility.views.thank_you')
+            return redirect(finished_url)
 
     else:
-        #form = ShareForm()
-        
-        now = datetime.now()
+        #form = ShareForm()        
+        now = timezone.now()
         months = previous_months()
+        months.reverse()
         #for i in range(1,13):
         #    print i
         initial = []
@@ -315,7 +526,7 @@ def edit(request, city_tag=None, bldg_tag=None, unit_tag=None):
             initial.append( {'start_date': month} )
         utility_set = UtilityFormSet(initial=initial, prefix='months')
 
-        meta = UtilityForm(initial={'start_date':months[-1], 'end_date':months[0]}, prefix='meta')
+        meta = MetaUtilityForm(initial={'start_date':months[-1], 'end_date':months[0]}, prefix='meta')
         meta.fields['utility_provider'].choices = provider_names
         #meta.start_date = months[-1]
         #meta.end_date = months[0]
@@ -344,9 +555,11 @@ def previous_months(total=12):
     """
     return a list of datetimes that span the total number of previous months
     """
-    cur_month = datetime.utcnow().replace(day=1)
+    #cur_month = datetime.utcnow().replace(day=1)
+    cur_month = timezone.now().replace(day=1)
     months = [ cur_month ]
-    for i in range(total):
+    #subtract one since we already added the cur_month above:
+    for i in range(total-1):
         prev_month = cur_month - timedelta(days=1)
         prev_month = prev_month.replace(day=1)
         months.append(prev_month)
@@ -371,12 +584,9 @@ def details(request, city_tag, bldg_tag, unit_tag=''):
 
 
 
-## class UtilityForm(forms.Form):
-##     utility_type = forms.ChoiceField(choices=UTILITY_TYPES)
-
 
 class UploadForm(forms.Form):
-    now = datetime.now()
+    now = timezone.now()
     years = range(now.year, now.year-30, -1)
     #print years
     
@@ -514,8 +724,10 @@ class UploadSimpleForm(forms.Form):
 
 #TODO:
 #still need to clean this up!
-def upload_simple(request, state=None, city_name=None, bldg_tag=None, unit_tag=None):
+def upload_simple(request, city_tag=None, bldg_tag=None, unit_tag=None):
     results = ''
+
+    (city, building, unit) = find_by_tags(city_tag, bldg_tag, unit_tag)
     
     if request.method == 'POST':
         form = UploadSimpleForm(request.POST, request.FILES)
@@ -536,7 +748,8 @@ def upload_simple(request, state=None, city_name=None, bldg_tag=None, unit_tag=N
                 statement = StatementUpload()
                 statement.blob_key = blob_key
                 
-                statement.city_tag = to_tag(city_name + " " + state)
+                #statement.city_tag = to_tag(city_name + " " + state)
+                statement.city_tag = city_tag
 
                 if bldg_tag:
                     statement.building_address = bldg_tag
@@ -614,8 +827,8 @@ def upload_simple(request, state=None, city_name=None, bldg_tag=None, unit_tag=N
     #print form['energy_options']
 
     context = {
-        'city': city_name,
-        'state': state,
+        'city': city.name,
+        'state': city.state,
         'bldg': bldg_tag,
         'form': form,
         'results': results,
@@ -666,7 +879,7 @@ def upload_bloomington(request, bldg_tag=None):
     city_name = "Bloomington"
     
     if request.method == 'POST': # If the form has been submitted...
-        form = UtilityForm(request.POST) # A form bound to the POST data
+        form = BloomingtonUtilityForm(request.POST) # A form bound to the POST data
         if form.is_valid(): # All validation rules pass
             # Process the data in form.cleaned_data
             # ...
@@ -674,7 +887,7 @@ def upload_bloomington(request, bldg_tag=None):
             results += str(form.cleaned_data)
             #return HttpResponseRedirect('/thanks/') # Redirect after POST
     else:
-        form = UtilityForm() # An unbound form
+        form = BloomingtonUtilityForm() # An unbound form
 
     context = {
         'form': form,
@@ -712,7 +925,7 @@ def secret(request):
 ##     results = ''
 
 ##     if request.method == 'POST': # If the form has been submitted...
-##         form = UtilityForm(request.POST) # A form bound to the POST data
+##         form = MetaUtilityForm(request.POST) # A form bound to the POST data
 ##         if form.is_valid(): # All validation rules pass
 ##             # Process the data in form.cleaned_data
 ##             # ...
@@ -720,7 +933,7 @@ def secret(request):
 ##             results += str(form.cleaned_data)
 ##             #return HttpResponseRedirect('/thanks/') # Redirect after POST
 ##     else:
-##         form = UtilityForm() # An unbound form
+##         form = MetaUtilityForm() # An unbound form
 
 ##     context = {
 ##         'form': form,
