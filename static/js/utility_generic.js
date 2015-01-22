@@ -80,7 +80,9 @@ function appViewModel() {
     },
     write: function (value) {
       //save any changes first
-      self.save_data();
+      if ( ! uploading ) {
+        self.save_data();
+      }
 
       self._utility(value);
       //if we know a provider for this utility, set it automatically
@@ -120,7 +122,9 @@ function appViewModel() {
     },
     write: function (value) {
       //save any changes (if possible) first
-      self.save_data();
+      if ( ! uploading ) {
+        self.save_data();
+      }
       
       self._provider(value);
       //verify utility is set correctly:
@@ -167,7 +171,7 @@ function appViewModel() {
         self.other_company(false);
       }
 
-      console.log(self.other_company());
+      //console.log(self.other_company());
         
     },
     owner: self
@@ -235,27 +239,33 @@ function appViewModel() {
 
   
   self.update_data = function() {
-    //this could be called by update rows
-    //or after a change in utility_type or utility_provider
-
-    var url = self.url.replace(/edit?/g, "json");
-    //console.log(url);
-
-    $.ajax({
-      url: url,
-      type: 'POST',
-      contentType: 'application/json; charset=utf-8',
-      data: JSON.stringify({ 'utility': self.utility(),
-              'other_company': self.other_company(),
-              'company_name': self.company_name(),
-              'start': self.start_date(),
-              'end': self.end_date()
-                           }),
-      dataType: 'text',
-      success: self.update_results
-    });
+    //we only need to do this on the manual edit form
+    //but using the same js on the upload form
+    //to handle automatically selecting utility type / provider
+    //this check prevents update data for uploading page
+    if ( ! uploading ) {
+      //this could be called by update rows
+      //or after a change in utility_type or utility_provider
+      
+      var url = self.url.replace(/edit?/g, "json");
+      //console.log(url);
+      
+      $.ajax({
+        url: url,
+        type: 'POST',
+        contentType: 'application/json; charset=utf-8',
+        data: JSON.stringify({ 'utility': self.utility(),
+                               'other_company': self.other_company(),
+                               'company_name': self.company_name(),
+                               'start': self.start_date(),
+                               'end': self.end_date()
+                             }),
+        dataType: 'text',
+        success: self.update_results
+      });
+    }
   };
-
+    
   self.update_results = function(result) {
     //console.log(result);
     result = JSON.parse(result);

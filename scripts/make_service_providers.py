@@ -12,7 +12,8 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "rentrocket.settings")
 import csv
 
 from city.models import City, search_city, find_by_city_state
-from utility.models import ServiceProvider, ServiceUtility, CityServiceProvider, UTILITY_TYPES
+from utility.models import ServiceProvider, ServiceUtility, CityServiceProvider
+from building.models import UTILITY_TYPES
 
 def unicode_csv_reader(utf8_data, dialect=csv.excel, **kwargs):
     csv_reader = csv.reader(utf8_data, dialect=dialect, **kwargs)

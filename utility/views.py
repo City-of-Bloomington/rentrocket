@@ -17,10 +17,10 @@ from django.forms import extras
 from django.forms import widgets
 from django.forms.formsets import formset_factory
 
-from building.models import Building, Unit, BuildingPerson, find_by_tags
+from building.models import Building, Unit, BuildingPerson, find_by_tags, UTILITY_TYPES
 
 from city.models import City, to_tag, all_cities
-from utility.models import UTILITY_TYPES, StatementUpload, CityServiceProvider, UtilitySummary, ServiceProvider
+from utility.models import StatementUpload, Statement, CityServiceProvider, UtilitySummary, ServiceProvider
 from rentrocket.helpers import get_client_ip
         
 #from filetransfers.api import prepare_upload
@@ -352,22 +352,11 @@ def save_json(request, city_tag=None, bldg_tag=None, unit_tag=None):
 
     return HttpResponse("OK")
 
-
-def edit(request, city_tag=None, bldg_tag=None, unit_tag=None):
-    (city, building, unit) = find_by_tags(city_tag, bldg_tag, unit_tag)
-
-    #we want a unit,
-    #even if it is the default / hidden one for a building with one unit
-    ## if not unit:
-    ##     for bldg_unit in building.units.all():
-    ##         if not bldg_unit.number:
-    ##             unit = bldg_unit
-    #moved this functionality to find_by_tags
-
-    results = ''
-    #UtilityFormSet = formset_factory(UtilityOneRowForm, extra=12)
-    UtilityFormSet = formset_factory(UtilityOneRowForm, extra=0)
-
+def make_provider_names(city):
+    """
+    helper to generate a list of tuples for provider_names
+    for use in MetaUtilityForm
+    """
     city_provider_options = CityServiceProvider.objects.filter(city=city)
     #send in a dictionary of providers for this city, grouped by utility type
     #utility_providers = { '': ['Other'] }
@@ -388,7 +377,59 @@ def edit(request, city_tag=None, bldg_tag=None, unit_tag=None):
             utility_providers[ut[0]] = [ "Other" ]
 
     provider_names.append( ('Other', 'Other') )
-            
+
+    return (provider_names, utility_providers)
+
+def parse_form_providers(form):
+    #look up vendor / provider
+    #set those accordingly to assist with saving Summaries
+
+    #utility_provider = forms.ChoiceField(widget=forms.Select(attrs={'data-bind':"value: provider"}), choices=(), required=False)
+    #company = forms.CharField(label="Company name", max_length=200,
+
+    provider = None
+
+    #aka 'other field' aka 'company' (in form) aka 'vendor' in model
+    company_name = None
+    if form.cleaned_data['utility_provider'] != "Other":
+
+        #this works, but seems like a roundabout way to get there
+        ## subset = city_provider_options.filter(provider__name=form.cleaned_data['utility_provider'])
+        ## if len(subset):
+        ##     city_provider = subset[0]
+        ##     provider = city_provider.provider
+        ## else:
+        ##     print "error finding utility_provider: %s matches" % len(subset)
+        provider_options = ServiceProvider.objects.filter(name=form.cleaned_data['utility_provider'])
+        if len(provider_options):
+            provider = provider_options[0]
+        else:
+            print "error finding utility_provider: %s matches" % len(provider_options)                    
+    else:
+        company_name = form.cleaned_data['company']
+
+    ## print form.cleaned_data['utility_provider']
+    ## print "COMPANY NAME: ", company_name
+
+    return (provider, company_name)
+
+def edit(request, city_tag=None, bldg_tag=None, unit_tag=None):
+    (city, building, unit) = find_by_tags(city_tag, bldg_tag, unit_tag)
+
+    #we want a unit,
+    #even if it is the default / hidden one for a building with one unit
+    ## if not unit:
+    ##     for bldg_unit in building.units.all():
+    ##         if not bldg_unit.number:
+    ##             unit = bldg_unit
+    #moved this functionality to find_by_tags
+
+    results = ''
+    #UtilityFormSet = formset_factory(UtilityOneRowForm, extra=12)
+    UtilityFormSet = formset_factory(UtilityOneRowForm, extra=0)
+
+    (provider_names, utility_providers) = make_provider_names(city)
+    
     if request.method == 'POST':
         meta = MetaUtilityForm(request.POST, prefix='meta')
         #http://stackoverflow.com/questions/657607/setting-the-selected-value-on-a-django-forms-choicefield
@@ -399,36 +440,7 @@ def edit(request, city_tag=None, bldg_tag=None, unit_tag=None):
 
             errors = False
 
-            #look up vendor / provider
-            #set those accordingly to assist with saving Summaries
-
-            #utility_provider = forms.ChoiceField(widget=forms.Select(attrs={'data-bind':"value: provider"}), choices=(), required=False)
-            #company = forms.CharField(label="Company name", max_length=200,
-
-            provider = None
-
-            #aka 'other field' aka 'company' (in form) aka 'vendor' in model
-            company_name = None
-            if meta.cleaned_data['utility_provider'] != "Other":
-                
-                #this works, but seems like a roundabout way to get there
-                ## subset = city_provider_options.filter(provider__name=meta.cleaned_data['utility_provider'])
-                ## if len(subset):
-                ##     city_provider = subset[0]
-                ##     provider = city_provider.provider
-                ## else:
-                ##     print "error finding utility_provider: %s matches" % len(subset)
-                provider_options = ServiceProvider.objects.filter(name=meta.cleaned_data['utility_provider'])
-                if len(provider_options):
-                    provider = provider_options[0]
-                else:
-                    print "error finding utility_provider: %s matches" % len(provider_options)                    
-            else:
-                company_name = meta.cleaned_data['company']
-
-            ## print meta.cleaned_data['utility_provider']
-            ## print "COMPANY NAME: ", company_name
-
+            (provider, company_name) = parse_form_providers(meta)
             
             #keep query around for all rows
             main_query = None
@@ -715,82 +727,80 @@ def upload(request, state=None, city_name=None, bldg_tag=None, unit_tag=None):
 
 
 class UploadSimpleForm(forms.Form):
-    utility_type = forms.ChoiceField(choices=UTILITY_TYPES, widget=forms.Select(attrs={'data-bind':"value: utility"}))
-    alt_type = forms.CharField(max_length=100, required=False)
+    #these are taken from MetaUtilityForm,
+    #but it seems simpler to make this custom
+    utility_options = [ ('', '') ]
+    utility_options.extend(UTILITY_TYPES)
+    utility_type = forms.ChoiceField(choices=utility_options, widget=forms.Select(attrs={'data-bind':"value: utility"}), required=True)
+
+    #will update choices and initial on creation (once we know location)
+    utility_provider = forms.ChoiceField(widget=forms.Select(attrs={'data-bind':"value: provider"}), choices=(), required=False)
+
+    #vendor = forms.CharField(max_length=200, required=False)
+    company = forms.CharField(widget=forms.TextInput(attrs={'data-bind':'value: other_company_name'}), label="Company name", max_length=200, required=False)
+
+    ## utility_type = forms.ChoiceField(choices=UTILITY_TYPES, widget=forms.Select(attrs={'data-bind':"value: utility"}))
+    ## alt_type = forms.CharField(max_length=100, required=False)
     
     file = forms.FileField()
-    vendor = forms.CharField(max_length=200, required=False)
 
 
-#TODO:
-#still need to clean this up!
 def upload_simple(request, city_tag=None, bldg_tag=None, unit_tag=None):
-    results = ''
-
     (city, building, unit) = find_by_tags(city_tag, bldg_tag, unit_tag)
+
+    (provider_names, utility_providers) = make_provider_names(city)
     
     if request.method == 'POST':
+        print "form posted"
         form = UploadSimpleForm(request.POST, request.FILES)
+        form.fields['utility_provider'].choices = provider_names
 
-        if form.is_valid(): # All validation rules pass
-            #need to do a specialized validation here..
-            #alt_city and alt_state only required if city == other
+        #print form.fields['file'].data
+        #print form.fields['file'].cleaned_data
+        #print form.fields['file'].cleaned_data
+
+        #if meta.is_valid() and form.is_valid(): 
+        if form.is_valid(): 
 
             errors = False
 
             if request.FILES.has_key("file"):
                 #blob_key = request.FILES["blobkey"].blobstore_info._BlobInfo__key
-
                 blob_key = request.FILES['file'].blobstore_info.key()
 
                 #print "BLOBKEY: ", blob_key
                 #obj.blobstore_key = blob_key
-                statement = StatementUpload()
+                statement = Statement()
                 statement.blob_key = blob_key
-                
-                #statement.city_tag = to_tag(city_name + " " + state)
-                statement.city_tag = city_tag
 
-                if bldg_tag:
-                    statement.building_address = bldg_tag
-                else:
-                    #if form.cleaned_data.has_key('email'):
-                    statement.building_address = form.cleaned_data['address']
-                statement.unit_number = unit_tag
+                statement.original_filename = request.FILES['file'].name
+                
+                statement.unit = unit
 
                 statement.ip_address = get_client_ip(request)
-                #if form.cleaned_data.has_key('email'):
-                statement.person_email = form.cleaned_data['email']
 
                 #print request.user
                 #print dir(request.user)
                 if request.user and not request.user.is_anonymous():
                     statement.user = request.user
                 
+                (provider, company_name) = parse_form_providers(form)
                 #if form.cleaned_data.has_key('vendor'):
-                statement.vendor = form.cleaned_data['vendor']
+                #statement.vendor = form.cleaned_data['vendor']
+
+                #should set one of these
+                if provider:
+                    statement.provider = provider
+                else:
+                    statement.vendor = company_name
 
                 #if form.cleaned_data.has_key('utility_type'):
-                if form.cleaned_data['utility_type'] == 'other':
+                #if meta.cleaned_data['utility_type'] == 'other':
+                #if form.cleaned_data['utility_type'] == 'other':
                     #if form.cleaned_data.has_key('alt_type'):
-                    statement.type = form.cleaned_data['alt_type']
-                else:
-                    statement.type = form.cleaned_data['utility_type']
-
-                #if form.cleaned_data.has_key('move_in'):
-                statement.move_in = form.cleaned_data['move_in']
-
-                #if form.cleaned_data.has_key('energy_options'):
-                #statement.energy_options = form.cleaned_data['energy_options']
-                options = form.cleaned_data['energy_options']
-                if 'other' in options:
-                    options.remove('other')
-                    if form.cleaned_data['alt_energy']:
-                        options.append(form.cleaned_data['alt_energy'])
-                
-                statement.energy_sources = options
-
-                statement.unit_details = { 'bedrooms': form.cleaned_data['bedrooms'], 'sqft': form.cleaned_data['sqft'], }
+                    #statement.type = form.cleaned_data['alt_type']
+                #else:
+                statement.type = form.cleaned_data['utility_type']
                                 
                 statement.save()
                 #print statement
@@ -801,18 +811,27 @@ def upload_simple(request, city_tag=None, bldg_tag=None, unit_tag=None):
                 finished_url = reverse('utility.views.thank_you')
                 return redirect(finished_url)
 
-            ## else:
-            ##     print "NO BLOBKEY!!!", str(request)
-            ##     print dir(request)
-            ##     print request.FILES
-            ##     if request.FILES.has_key('file'):
-            ##         print request.FILES['file']
-            ##         print dir(request.FILES['file'])
-            ##         print request.FILES['file'].blobstore_info.key()
-            ##     print 
+            else:
+                print "NO BLOBKEY!!!", str(request)
+                print dir(request)
+                print request.FILES
+                if request.FILES.has_key('file'):
+                    print request.FILES['file']
+                    print dir(request.FILES['file'])
+                    print request.FILES['file'].blobstore_info.key()
+                print 
+
+        else:
+            print dir(form)
+            print form.errors
+            print "form did not validate"
 
     else:
-        form = UploadForm()
+        #form = UploadSimpleForm()
+        #meta = MetaUtilityForm(prefix='meta')
+
+        form = UploadSimpleForm()
+        form.fields['utility_provider'].choices = provider_names
         
     #view_url = reverse('utility.views.upload_handler')
     view_url = request.path
@@ -820,22 +839,17 @@ def upload_simple(request, city_tag=None, bldg_tag=None, unit_tag=None):
     upload_url = create_upload_url(view_url)
     upload_data = {}
     
-    #print form['utility_type'].errors
-    #print form['utility_type'].label
-    #print form['utility_type']
-    #print dir(form['energy_options'])
-    #print form['energy_options']
-
     context = {
         'city': city.name,
-        'state': city.state,
-        'bldg': bldg_tag,
-        'form': form,
-        'results': results,
-        'upload_url': upload_url, 
+        'bldg': building,
+        'unit': unit,
+        #'form': form,
+        'meta': form,
+        'upload_url': upload_url,
+        'providers': json.dumps(utility_providers),        
         }
 
-    return render(request, 'upload_generic.html', context )
+    return render(request, 'upload_simple.html', context )
 
 
 
@@ -914,6 +928,14 @@ def secret(request):
     if request.user.is_staff:
         upload_q = StatementUpload.objects.all()    
         return render(request, 'secret.html', {"upload_q":upload_q})
+    else:
+        raise Http404
+        #return render(request, '404.html', {})
+
+def secret2(request):
+    if request.user.is_staff:
+        upload_q = Statement.objects.all()    
+        return render(request, 'secret2.html', {"upload_q":upload_q})
     else:
         raise Http404
         #return render(request, '404.html', {})

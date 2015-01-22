@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}Rent Rocket: Share Utility Data{% endblock %}
+{% block title %}Rent Rocket: Upload Utility Data{% endblock %}
 
 {% block content %}
 
@@ -8,12 +8,12 @@
 
 <p>{{ results|safe }}</p>
 
-<form action="{{ upload_url }}" method="POST">
-    {% csrf_token %}
+<form enctype="multipart/form-data" method="post" action="{{ upload_url }}">
+  {% csrf_token %}
 
   {{ form.non_field_errors }}
 
-  <h3>Share Utility Data </h3>
+  <h3>Upload Utility Data </h3>
       
   <div class="leftcolumn">
     
@@ -28,11 +28,11 @@
     <div>
       
       {% if unit.tag %}
-      <a href="{% url 'utility.views.upload_simple' city_tag=bldg.city.tag bldg_tag=bldg.tag unit_tag=unit.tag %}">
+      <a href="{% url 'utility.views.edit' city_tag=bldg.city.tag bldg_tag=bldg.tag unit_tag=unit.tag %}">
       {% else %}
-      <a href="{% url 'utility.views.upload_simple' city_tag=bldg.city.tag bldg_tag=bldg.tag %}">
+      <a href="{% url 'utility.views.edit' city_tag=bldg.city.tag bldg_tag=bldg.tag %}">
       {% endif %}
-      Prefer to upload a summary from your utility?</a>
+      Prefer to manually add utility data from a bill?</a>
         
     </div>
       
@@ -48,34 +48,14 @@
       {% include "field_half.html" with field=meta.company %}
       </div>
       
-      {% include "field_half.html" with field=meta.start_date %}
-      {% include "field_half.html" with field=meta.end_date %}
-
-
-      <div data-bind="visible: enable_units">
-      {% include "field_half.html" with field=meta.unit_of_measurement %}
+      {% include "field_half.html" with field=meta.file %}
+      
+      <div class="centered">
+        <input type="submit" value="Upload" />
       </div>
       
     </div>
 
-  </div>
-  <div class="centered"></div>
-    
-  <div class="section">
-    <div class="threecolumn">Statement Month:</div>
-    <div class="threecolumn">Cost ($):</div>
-    <div class="threecolumn">Specify Usage Amounts? <input type="checkbox" data-bind="checked: enable_units"></div>
-    {{ utility.management_form }}
-    {% for form in utility %}
-    <div class="row">
-      {% include "utility_row.html" with form=form %}
-    </div>
-    {% endfor %}
-    
-  </div>
-  
-  <div class="centered">
-    <input type="submit" value="Save" />
   </div>
   
 </form>
@@ -96,7 +76,7 @@
 
 <script type="text/javascript">
 var utility_providers = {{ providers|safe }};
-var uploading = false;
+var uploading = true;
 </script>
 
 <script type="text/javascript" src="/static/js/utility_generic.js"></script>
