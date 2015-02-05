@@ -1,10 +1,10 @@
-{% extends "layout.html" %}
+{% extends "layout-padded.html" %}
 
 {% load i18n %}
 
 {% block title %}RentRocket.org: Thank you!{% endblock %}
 
-{% block content %}
+{% block subcontent %}
 
 <div class="page-background">
 </div>
@@ -15,19 +15,25 @@
   <div id="content-box">
     <h1>Thank You!</h1>
     <p>We appreciate your help.</p>
-    <p>If you would like to get future updates and notification when the site launches, please take a second to create an account:</p>
-      
-    {% include "account/signup-form.html" with form=form %}
 
-    <h3>Want to help further?</h3>
-    <p><a href="{{ next }}">Share more info on this address</a></p>
-    <p><a href="/simple">Share info on a new address</a></p>
-    <p>Encourage friends to help:</p>
+    <p>Please encourage friends to share data:</p>
     <p>
       <span class="social-widget"><a href="https://twitter.com/share" class="twitter-share-button" data-url="http://rentrocket.org/simple" data-text="Share energy data for your apartment.">Tweet</a></span>
       <span class="social-widget"><span class="fb-like" data-href="http://rentrocket.org/simple" data-layout="button_count" data-action="like" data-show-faces="false" data-share="false"></span></span>
     </p>
+
+    <h3>Want to help further?</h3>
+    
+    {% if next %}
+    <p><a href="{{ next }}">Share more info on this address</a></p>
+    {% endif %}
+    <p><a href="{% url 'share' %}">Share info on a new address</a></p>
+
+    <p>If you would like to get notifications on future updates, please create an account:</p>
       
+    {% include "account/signup-form.html" with form=form %}
+
+    
   </div>
   </div>
     

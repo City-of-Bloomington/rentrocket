@@ -6,6 +6,13 @@ from geopy.compat import urlencode
 from geopy.geocoders.base import Geocoder, DEFAULT_FORMAT_STRING, \
     DEFAULT_TIMEOUT, DEFAULT_SCHEME
 from geopy.location import Location
+from geopy.exc import (
+    GeocoderAuthenticationFailure,
+    GeocoderQuotaExceeded,
+    GeocoderInsufficientPrivileges,
+    GeocoderUnavailable,
+    GeocoderServiceError,
+)
 from geopy.util import logger, join_filter
 
 
@@ -65,7 +72,10 @@ class Bing(Geocoder):
             exactly_one=True,
             user_location=None,
             timeout=None,
-            ):  # pylint: disable=W0221
+            culture=None,
+            include_neighborhood=None,
+            include_country_code=False
+        ):  # pylint: disable=W0221
         """
         Geocode an address.
 
@@ -87,6 +97,22 @@ class Bing(Geocoder):
             only, the value set during the geocoder's initialization.
 
             .. versionadded:: 0.97
+
+        :param string culture: Affects the language of the response,
+            must be a two-letter country code.
+
+            .. versionadded:: 1.4.0
+
+        :param boolean include_neighborhood: Sets whether to include the
+            neighborhood field in the response.
+
+            .. versionadded:: 1.4.0
+
+        :param boolean include_country_code: Sets whether to include the
+            two-letter ISO code of the country in the response (field name
+            'countryRegionIso2').
+
+            .. versionadded:: 1.4.0
         """
         params = {
             'query': self.format_string % query,
@@ -98,6 +124,12 @@ class Bing(Geocoder):
             )
         if exactly_one is True:
             params['maxResults'] = 1
+        if culture:
+            params['culture'] = culture
+        if include_neighborhood is not None:
+            params['includeNeighborhood'] = include_neighborhood
+        if include_country_code:
+            params['include'] = 'ciso2'  # the only acceptable value
 
         url = "?".join((self.api, urlencode(params)))
         logger.debug("%s.geocode: %s", self.__class__.__name__, url)
@@ -140,6 +172,20 @@ class Bing(Geocoder):
         """
         Parse a location name, latitude, and longitude from an JSON response.
         """
+        status_code = doc.get("statusCode", 200)
+        if status_code != 200:
+            err = doc.get("errorDetails", "")
+            if status_code == 401:
+                raise GeocoderAuthenticationFailure(err)
+            elif status_code == 403:
+                raise GeocoderInsufficientPrivileges(err)
+            elif status_code == 429:
+                raise GeocoderQuotaExceeded(err)
+            elif status_code == 503:
+                raise GeocoderUnavailable(err)
+            else:
+                raise GeocoderServiceError(err)
+
         resources = doc['resourceSets'][0]['resources']
         if resources is None or not len(resources): # pragma: no cover
             return None

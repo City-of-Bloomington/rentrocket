@@ -229,7 +229,7 @@ class ChooseUnitForm(forms.Form):
 
 class NewBuildingForm(forms.Form):
     #address = forms.CharField(max_length=200, required=True, widget=forms.TextInput(attrs={ 'placeholder': 'Street + Apt#, City, State, Zip', 'class': 'typeahead', 'size': '40' }))
-    address = forms.CharField(max_length=200, required=True, widget=forms.TextInput(attrs={ 'placeholder': 'Street + Apt#, City, State, Zip', 'class': 'typeahead'}))
+    address = forms.CharField(max_length=200, required=True, widget=forms.TextInput(attrs={ 'placeholder': 'Street + Apt#, City, State, Zip', 'class': 'typeahead form-control', 'type':'address'}))
 
     #these are handled by autocomplete now
     #search_options_visible = False

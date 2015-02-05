@@ -31,11 +31,53 @@ from allauth.account.forms import SignupForm
 
 def about(request):
     context = {}
-    return render(request, 'about.html', context )
+    return render(request, 'about.html', context)
+
+def crowdsourcing(request):
+    context = {}
+    return render(request, 'crowdsourcing.html', context)
+
+def partners(request):
+    context = {}
+    return render(request, 'partners.html', context)
+
+def faq(request):
+    context = {}
+    return render(request, 'faq.html', context)
+
+def terms(request):
+    context = {}
+    return render(request, 'terms.html', context)
+
+def privacy(request):
+    context = {}
+    return render(request, 'privacy.html', context)
+
+def contact(request):
+    context = {}
+    return render(request, 'contact.html', context)
 
 def upload_form(request):
     context = {}
     return render(request, 'upload_form.html', context )
+
+def thankyou(request):
+    """
+    Just sayin' thanks!
+    """
+    results = ''
+
+    dest = request.GET.get('next', '')
+    
+    form = SignupForm
+
+    context = { 
+        'user': request.user,
+        'form': form,
+        'next': dest,
+        }
+    
+    return render(request, 'thankyou.html', context )
 
 
 DWELLING_CHOICES = (
@@ -54,7 +96,7 @@ BEDROOM_CHOICES = (
     ('6', '6+'),
     )
 
-class SimpleForm(forms.Form):
+class ShareForm(forms.Form):
     #now = datetime.now()
     #years = range(now.year, now.year-30, -1)
     #print years
@@ -71,9 +113,9 @@ class SimpleForm(forms.Form):
     gas = forms.FloatField(label='Natural Gas', widget=forms.TextInput(attrs={'size': '9'}), required=False)
 
 
-def simple_data(request):
+def share_data(request):
     """
-    this is the controller for the simple form found on the front page
+    this is the controller for the share form found on the front page
     bare minimum needed for data collection
     """
     results = ''
@@ -87,7 +129,7 @@ def simple_data(request):
     bldgform = None
     if request.method == 'POST':
         #make this either way
-        simpleform = SimpleForm(request.POST, prefix='simple')
+        shareform = ShareForm(request.POST, prefix='share')
 
         #make and test the bldgform (and unitform, if necessary)
         (result, bldgform, unitform) = validate_building_and_unit(request)
@@ -103,7 +145,8 @@ def simple_data(request):
                 #http://stackoverflow.com/questions/188886/inject-errors-into-already-validated-form
                 #although once this is on django 1.7:
                 #https://docs.djangoproject.com/en/dev/ref/forms/api/#django.forms.Form.add_error
-                for error in result.errors:                    
+                for error in result.errors:
+                    print "Adding error: %s" % error
                     errors.append(error)
 
             #should already be errors if not result.building, 
@@ -121,19 +164,19 @@ def simple_data(request):
                     show_calculator = True
                     print "SHOWING CALCULATOR!!"
 
-                if simpleform.is_valid(): # All validation rules pass
+                if shareform.is_valid(): # All validation rules pass
 
                     errors = False
 
                     #now check if rental / rent combo is complete...
                     #custome validation check
-                    if simpleform.cleaned_data['property_type'] == 'rental':
+                    if shareform.cleaned_data['property_type'] == 'rental':
                         result.unit.status = 'rented'
-                        if not simpleform.cleaned_data['rent']:
-                            simpleform.errors['rent'] = "Please specify the rent."
+                        if not shareform.cleaned_data['rent']:
+                            shareform.errors['rent'] = "Please specify the rent."
                             errors = True
                         else:
-                            result.unit.rent = simpleform.cleaned_data['rent']
+                            result.unit.rent = shareform.cleaned_data['rent']
                     else:
                         result.unit.status = 'owner-occupied'
 
@@ -143,11 +186,11 @@ def simple_data(request):
 
                     if not errors:
                         #save what ever we have
-                        result.unit.bedroom = simpleform.cleaned_data['bedrooms']
-                        if not simpleform.cleaned_data['electricity'] is None:
-                            result.unit.average_electricity = simpleform.cleaned_data['electricity']
-                        if not simpleform.cleaned_data['gas'] is None:
-                            result.unit.average_gas = simpleform.cleaned_data['gas']
+                        result.unit.bedroom = shareform.cleaned_data['bedrooms']
+                        if not shareform.cleaned_data['electricity'] is None:
+                            result.unit.average_electricity = shareform.cleaned_data['electricity']
+                        if not shareform.cleaned_data['gas'] is None:
+                            result.unit.average_gas = shareform.cleaned_data['gas']
 
                         result.unit.save_and_update(request)
 
@@ -180,7 +223,7 @@ def simple_data(request):
 
     else:
         bldgform = NewBuildingForm(prefix='building')
-        simpleform = SimpleForm(prefix='simple')
+        shareform = ShareForm(prefix='share')
         
     #view_url = reverse('utility.views.upload_handler')
     view_url = request.path
@@ -188,7 +231,7 @@ def simple_data(request):
     #upload_url = create_upload_url(view_url)
     upload_data = {}
 
-    action_url = reverse('content.views.simple_data')
+    action_url = reverse('content.views.share_data')
     
     #print form['utility_type'].errors
     #print form['utility_type'].label
@@ -200,51 +243,28 @@ def simple_data(request):
         'user': request.user,
         'bldgform': bldgform,
         'unitform': unitform,
-        'form': simpleform,
+        'form': shareform,
         'show_calculator': show_calculator,
         'action_url': action_url, 
         }
 
-    return render(request, 'simple.html', context )
+    return render(request, 'share.html', context )
 
-def simple_thankyou(request):
-    """
-    this is the controller for the simple form found on the front page
-    bare minimum needed for data collection
-    """
-    results = ''
-
-    dest = request.GET.get('next', '')
-    
-    form = SignupForm
-
-    context = { 
-        'user': request.user,
-        'form': form,
-        'next': dest,
-        #'bldgform': bldgform,
-        #'unitform': unitform,
-        #'form': simpleform,
-        #'show_calculator': show_calculator,
-        #'action_url': action_url, 
-        }
-    
-    return render(request, 'simple-thankyou.html', context )
 
 def welcome(request):
     """
     place to start developing a real home page for the project
     """
-    #form = SimpleForm()
+    #form = ShareForm()
     bldgform = NewBuildingForm(prefix='building')
-    simpleform = SimpleForm(prefix='simple')
+    simpleform = ShareForm(prefix='simple')
         
     #view_url = reverse('utility.views.upload_handler')
     #view_url = request.path
     #upload_url, upload_data = prepare_upload(request, view_url)
     #upload_url = create_upload_url(view_url)
     #action_url = create_upload_url(view_url)
-    action_url = reverse('content.views.simple_data')
+    action_url = reverse('content.views.share_data')
     
     #print form['utility_type'].errors
     #print form['utility_type'].label
@@ -269,18 +289,6 @@ def information(request):
     """
     context = {}
     return render(request, 'information.html', context )
-
-def faq(request):
-    """
-    """
-    context = {}
-    return render(request, 'faq.html', context )
-
-def crowdsourcing(request):
-    """
-    """
-    context = {}
-    return render(request, 'crowdsourcing.html', context )
 
 
 #via: http://blog.hudarsono.me/post/2010/11/10/Using-Blobstore-with-Django-

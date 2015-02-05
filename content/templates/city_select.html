@@ -1,0 +1,44 @@
+<form id="city_select" action="/city/change" method="post">
+  {% csrf_token %}
+  {{ form.choice }}
+  
+          <div class="center-block city-btncontainer">
+           <div class="btn-group">
+            <button type="button" class="btn btn-primary citybtn dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+              Select Your City
+            </button>
+            <ul class="dropdown-menu" role="menu">
+
+              {% for option in options %}
+              <li> <a href="/city/{{ option.0 }}/" id="{{ option.0 }}">{{option.1}}</a> </li>
+              {% endfor %}
+            
+            </ul>
+          </div>
+        </div> <!--/btncontainer -->
+
+
+</form>
+
+{# http://stackoverflow.com/questions/688196/how-to-use-a-link-to-call-javascript #}
+<script type="text/javascript">
+  window.onload = function() {
+  
+    var elem;
+    {% for option in options %}
+    var {{ option.0 }} = document.getElementById("{{ option.0 }}");
+    {{ option.0 }}.onclick = function(e) {
+    var evt = e ? e:window.event;
+    if (evt.preventDefault) evt.preventDefault();
+    evt.returnValue = false;
+
+    elem = document.getElementById("id_choice");
+    elem.value = '{{ option.0 }}';
+    document.getElementById("city_select").submit();
+    //prevent default:
+    return false;
+    }
+  {% endfor %}
+
+  };
+</script>

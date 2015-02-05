@@ -1,8 +1,12 @@
-{% extends "layout.html" %}
+{% extends "layout-padded.html" %}
 
 {% block title %}Rent Rocket: Upload Utility Data{% endblock %}
 
-{% block content %}
+{% block custom_css %}
+    <link rel="stylesheet" href="/static/css/building.css" type="text/css" media="screen" />
+{% endblock %}
+
+{% block subcontent %}
 
 <div class="page">
 
@@ -50,8 +54,8 @@
       
       {% include "field_half.html" with field=meta.file %}
       
-      <div class="centered">
-        <input type="submit" value="Upload" />
+      <div class="centered section">
+        <input type="submit" class="btn btn-success" value="Upload" />
       </div>
       
     </div>

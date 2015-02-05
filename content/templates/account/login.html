@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "layout-padded.html" %}
 
 {% load i18n %}
 {% load account %}
@@ -6,13 +6,13 @@
 
 {% block title %}{% trans "Log In" %}{% endblock %}
 
-{% block content %}
+{% block subcontent %}
 
 <div class="login">
     <a href="/accounts/facebook/login/"><div class="fb"></div></a>
     {% include "socialaccount/snippets/login_extra.html" %}
     <div class="inset">
-        <div class="header">Log in:</div>
+        <h2>Log in:</h2>
         <form class="login" method="POST" action="{% url 'account_login' %}">
           {% csrf_token %}
             {{ form.non_field_errors }}

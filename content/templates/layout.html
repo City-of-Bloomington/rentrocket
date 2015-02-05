@@ -1,44 +1,49 @@
 {% load url from future %}
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>{% block title %}Rent Rocket{% endblock %}</title>
-    
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="{% block description %}Rent Rocket helps you find the total cost of renting an apartment by comparing utility usage. {% endblock %}" />
     <meta name="keywords" content="{% block keywords %}rent apartment energy efficiency cost comparison utilities{% endblock %}" />
-    <meta name="author" content="Charles Brandt" />
-  
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />  
-    <meta name="HandheldFriendly" content="True" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="author" content="" />
+
+    <meta property="og:title" content="RentRocket" />
+    <meta property="og:image" content="/static/img/rentrocket.png" />
+    <meta property="og:description" content="Compare utility costs of your rental." />    
+    
+    <title>{% block title %}RentRocket{% endblock %}</title>
 
     <link rel="shortcut icon" href="/static/favicon.png" />
     <link rel="icon" href="/static/favicon.png" />
 
-    <link rel="stylesheet" href="/static/css/responsive.css" type="text/css" media="screen" />
+    <!-- Bootstrap core CSS -->
+    <link href="/static/css/home.css" rel="stylesheet" type="text/css">
+    <link href="/static/css/font-awesome.min.css" rel="stylesheet">
 
     {% block custom_css %}{% endblock %}    
-    
     {#include javascript at the end of the page to improve loading #}
+    
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
 
-  </head>
+    <!--[if (gte IE 6)&(lte IE 8)]>
+      <script type="text/javascript" src="/javascripts/selectivizr-min.js"></script>
+    <![endif]-->
+  </head>  
   <body>
     
     <!-- Header -->
-    <header id="top">
-      <a href="/" title="Rent Rocket" class="home_link">
-	<div class="logo">
-	  <img src="/static/img/logo.png" alt="Rent Rocket">
-	</div>
-      </a>
-    </header>
 
-    {# defined in: rentrocket/content/templatetags/navigation.py #}
     {% load navigation %}
     {% make_nav %}
 
+    
+    
     {% if messages %}
     <ul class="messages">
       {% for message in messages %}
@@ -51,55 +56,45 @@
 	
     <footer class="contentinfo" role="contentinfo">
       {# http://stackoverflow.com/questions/5651763/django-want-to-print-the-date-time-for-today #}
-      &copy; RentRocket.org - {% now "Y" %} - <a href="/about" id="about">About</a>
+        <div class="container">
+          <div class="row">
+            <div class="col-sm-2"><a href="/about">About RentRocket</a></div>
+            <div class="col-sm-2"><a href="/privacy">Privacy Policy</a></div>
+            <div class="col-sm-2"><a href="/terms">Terms of Use</a></div>
+            <div class="col-sm-2"><a href="/contact">Contact Us</a></div>
+            <div class="col-sm-4">
+              <center>Copyright © {% now "Y" %} RentRocket.org. All Rights Reserved.</center>
+            </div>
+          </div>
+        </div>
     </footer>
     
-    <script src="/static/js/lib/jquery-1.11.1.js"></script>
 
-    <!-- these should all be minified and combined before a production release -->
-
+    <script src="/static/js/lib/jquery-1.11.2.min.js"></script>
+    <script src="/static/js/bootstrap.js"></script>
+    
     <script type="text/javascript">window.JSON || document.write('<script src="/static/js/lib/json2.js"><\/script>')</script>
     
-    {% block require %}
-    <script type="text/javascript" src="/static/js/lib/require.js"></script>
-
-    <script type="text/javascript">
-      {% comment %}
-      //this allows require.js to be in a different directory (lib)
-      //than main custom code
-      //
-      //keeping it at layout level so that any updates to versions
-      //only requires changes in one place
-      {% endcomment %}
-
-      require.config({
-	baseUrl: '/static/js',
-	paths: {
-		'jquery' : 'lib/jquery-1.11.1',
-                'lodash' : 'lib/lodash',
-                'ko'     : 'lib/knockout-2.2.1'
-	}
-      });
+    {% block analytics %}
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;
+      i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();
+      a=s.createElement(o),m=s.getElementsByTagName(o)[0];
+      a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})
+      (window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-43186610-1', 'rentrocket.org');
+      ga('send', 'pageview');
     </script>
-
     {% endblock %}
-
+    
     {% block script %}
     <script type="text/javascript">
       require(['main'], function(main) {});
     </script>
     {% endblock %}
 
-<script>
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-  ga('create', 'UA-43186610-1', 'rentrocket.org');
-  ga('send', 'pageview');
-
-</script>
-
+    <script src="/static/js/retina.min.js"></script>
+    
   </body>
 </html>

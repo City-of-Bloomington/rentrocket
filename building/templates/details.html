@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "layout-padded.html" %}
 
 {% block title %}{{ building.address }} {% endblock %}
 
@@ -6,9 +6,10 @@
     <link rel="stylesheet" href="/static/css/building.css" type="text/css" media="screen" />
 {% endblock %}
 
-{% block content %}
+{% block subcontent %}
 
-<div class="leftcolumn">
+<div id="building_details">
+  <div class="leftcolumn">
 
   <h2 id="address">{{ building.address }}</h2> 
 
@@ -134,12 +135,15 @@
 
   </div>
 </div>
+
 {% endif %}
+
+</div> {# building-details #}
+
 
 {% endblock %} {# content #}
     
 {% block script %}
-<script type="text/javascript">
-  require(['building'], function(building) {});
-</script>
+<script type="text/javascript" src="/static/js/lib/knockout-2.2.1.js"></script>
+<script type="text/javascript" src="/static/js/building.js"></script>
 {% endblock %}

@@ -59,17 +59,17 @@ var RRMap = function(args) {
 	else if (building.score == .0001) {
 	  image = '/static/img/marker-dark_gray.png';
 	}
-	else if (building.score <= low) {
-	  image = '/static/img/marker-red.png';
+	else if (building.score >= high) {
+	  image = '/static/img/marker-green.png';
 	}
-	else if (building.score <= med_low) {
-	  image = '/static/img/marker-orange.png';
-	}
-	else if (building.score <= med_high) {
+	else if (building.score >= med_high) {
 	  image = '/static/img/marker-yellow.png';
 	}
-	else if (building.score <= high) {
-	  image = '/static/img/marker-green.png';
+	else if (building.score >= med_low) {
+	  image = '/static/img/marker-orange.png';
+	}
+	else if (building.score >= low) {
+	  image = '/static/img/marker-red.png';
 	}
 	else {
 	  //shouldn't get this, but... 

@@ -1,7 +1,15 @@
-        {% include "building-new-form.html" with form=bldgform%}
-  
+        {# include "building-new-form.html" with form=bldgform #}
+        {{ bldgform.non_field_errors }}        
+
+        {% include "field_snippet.html" with field=bldgform.address %}
+
+
+
         {% if bldgform.unit_select_visible %}
-        {% include "building-new-unit_select.html" with form=unitform%}
+        {# include "building-new-unit_select.html" with form=unitform #}
+        {% include "field_snippet.html" with field=unitform.unit_select %}
+        {% include "field_snippet.html" with field=unitform.unit_text %}
+
         {% endif %}
 
         <div class="simple-widget centered">

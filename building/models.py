@@ -358,12 +358,6 @@ def lookup_building_with_geo(search_results, make=False, request=None):
         #this should be set already now:
         #result['unit'] = unit_search
 
-
-        #could refactor find_building
-        #to accept a SearchResult object
-        #and update settings appropriately...
-        #
-        #but that might make that function more difficult to use on its own
         (building, error) = find_building(result)
         if error:
             search_results.errors.append(error)
@@ -416,53 +410,6 @@ def lookup_building_with_geo(search_results, make=False, request=None):
         error = "No match found. Please check the address."
         search_results.errors.append(error)
         #building = None
-
-
-#original version before SearchResult object
-## def lookup_building_with_geo(search_options, unit_search='', make=False, request=None):
-##     """
-##     address_search should have already happened... pass those results in
-
-##     then see if we have a matching building
-
-##     if not, and if make is True, then we can call make_building
-##     """
-##     error = None
-##     unit = None
-##     if len(search_options) == 1:
-##         #print search_options
-##         result = search_options[0]
-##         error = check_result(result)
-##         if not error:
-##             #down to one result... add unit_search in to that
-##             #this should be set already now:
-##             #result['unit'] = unit_search
-
-##             (building, error) = find_building(result)
-##             #print "Building: ", building
-##             #print "Error: ", error
-##             if not building and not error and make:
-##                 (building, error) = make_building(result, request=request)
-
-##             #regardless of if we have a value for unit_search
-##             #want to look up the unit (blank ones included)
-##             if building:
-##                  (match, error, matches) = building.find_unit(unit_search)
-##                  if match:
-##                      unit = match
-##                  elif not match and not error and make:
-##                      #if unit_search is '', this should create a blank unit
-##                      unit = make_unit(unit_search, building)
-
-##     elif len(search_options) > 1:
-##         error = "More than one match found. Please narrow your selection."
-##         building = None
-
-##     elif len(search_options) < 1: 
-##         error = "No match found. Please check the address."
-##         building = None
-
-##     return (building, unit, error)
     
 def search_building(query, unit='', make=False, request=None):
     """
@@ -476,6 +423,7 @@ def search_building(query, unit='', make=False, request=None):
     if this is made from a web request, pass the request in so we can log source
     """
 
+    #rentrocket.helpers.address_search
     result = address_search(query, unit)
     if not result.errors:
         lookup_building_with_geo(result, make=make, request=request)

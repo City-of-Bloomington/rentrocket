@@ -11,6 +11,7 @@ urlpatterns = patterns(
     url(r'new$', views.new_city, name='new_city'),
     url(r'(?P<city_tag>\w+)/resources/$', views.resources),
     url(r'(?P<city_tag>\w+)/resources$', views.resources),
+    url(r'(?P<city_tag>\w+)/$', views.city_map, name='city_map'),
     url(r'(?P<city_tag>\w+)$', views.city_map, name='city_map'),
     #url(r'^$', views.index, name='index')
     url(r'^$', views.city, name='city_detail')

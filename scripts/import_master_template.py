@@ -13,6 +13,7 @@
 
 similiar to other convert scripts
 however, this one utilized the master template format
+(currently stored at /static/rentrocket-bulk_data_template.xls)
 this should be more comprehensive, and ultimately, more standard too.
 
 utilize as much functionality from the site codebase as possible for adding data

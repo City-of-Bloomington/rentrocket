@@ -9,8 +9,9 @@ from django import forms
 from models import City, to_tag, all_cities
 from resource_data import resource_data
 
-class CitySelectForm(forms.Form):
-    options = [ ('', "Choose location...") ]
+def make_city_options():
+    #options = [ ('', "Select Your City") ]
+    options = [ ]
 
     keys = all_cities.keys()
     keys.sort()
@@ -19,9 +20,19 @@ class CitySelectForm(forms.Form):
 
 
     options.append( ('other', "Other") )
+
+    return options
+
+class CitySelectForm(forms.Form):
+    #options = make_city_options()
+    
     #http://stackoverflow.com/questions/2902008/django-how-do-i-add-arbitrary-html-attributes-to-input-fields-on-a-form
     #https://docs.djangoproject.com/en/dev/ref/forms/widgets/#select
-    choice = forms.ChoiceField(options, widget=forms.Select(attrs={'onchange':"this.form.submit()"}))
+    #choice = forms.ChoiceField(options, widget=forms.Select(attrs={'onchange':"this.form.submit()"}))
+
+    #selected = forms.HiddenField(options, widget=forms.Select(attrs={'onchange':"this.form.submit()"}))
+    #selected = forms.HiddenField()
+    choice = forms.CharField(max_length=256, widget=forms.HiddenInput())
 
 #from django.shortcuts import render_to_response, get_object_or_404
 

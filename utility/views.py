@@ -726,7 +726,7 @@ def upload(request, state=None, city_name=None, bldg_tag=None, unit_tag=None):
     return render(request, 'upload_generic.html', context )
 
 
-class UploadSimpleForm(forms.Form):
+class UploadShortForm(forms.Form):
     #these are taken from MetaUtilityForm,
     #but it seems simpler to make this custom
     utility_options = [ ('', '') ]
@@ -752,7 +752,7 @@ def upload_simple(request, city_tag=None, bldg_tag=None, unit_tag=None):
     
     if request.method == 'POST':
         print "form posted"
-        form = UploadSimpleForm(request.POST, request.FILES)
+        form = UploadShortForm(request.POST, request.FILES)
         form.fields['utility_provider'].choices = provider_names
 
         #print form.fields['file'].data
@@ -827,10 +827,10 @@ def upload_simple(request, city_tag=None, bldg_tag=None, unit_tag=None):
             print "form did not validate"
 
     else:
-        #form = UploadSimpleForm()
+        #form = UploadShortForm()
         #meta = MetaUtilityForm(prefix='meta')
 
-        form = UploadSimpleForm()
+        form = UploadShortForm()
         form.fields['utility_provider'].choices = provider_names
         
     #view_url = reverse('utility.views.upload_handler')
@@ -850,67 +850,6 @@ def upload_simple(request, city_tag=None, bldg_tag=None, unit_tag=None):
         }
 
     return render(request, 'upload_simple.html', context )
-
-
-
-BLOOMINGTON_UTILITY_CHOICES = (
-    ('vectren', 'Vectren'),
-    ('duke', 'Duke'),
-    )
-
-class BloomingtonUtilityForm(forms.Form):
-    utility_name = forms.ChoiceField(widget=widgets.RadioSelect(), choices=BLOOMINGTON_UTILITY_CHOICES)
-
-    ## name = forms.CharField(max_length=100)
-    ## title = forms.CharField(max_length=3,
-    ##             widget=forms.Select(choices=TITLE_CHOICES))
-    ## birth_date = forms.DateField(required=False)
-
-
-## Who supplies your energy?  </p>
-##  Only Duke 
-##  Only Vectren 
-##  Both Duke and Vectren 
-
-## Number of months you have lived at this address:  </p>
-##  1-4 
-##  5-8 
-##  9-12 
-##  More than 12 
-
-## How many bedrooms does your residence have?  </p>
-##  1 bedroom/studio 
-##  2 bedrooms 
-##  3 bedrooms 
-##  More than 4 bedrooms 
-
-
-def upload_bloomington(request, bldg_tag=None):
-    
-    results = ''
-
-    state = "IN"
-    city_name = "Bloomington"
-    
-    if request.method == 'POST': # If the form has been submitted...
-        form = BloomingtonUtilityForm(request.POST) # A form bound to the POST data
-        if form.is_valid(): # All validation rules pass
-            # Process the data in form.cleaned_data
-            # ...
-            results += "THANK YOU!<br> "
-            results += str(form.cleaned_data)
-            #return HttpResponseRedirect('/thanks/') # Redirect after POST
-    else:
-        form = BloomingtonUtilityForm() # An unbound form
-
-    context = {
-        'form': form,
-        'results': results,
-        }
-
-    return render(request, 'upload_generic.html', context )
-
-
 
 
 def thank_you(request):

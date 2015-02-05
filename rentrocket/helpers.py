@@ -127,7 +127,8 @@ def handle_place(search_result, place, lat, lng, unit):
     match = {'place': place, 'lat': lat, 'lng': lng}
     error = check_result(match)
     if error:
-        search_result.errors.append(error)
+        if not error in search_result.errors:
+            search_result.errors.append(error)
 
     #if not error:
     else:
@@ -287,16 +288,18 @@ def address_search(query, unit=''):
             #google = geocoders.GoogleV3(scheme="http")
             google = GoogleV3(scheme="http")
 
-            options = google.geocode(query, exactly_one=False)
-            if options:
-                if isinstance(options[0], unicode):
-                    #must only have one... different format:
-                    (place, (lat, lng)) = options
-                    handle_place(result, place, lat, lng, found_unit)
-                else:
-                    for place, (lat, lng) in options:
+            try:
+                options = google.geocode(query, exactly_one=False)
+                if options:
+                    if isinstance(options[0], unicode):
+                        #must only have one... different format:
+                        (place, (lat, lng)) = options
                         handle_place(result, place, lat, lng, found_unit)
-
+                    else:
+                        for place, (lat, lng) in options:
+                            handle_place(result, place, lat, lng, found_unit)
+            except:
+                result.errors.append("Could not look up address location. There was a problem contacting Google")
     #return matches, error, unit
     return result
 

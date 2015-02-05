@@ -30,16 +30,23 @@
     color: @darkgrey;
 }
 
-.section () {
+.padded () {
     // a section on the details page
     padding: .5em;
     margin-top: .75em;
+    margin-bottom: .25em;
 }
 
 .roundedbox () {
     .rounded(@radius);
     .bordered(@bordercolor, @bordercolor, @bordercolor, @bordercolor);
     background: @beige;
-    .section();
+
+    .padded();
+    /*margin-top: 1em;
+    margin-bottom: .5em;
+    display: inline-block;
+    width: 100%;
+*/
 }
 

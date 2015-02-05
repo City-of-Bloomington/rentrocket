@@ -5,6 +5,11 @@ and go through every building in that city
 update each unit's energy score (unit.update_energy_score())
 and then update the building's averages (building.update_utility_averages())
 
+*2015.01.29 11:19:51
+to generate city wide score statistics, use:
+
+rentrocket/scripts/generate_city_stats-v2.py
+
 """
 import os, sys, re
 

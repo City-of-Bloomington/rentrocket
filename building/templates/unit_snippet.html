@@ -19,7 +19,7 @@ Maximum Occupants: {{ unit.max_occupants }}<br>
 {% endif %}
 
 
-<ul class="actions">
+<ul class="actions section">
   
   <li class="action">
     {% if unit.tag %}
@@ -27,7 +27,7 @@ Maximum Occupants: {{ unit.max_occupants }}<br>
     {% else %}
     <form class="button_link" action="{% url 'utility.views.upload_simple' city_tag=building.city.tag bldg_tag=building.tag %}">
     {% endif %}
-      <button type="submit"><img src="/static/img/up.png" class="icon" /> Upload Utility Data
+      <button class="btn btn-success" type="submit"><img src="/static/img/up.png" class="icon" /> Upload Utility Data
       </button>
     </form>
   </li>
@@ -48,4 +48,3 @@ Maximum Occupants: {{ unit.max_occupants }}<br>
 </ul>
 
 
-<br>

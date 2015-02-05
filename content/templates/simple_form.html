@@ -1,12 +1,86 @@
-      <form action="{{ action_url }}" method="post">
-        {% csrf_token %}
+<form action="{{ action_url }}" method="post" class="form-horizontal">
+  {% csrf_token %}
 
-        {% include "simple_form_pt1.html" with form=form %}
-        
-        {% include "simple_form_pt2.html" with form=form %}
-        
-        <div class="centered">
-          <input type="submit" value="Save" />
-        </div>
+  {{ bldgform.non_field_errors }}        
 
-      </form>
+  <div class="form-group">
+    <label for="address" class="col-sm-3 control-label">Address</label>
+    <div class="col-sm-9">
+      <div class="input-group">
+        <div class="input-group-addon"><i class="fa fa-map-marker"></i></div>
+        {{ bldgform.address }}
+        <span class="error">
+          {{ bldgform.address.errors }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  {% if bldgform.unit_select_visible %}
+  {% include "field_snippet_alt.html" with field=unitform.unit_select addon='<i class="fa fa-map-marker"></i>' %}
+  {% include "field_snippet_alt.html" with field=unitform.unit_text %}    
+  {% endif %}
+    
+  <div class="form-group">
+    <label for="rentalRadio" class="col-sm-3 control-label">Rental</label>
+    <div class="col-sm-3">
+      <div class="radio">
+        <label>
+          <input class="rr-radio" type="radio" name="rentalRadio" id="radio1" value="yes" checked=""> Yes
+        </label> 
+      </div>
+    </div>
+    <div class="col-sm-3">
+      <div class="radio">
+        <label>
+          <input type="radio" name="rentalRadio" id="radio2" value="no"> No
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+                  <label for="rent" class="col-sm-3 control-label">Rent</label>
+                  <div class="col-sm-6">
+                    <div class="input-group">
+                      <div class="input-group-addon">$</div>
+                        <input type="number" class="form-control" id="rent">
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="bedrooms" class="col-sm-3 control-label">Bedrooms</label>
+                  <div class="col-sm-6">
+                    <div class="input-group">
+                      <div class="input-group-addon"><i class="fa fa-cube"></i></div>
+                        <input type="number" class="form-control" id="bedrooms" required="">
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <h5><center><i>Energy Cost - Average Monthly Bill</i></center></h5>
+                </div>
+                 <div class="form-group">
+                  <label for="electricity" class="col-sm-3 control-label">Electricity</label>
+                  <div class="col-sm-6">
+                    <div class="input-group">
+                      <div class="input-group-addon">$</div>
+                        <input type="number" class="form-control" id="electricity">
+                    </div>
+                  </div>
+                </div>
+                 <div class="form-group">
+                  <label for="gas" class="col-sm-3 control-label">Natural Gas</label>
+                  <div class="col-sm-6">
+                    <div class="input-group">
+                      <div class="input-group-addon">$</div>
+                        <input type="number" class="form-control" id="gas">
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <div class="col-sm-offset-3 col-sm-9">
+                    <button type="submit" class="btn btn-success">Submit Data   <i class="fa fa-chevron-right"></i></button>
+                  </div>
+                </div>
+              </form>

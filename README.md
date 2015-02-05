@@ -139,6 +139,7 @@ https://docs.djangoproject.com/en/1.5/ref/models/fields/#django.db.models.CharFi
     ./manage.py migrate source
     ./manage.py migrate allauth.socialaccount
 
+    python ./scripts/make_service_providers.py
     python ./scripts/make_cities.py
 
     #if enabled: (not currently)

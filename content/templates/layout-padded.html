@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+
+{# add in padding for floating navigation bar... #}
+{# usually don't want content to show up underneath it #}
+
+{% block content %}
+
+<div class="nav-adjust">
+
+  {% block subcontent %}{% endblock %}
+  
+</div>
+
+{% endblock %}

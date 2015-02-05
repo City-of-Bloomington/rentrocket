@@ -1,10 +1,22 @@
-{% extends "layout.html" %}
+{% extends "layout-padded.html" %}
 
 {% block title %}Rent Rocket: Welcome!{% endblock %}
 
-{% block content %}
+{% block subcontent %}
 
-Welcome to RentRocket!  Please choose your city from the list above.
+<h2>Cities:</h2>
+
+        <div class="staticmap">
+
+          {% load navigation %}
+          {% make_city_select %}
+          
+        </div> 
+
+<p>&nbsp;</p>      
+<p>RentRocket combines information on rental properties with utility estimates to help you compare different rental options.</p>
+
+  <p><a href="/share">Share utility information</a> about your rental to see how your rental compares.</p>
 
 {% endblock %} {# content #}
     

@@ -11,15 +11,51 @@ if py3k: # pragma: no cover
 else: # pragma: no cover
     string_compare = (str, unicode)
 
+# Unicode compatibility, borrowed from 'six'
+if py3k: # pragma: no cover
+    def u(s):
+        """
+        Convert to Unicode with py3k
+        """
+        return s
+else: # pragma: no cover
+    def u(s):
+        """
+        Convert to Unicode with unicode escaping
+        """
+        return unicode(s.replace(r'\\', r'\\\\'), 'unicode_escape')
+
 if py3k: # pragma: no cover
     from urllib.parse import urlencode, quote # pylint: disable=W0611,F0401,W0611,E0611
     from urllib.request import (Request, urlopen, # pylint: disable=W0611,F0401,W0611,E0611
-        build_opener, ProxyHandler, URLError, install_opener)
+                                build_opener, ProxyHandler,
+                                URLError, install_opener,
+                                HTTPPasswordMgrWithDefaultRealm,
+                                HTTPBasicAuthHandler)
     from urllib.error import HTTPError # pylint: disable=W0611,F0401,W0611,E0611
+
+    def itervalues(d):
+        """
+        Function for iterating on values due to methods
+        renaming between Python 2 and 3 versions
+        For Python2
+        """
+        return iter(d.values())
+    def iteritems(d):
+        """
+        Function for iterating on items due to methods
+        renaming between Python 2 and 3 versions
+        For Python2
+        """
+        return iter(d.items())
+
 else: # pragma: no cover
     from urllib import urlencode as original_urlencode, quote # pylint: disable=W0611,F0401,W0611,E0611
     from urllib2 import (Request, HTTPError,   # pylint: disable=W0611,F0401,W0611,E0611
-        ProxyHandler, URLError, urlopen, build_opener, install_opener)
+                         ProxyHandler, URLError, urlopen,
+                         build_opener, install_opener,
+                         HTTPPasswordMgrWithDefaultRealm,
+                         HTTPBasicAuthHandler)
 
     def force_str(str_or_unicode):
         """
@@ -46,3 +82,18 @@ else: # pragma: no cover
               if isinstance(v, (list, tuple)) else force_str(v))
              for k, v in query],
             doseq)
+
+    def itervalues(d):
+        """
+        Function for iterating on values due to methods
+        renaming between Python 2 and 3 versions
+        For Python3
+        """
+        return d.itervalues()
+    def iteritems(d):
+        """
+        Function for iterating on items due to methods
+        renaming between Python 2 and 3 versions
+        For Python3
+        """
+        return d.iteritems()

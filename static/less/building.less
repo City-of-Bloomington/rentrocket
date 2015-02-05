@@ -1,5 +1,32 @@
+@import 'grid.less';
 @import 'globals.less';
 @import 'colors.less';
+
+//////////
+// GRID //
+//////////
+
+// Specify the number of columns and set column and gutter widths
+@columns: 12;
+@column-width: 60;
+@gutter-width: 20;
+
+// Remove the definition below for a pixel-based layout
+@total-width: 100%;
+
+
+#building_details {
+    display: inline-block;
+    width: 100%;    
+}
+
+.edit {
+    display: inline-block;
+    margin: 0px;
+    margin-left: .5em;
+    padding: 0px;
+    vertical-align: super;
+}
 
 #image_nav {
     float: left;
@@ -30,6 +57,8 @@
 
 
 ul.actions { 
+    margin-top: .5em;
+    margin-bottom: 0em;
     //display: inline-block;
     padding: 0px;
 }
@@ -39,9 +68,11 @@ li.action {
 }
 
 .icon {
-    padding-top: 2px;
+    //padding-top: 2px;
     width: 18px;
     heigh: 18px;
+    vertical-align: text-top;
+    margin-right: 4px;    
 }
 
 .details {
@@ -49,7 +80,7 @@ li.action {
 }
 
 #image_box{
-    .section();
+    .padded();
 }
 
 .relation {
@@ -99,22 +130,37 @@ li.action {
     display: inline-block;
 }
 
+.block {
+    display: inline-block;
+    vertical-align: top;
+    margin-right: 2em;
+}    
 
-/*
-.energy_usage {
-    .rounded(5px);
+.centered {
+    clear: both;
+    text-align: center;
+    width: 100%;
 }
 
-.amenities {
-    .rounded(5px);
+.threecolumn {
+    .column(4);
 }
 
-.smart_living {
-    .rounded(5px);
+// main column & sidebar
+.leftcolumn {
+    .column(6);
+}
+.rightcolumn {
+    .column(6);
 }
 
-.contact {
-    .rounded(5px);
-}
-*/
+@media screen and (max-width: 720px) {
+    .leftcolumn,
+    .rightcolumn,
+    .nav-item {
+	//margin-bottom: 1em;
+	width: 100%;
+	.column(12);
+    }
 
+}

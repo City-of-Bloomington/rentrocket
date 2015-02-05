@@ -20,27 +20,34 @@ urlpatterns = patterns(
     url(r'^utility/', include('utility.urls')),
     url(r'^city/', include('city.urls')),
 
+
     url(r'^content/', include('content.urls')),
 
+    url(r'^simple-thankyou/$', 'content.views.thankyou'),
+    url(r'^simple-thankyou$', 'content.views.thankyou', name='simple-thankyou'),
+    url(r'^thankyou/$', 'content.views.thankyou'),
+    url(r'^thankyou$', 'content.views.thankyou', name='thankyou'),
+    url(r'^share/$', 'content.views.share_data'),
+    url(r'^share$', 'content.views.share_data', name='share'),
+
+
     url(r'^about$', 'content.views.about', name='about'),
-    url(r'^information$', 'content.views.information', name='information'),
-    url(r'^faq$', 'content.views.faq', name='faq'),
     url(r'^crowdsourcing$', 'content.views.crowdsourcing', name='crowdsourcing'),
+    url(r'^partners$', 'content.views.partners', name='partners'),
+    url(r'^contact$', 'content.views.contact', name='contact'),
+    url(r'^privacy$', 'content.views.privacy', name='privacy'),
+    url(r'^terms$', 'content.views.terms', name='terms'),
+
+    url(r'^faq$', 'content.views.faq', name='faq'),
+    url(r'^information$', 'content.views.information', name='information'),
+
 
     url(r'^welcome$', 'content.views.welcome', name='welcome'),
-    url(r'^simple-thankyou$', 'content.views.simple_thankyou', name='simple-thankyou'),
-    url(r'^simple$', 'content.views.simple_data', name='simple'),
-
-
-
-    #url(r'^upload_form$', 'content.views.upload_form', name='upload_form'),
-    url(r'^$', 'content.views.home', name='home'),
-    # url(r'^rentrocket/', include('rentrocket.foo.urls')),
-
-    # Uncomment the admin/doc line below to enable admin documentation:
-    # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
-
-    # Uncomment the next line to enable the admin:
+    url(r'^twitter$', 'content.views.welcome', name='twitter'),
+    url(r'^facebook$', 'content.views.welcome', name='facebook'),
+    url(r'^gplus$', 'content.views.welcome', name='gplus'),
+    
+    url(r'^$', 'content.views.welcome', name='welcome'),
 )
 
 

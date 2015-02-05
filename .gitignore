@@ -9,3 +9,5 @@ local_settings.py
 configuration.inc
 .vagrant/*
 scripts/energy_score_summary-temp.csv
+content/templates/home.html.orig*
+content/templates/share.html.orig*

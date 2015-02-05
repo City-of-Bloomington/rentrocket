@@ -1,8 +1,13 @@
-{% extends "layout.html" %}
+{% extends "layout-padded.html" %}
 
 {% block title %}Rent Rocket: Share Utility Data{% endblock %}
 
-{% block content %}
+{% block custom_css %}
+    <link rel="stylesheet" href="/static/css/building.css" type="text/css" media="screen" />
+{% endblock %}
+
+
+{% block subcontent %}
 
 <div class="page">
 
@@ -75,7 +80,7 @@
   </div>
   
   <div class="centered">
-    <input type="submit" value="Save" />
+    <input type="submit" class="btn btn-success" value="Save" />
   </div>
   
 </form>

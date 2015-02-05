@@ -1,21 +1,24 @@
-<div id="nav-wrap">
-
-<ul class="nav">
-<li class="nav-item">
-
-<form action="/city/change" method="post">{% csrf_token %}
-{{ form.choice }}
-</form>
-
-</li>
+    <nav class="navbar navbar-fixed-top transparent navbar-inverse">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/"><img alt="RentRocket" src="/static/img/rentrocket.png" height="60"></a>
+          
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
 
 {% for item in items %}
-<li class="nav-item">
+<li>
   {% if item.0 %}
-  <a href="{{item.0}}" class="nav-link">
+  <a href="{{item.0}}">
   {% endif %}
 
-  {{ item.1 }}
+  <strong>{{ item.1 }}</strong>
 
   {% if item.0 %}
   </a>
@@ -23,15 +26,16 @@
 
 </li>
 {% endfor %}
+            
+          </ul>
+          <div class="nav navbar-right login">
 
-<li class="nav-item">
-{% if user.is_authenticated %}
-<a href="/logout/" class="nav-link">Log out</a>
-{% else %}
-<a href="/login/" class="nav-link">Log in</a> / <a href="{% url 'account_signup' %}" class="nav-link">Sign up</a>
-{% endif %}
-</li>
-
-</ul>
-
-</div>
+            {% if user.is_authenticated %}
+            <a href="/logout/" class="nav-link"><button class="btn btn-success">Log out</button></a>
+            {% else %}
+            <a href="/login/" class="nav-link"><button class="btn btn-success">Log in</button></a>  <a href="{% url 'account_signup' %}" class="nav-link"><button class="btn btn-success">Register</button></a>
+            {% endif %}
+            
+          </div>
+        </div><!--/.navbar-collapse -->
+    </nav>

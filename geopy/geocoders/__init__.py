@@ -14,10 +14,10 @@ To geolocate a query to an address and coordinates:
     >>> location = geolocator.geocode("175 5th Avenue NYC")
     >>> print(location.address)
     Flatiron Building, 175, 5th Avenue, Flatiron, New York, NYC, New York, ...
-    >>> print(location.latitude, location.longitude)
+    >>> print((location.latitude, location.longitude))
     (40.7410861, -73.9896297241625)
     >>> print(location.raw)
-    {u'place_id': u'9167009604', u'type': u'attraction', ...}
+    {'place_id': '9167009604', 'type': 'attraction', ...}
 
 
 To find the address corresponding to a set of coordinates:
@@ -27,10 +27,10 @@ To find the address corresponding to a set of coordinates:
     >>> location = geolocator.reverse("52.509669, 13.376294")
     >>> print(location.address)
     Potsdamer Platz, Mitte, Berlin, 10117, Deutschland, European Union
-    >>> print(location.latitude, location.longitude)
+    >>> print((location.latitude, location.longitude))
     (52.5094982, 13.3765983)
     >>> print(location.raw)
-    {u'place_id': u'654513', u'osm_type': u'node', ...}
+    {'place_id': '654513', 'osm_type': 'node', ...}
 
 Locators' ``geolocate`` and ``reverse`` methods require the argument ``query``,
 and also accept at least the argument ``exactly_one``, which is ``True``.
@@ -80,12 +80,16 @@ __all__ = (
     "GeocodeFarm",
     "GeoNames",
     "GoogleV3",
+    "IGNFrance",
     "MapQuest",
     "OpenCage",
     "OpenMapQuest",
+    "NaviData",
     "Nominatim",
     "YahooPlaceFinder",
     "LiveAddress",
+    'Yandex',
+    "What3Words",
 )
 
 
@@ -99,9 +103,14 @@ from geopy.geocoders.googlev3 import GoogleV3
 from geopy.geocoders.mapquest import MapQuest
 from geopy.geocoders.opencage import OpenCage
 from geopy.geocoders.openmapquest import OpenMapQuest
+from geopy.geocoders.navidata import NaviData
 from geopy.geocoders.osm import Nominatim
 from geopy.geocoders.placefinder import YahooPlaceFinder
 from geopy.geocoders.smartystreets import LiveAddress
+from geopy.geocoders.what3words import What3Words
+from geopy.geocoders.yandex import Yandex
+from geopy.geocoders.ignfrance import IGNFrance
+
 
 from geopy.exc import GeocoderNotFound
 
@@ -119,8 +128,12 @@ SERVICE_TO_GEOCODER = {
     "openmapquest": OpenMapQuest,
     "mapquest": MapQuest,
     "liveaddress": LiveAddress,
+    "navidata": NaviData,
     "nominatim": Nominatim,
     "geocodefarm": GeocodeFarm,
+    "what3words": What3Words,
+    "yandex": Yandex,
+    "ignfrance": IGNFrance,
 }
 
 

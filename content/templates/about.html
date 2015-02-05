@@ -1,34 +1,65 @@
-{% extends "layout.html" %}
+{% extends "layout-padded.html" %}
 
 {% block title %}RentRocket.org: About{% endblock %}
 
-{% block content %}
+{% block subcontent %}
 
 <div class="page">
-<h1 class="centered">ABOUT</h1>
-<p>RentRocket.org was funded through an Innovation Fund grant received from the Urban Sustainability Directors Network, a project of the Global Philanthropy Partnership. In addition to helping tenants find awesome places to live, RentRocket.org aims to:</p>
+<h2>About</h2>
 
-<ol><li><p>help renters consider environmental impact (including utility usage and costs, energy efficiency and access to transit and recycling facilities) when making rental housing decisions, and</li>
-<li>help landlords both grasp the value of environmental investments and to share their environmental achievements. </li>
-</ol>
+<h4>It's not rocket science, just smarter housing!</h4>
 
-<p>Initial partners in the project include these 14 cities: </p>
-<p>Albany (NY), Austin (TX), Ann Arbor (MI), Berkeley (CA), Bloomington (IN), Burlington (VT), Columbia (MO), Dearborn (MI), Evanston (IL), Fayetteville (AR), Iowa City (IA), Lawrence (KS), Madison (WI), and Oklahoma City (OK). </p>
+<p>RentRocket collects information about rental housing over time to give you better insight into your next home.</p>
 
-<div class="centered">
-<img src="/static/img/cities.png">
+<p>Apartment listings come and apartment listings go.  Similarly, sites that show active listings come and go.</p>
+
+<p>RentRocket takes a different approach. RentRocket collects information about rental housing the rest of the time... things like utility costs and proximity to transit systems... things we hope will help you find a home that better meets your needs.</p>
+
+<p>RentRocket provides the information renters and landlords need to make decisions that are both economically smart and strengthen the community.</p>
+
+<p>RentRocket enables:</p>
+
+<ol><li>Renters to see and compare utility costs, accessibility to alternative modes of transit and recycling options to make rental housing decisions that align with their values and save them money</li>
+
+<li>Landlords to promote and achieve a maximum return on investment for the energy saving improvements they have made to their properties.</li></ol>
+
+<p>RentRocket moves the search for rentals in a direction that is better for the future and for our communities.</p>
+
+<p>All the information presented on RentRocket is shared by renters and landlords for renters and landlords. Join us in sharing information about your current properties or current rental.</p>
+
+<h3>Future</h3>
+
+<p>Collecting this information takes time, and we need your help. The easiest way is to <a href="/share">share data about your current rental</a>.</p>
+
+<p>Want to get things moving in your city? Help organize data collection efforts. Have a data collection party! <a href="/crowdsourcing">Here are some notes to get started.</a> </p>
+
+<p>If you are a property manager with access to information about multiple properties, we have a <a href="/static/rentrocket-bulk_data_template.xls">template</a> you can use to send us your information in bulk.</p>
+
+<p>We are actively seeking new partners to help take this project to the next level. <a href="/partners">Partner with us!</a></p>
+
+<p>Are you a developer? Do you know a developer? Need a project for your local civic hack-a-thon? RentRocket is an open source project. Our code is available on <a href="https://github.com/City-of-Bloomington/green-rental" target="_newtab">GitHub</a>.</p>
+
+<h3>Special Thanks</h3>
+
+<p>In 2013, 14 cities partnered together to obtain an an <a href="http://usdn.org/public/Innovation.html">Innovation Fund</a> grant from the <a href="http://usdn.org/">Urban Sustainability Network and Global Philanthropy Partnership</a> to create RentRocket.org. The <a href="http://bloomington.in.gov/">City of Bloomington</a>, Indiana has taken the lead on the project, and continues to move the project forward in partnership with these 10 other cities:</p>
+
+<p>Albany (NY), Ann Arbor (MI), Berkeley (CA), Burlington (VT), Columbia (MO), Dearborn (MI), Evanston (IL), Iowa City (IA), Madison (WI), San Antonio (TX)</p>
+
+<p>We are focusing on these four cities to illustrate the proof of concept:</p>
+<ul>
+  <li><a href="/city/bloomington_in">Bloomington, Indiana</a></li>
+  <li><a href="/city/columbia_mo">Columbia, Missouri</a></li>
+  <li><a href="/city/ann_arbor_mi">Ann Arbor, Michigan</a></li>
+  <li><a href="/city/evanston_il">Evanston, Illinois</a></li>
+</ul>
+
+{# would class="modal-body" be better? #}
+<div class="panel-body">
+<img class="img-responsive" src="/static/img/cities.png">
 </div>
 
-<h3 class="centered">TIMELINE</h3>
+<p>Many thanks to everyone who has helped to make this project a reality!</p>
 
-<p class="P1">The current grant will run through February of 2014, and then we’ll be looking for additional partners to help us move the project forward.  We hope to have a basic prototype for 2-3 of the partner cities by then.</p>
-
-<h3 class="centered">WANT TO GET INVOLVED?</h3>
-
-<p>This effort will involve tenants, landlords, local policy makers, web and app developers, government agencies, utilities and many others.  In particular, we need help crowdsourcing data – energy data, apartment data, etc.  We’d love to hear from you!</p>
-<p class="P1">FOR MORE INFORMATION, EMAIL <a href="mailto:sustain@bloomington.in.gov"><span class="Internet_20_link">sustain@bloomington.in.gov</span></a>.</p>
-
-<br>
 </div>
 {% endblock %} {# content #}
 

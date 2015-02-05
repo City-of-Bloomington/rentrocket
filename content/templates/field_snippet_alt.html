@@ -1,0 +1,14 @@
+  <div class="form-group">
+    <label for="{{ field.label }}" class="col-sm-3 control-label">{{ field.label }}</label>
+
+    <div class="col-sm-6">
+      <div class="input-group">
+        <div class="input-group-addon">{{ addon }}</div>
+        {{ field }}
+      </div>
+    </div>
+    <div class="col-sm-6">
+      {{ field.errors }}
+    </div>
+  </div>
+  

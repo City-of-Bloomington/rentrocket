@@ -1,52 +1,148 @@
 {% extends "layout.html" %}
 
-{% block title %}RentRocket.org: Know the total cost of your next rental.{% endblock %}
+{% block title %}RentRocket.org{% endblock %}
 
 {% block content %}
 
-<div class="page-background">
-</div>
-<div class="page">
-
-  <div class="leftcolumn">
-
-    <h1>Searching for a new apartment? RentRocket helps you compare the total monthly cost of a rental, including utilities, so you know what expenses to expect.</h1>
-  </div>
-
-  <div class="rightcolumn">
-    <div id="quick-form">
-      <h5 class="centered">That's our goal...</h5>
-      <h5>We need your help collecting information. Please tell us about your current apartment:</h5>
-      <h5 class="centered"></h5>
-      
-      <form action="{{ action_url }}" method="post">
-        {% csrf_token %}
-
-        {% include "simple_form_pt1.html" with form=form %}
+    <!-- Main cover image with call to action -->
+    <div class="coverImage">
+      <div class="container heroContainer">
+        <h1 class="heroText ">Smarter Housing</h1>
+        <div class="row">
+          <div class="col-md-4 col-md-offset-2">
+            <center>
+              <a href="/city/">
+              <button class="dropshadow btn btn-primary btn-lg btn-spacers ">
+                <img class="btn-icon" src="/static/img/home87.png" width="61" height="25">
+                FIND A RENTAL</button>
+              </a>
+            </center>
+              
+          </div>
+          <div class="col-md-4">
+            <center>
+              <a href="#share-data">
+                <button class="btn btn-primary btn-lg btn-spacers dropshadow">
+                  <img class="btn-icon" src="/static/img/search103.png" width="58" height="25">
+                  SHARE YOUR DATA</button>
+              </a>
+            </center>
+              
+          </div>
+        </div>
         
-        {% include "simple_form_pt2.html" with form=form %}
-        
-        <div style="clear: both">&nbsp;</div>
-
-      </form>
-      
-      
+      </div>
     </div>
 
-    <div class="centered section"><a class="big-link" href="/information">Find out more...</a></div>
-
     
-  </div>
+       
+          <div class="horiz-line">
+            <span class="div-text">
+             Let's Create <span class="greener">Greener</span> Communities
+            </span>
+          </div>
 
-  <div class="centered">
-    <h3>Search Apartments:</h3>
-    <input id="map-search"><button>Search</button>
-  </div>
+    <div class="container">
+      <div class="row">
+        <a href="/city/">
+          <div class="col-xs-6 col-sm-3">
+            <center>
+              <img class="info-circles" src="/static/img/action-map.png" width="120" height="120"><br>
+              <span class="info-caption">Find a rental<br>using our map</span>
+            </center>
+          </div>
+        </a>
+
+        <a href="#share-data">
+          <div class="col-xs-6 col-sm-3">
+            <center>
+              <img class="info-circles" src="/static/img/action-bulb.png" width="120" height="120">
+              <br>
+              <span class="info-caption">Share your<br>energy data</span>
+            </center>
+          </div>
+        </a>
+        
+        <a href="/about">
+          <div class="col-xs-6 col-sm-3">
+            <center>
+              <img class="info-circles" src="/static/img/action-about.png" width="120" height="120"><br>
+              <span class="info-caption">Learn more about<br>RentRocket</span>
+            </center>
+          </div>
+        </a>
+        
+        <a href="/listing/new">
+          <div class="col-xs-6 col-sm-3">
+            <center>
+              <img class="info-circles" src="/static/img/action-rent.png" width="120" height="120"><br>
+              <span class="info-caption">List a <br>Rental</span>
+            </center>
+          </div>
+        </a>
+        
+      </div>
+    </div> <!-- /container -->
+   
+        <div class="next-home"><span class="vcenter"><img class="btn-icon" src="/static/img/key105.png" width="56" height="25">Find Your Next Home Today</span></div>
+        <div class="staticmap">
+
+          {% load navigation %}
+          {% make_city_select %}
+          
+        </div> 
+
+
+
+        <a id="share-data">
+          <div class="horiz-line">
+            <img height="30" width="30" src="/static/img/industry3.png">
+          </div>
+        </a>
+
+        <div class="container-fluid">
+          <div class="col-sm-6">
+            
+              <div class="banner-form">Help By Sharing Your Energy Data</div>
+              <div class="formtainer">
+                
+                {% include "simple_form.html" %}
+                
+              </div>
+          </div>
+            
+
+        
+          <div class="row">
+            <div class="col-sm-6 social">
+              <div class="banner">Tell a Friend</div>
+              <div class="row">
+                <div class="banner-networks">
+                  <div id="fb-root"></div>
+                  <div class="col-xs-4">
+                    <a href="" onclick="FB.ui({
+  method: 'share',
+  href: 'http://rentrocket.org/facebook',
+}, function(response){});"><img class="info-circles-social" src="/static/img/social-fab-og.png" width="60" height="60"></a>
+                  </div>
+                  
+                  <div class="col-xs-4"> 
+                    <a href="https://twitter.com/intent/tweet?text=I%20just%20compared%20my%20utility%20costs%20with%20other%20%23rentals.%20Be%20%23green.%20Be%20%23sustainable.%20http%3A%2F%2Frentrocket.org%2Ftwitter%20%40rentrocket" target="_newtab"><img class="info-circles-social" src="/static/img/social-tw-og.png" width="60" height="60"></a>
+                  </div>
+                  <div class="col-xs-4">
+                    <a href="https://plus.google.com/share?url=http%3A%2F%2Frentrocket.org%2Fgplus" target="_newtab"><img class="info-circles-social" src="/static/img/social-gplus.png" width="60" height="60"></a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div> <!-- row -->
+
+        </div>
   
-    
 
-<br>
-</div>
+        
+        
+      
 {% endblock %} {# content #}
 
 {% block require %}
@@ -69,16 +165,35 @@
     }
   });
 
-  $('#map-search').autocomplete({
-    serviceUrl: '/building/search/',
-    minChars: 4,
-    onSelect: function(suggestion) {
-      //console.log("chose: ", suggestion.data);
-      //window.location.href = '/building/' + suggestion.data + '/' + city_tag ;
-    }
-  });
-  
 </script>
+
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>          
+
+<script>
+      window.fbAsyncInit = function() {
+        FB.init({
+          appId      : 'your-app-id',
+          xfbml      : true,
+          version    : 'v2.1'
+        });
+      };
+
+      (function(d, s, id){
+         var js, fjs = d.getElementsByTagName(s)[0];
+         if (d.getElementById(id)) {return;}
+         js = d.createElement(s); js.id = id;
+         js.src = "//connect.facebook.net/en_US/sdk.js";
+         fjs.parentNode.insertBefore(js, fjs);
+       }(document, 'script', 'facebook-jssdk'));
+</script>
+
+<script >
+  window.___gcfg = {
+    lang: 'en-US',
+    parsetags: 'onload'
+  };
+</script>
+<script src="https://apis.google.com/js/platform.js" async defer></script>
 
 {% endblock %}
 

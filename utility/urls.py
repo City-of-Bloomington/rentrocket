@@ -8,9 +8,6 @@ urlpatterns = patterns(
     url(r'secret2/$', views.secret2),
     url(r'secret/$', views.secret),
 
-    url(r'upload/in/bloomington/(?P<bldg_tag>\w+)/$', views.upload_bloomington),
-    url(r'upload/in/bloomington/$', views.upload_bloomington),
-
     #url(r'upload/(?P<state>\w+)/(?P<city_name>\w+)/(?P<bldg_tag>\w+)/(?P<unit_tag>\w+)/$', views.upload),
     #url(r'upload/(?P<state>\w+)/(?P<city_name>\w+)/(?P<bldg_tag>\w+)/$', views.upload),
     #url(r'upload/(?P<state>\w+)/(?P<city_name>\w+)/$', views.upload),
