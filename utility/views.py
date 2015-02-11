@@ -21,7 +21,7 @@ from building.models import Building, Unit, BuildingPerson, find_by_tags, UTILIT
 
 from city.models import City, to_tag, all_cities
 from utility.models import StatementUpload, Statement, CityServiceProvider, UtilitySummary, ServiceProvider
-from rentrocket.helpers import get_client_ip
+from rentrocket.helpers import get_client_ip, thankyou_url
         
 #from filetransfers.api import prepare_upload
 from google.appengine.ext.blobstore import create_upload_url
@@ -259,16 +259,17 @@ def handle_json(request, city_tag=None, bldg_tag=None, unit_tag=None):
 def save_json(request, city_tag=None, bldg_tag=None, unit_tag=None):
     """
     very similar functionality to edit() POST processing...
+
     TODO:
-    not sure if it's possible to combine
+    is it possible to combine/abstract any functionality with edit()?
     """
     (city, building, unit) = find_by_tags(city_tag, bldg_tag, unit_tag)
 
     if request.is_ajax():
         if request.method == 'POST':
             data = json.loads(request.body)
-            print data
-            print building.id, unit.id
+            #print data
+            #print building.id, unit.id
             if data['utility']:
                 other_company = None
                 provider = None
@@ -416,14 +417,6 @@ def parse_form_providers(form):
 def edit(request, city_tag=None, bldg_tag=None, unit_tag=None):
     (city, building, unit) = find_by_tags(city_tag, bldg_tag, unit_tag)
 
-    #we want a unit,
-    #even if it is the default / hidden one for a building with one unit
-    ## if not unit:
-    ##     for bldg_unit in building.units.all():
-    ##         if not bldg_unit.number:
-    ##             unit = bldg_unit
-    #moved this functionality to find_by_tags
-
     results = ''
     #UtilityFormSet = formset_factory(UtilityOneRowForm, extra=12)
     UtilityFormSet = formset_factory(UtilityOneRowForm, extra=0)
@@ -436,8 +429,8 @@ def edit(request, city_tag=None, bldg_tag=None, unit_tag=None):
         meta.fields['utility_provider'].choices = provider_names
         utility_set = UtilityFormSet(request.POST, prefix='months')
 
-        if meta.is_valid() and utility_set.is_valid(): # All validation rules pass
-
+        if meta.is_valid() and utility_set.is_valid(): 
+            # All validation rules pass
             errors = False
 
             (provider, company_name) = parse_form_providers(meta)
@@ -462,7 +455,7 @@ def edit(request, city_tag=None, bldg_tag=None, unit_tag=None):
                     if subset.count():
                         #already have something in the database...
                         #look at that and update accordingly
-                        print "Updating existing entry:"
+                        #print "Updating existing entry:"
 
                         #following equivalent?
                         summary = subset[0]
@@ -523,7 +516,9 @@ def edit(request, city_tag=None, bldg_tag=None, unit_tag=None):
             #that message should include options to share, tweet, etc
             
             #in chrome, the original post url stays in the address bar...
-            finished_url = reverse('utility.views.thank_you')
+            #finished_url = reverse('utility.views.thank_you')
+            finished_url = thankyou_url(unit)
+
             return redirect(finished_url)
 
     else:

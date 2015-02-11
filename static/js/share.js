@@ -9,10 +9,15 @@ Simple javascript helper to only show rent amount when rent selected
   function appViewModel() {
     var self = this;
     
-    self.property_type = ko.observable();
-    
+    self.property_type = ko.observable("true");
+    //self.property_type = ko.observable();
+
+    //not necessary when property_type is set by a check box
     self.show_rent = ko.computed(function() {
-      if (self.property_type() === "rental") {
+      //console.log(self.property_type());
+      if (self.property_type() === "true") {
+      //if (self.property_type() === "rental") {
+      //if (self.property_type()) {
 	return true;
       }
       else {

@@ -16,9 +16,11 @@ from django.shortcuts import render, redirect
 from django.forms.util import ErrorList
 from django.contrib import messages
 
-#from rentrocket.helpers import address_search
+from rentrocket.helpers import thankyou_url
 from building.models import search_building
 from building.views import validate_building_and_unit, NewBuildingForm
+
+from utility.models import add_utility_average_to_unit
 
 from allauth.account.forms import SignupForm
 
@@ -100,17 +102,35 @@ class ShareForm(forms.Form):
     #now = datetime.now()
     #years = range(now.year, now.year-30, -1)
     #print years
+
+    ## YES_OR_NO = (
+    ##     (True, 'Yes'),
+    ##     (False, 'No')
+    ##     )
+
+    ## TRUE_OR_FALSE = (
+    ##     (True, 'true'),
+    ##     (False, 'false')
+    ##     )
+
+    TRUE_OR_FALSE = (
+        ('true', 'true'),
+        ('false', 'false')
+        )
+        
     
-    property_type = forms.ChoiceField(choices=DWELLING_CHOICES, widget=forms.Select(attrs={'data-bind':"value: property_type"}))
-    rent = forms.FloatField(widget=forms.TextInput(attrs={'size': '9'}), required=False)
+    #property_type = forms.ChoiceField(choices=DWELLING_CHOICES, widget=forms.Select(attrs={'data-bind':"value: property_type"}))
+    is_rental = forms.ChoiceField(widget=widgets.RadioSelect(choices=TRUE_OR_FALSE, attrs={'data-bind':"checked: property_type"}), choices=TRUE_OR_FALSE, required=False)
+
+    rent = forms.FloatField(widget=forms.TextInput(attrs={'class':'form-control', 'type':'number'}), required=False)
     
     #bedrooms = forms.ChoiceField(widget=widgets.RadioSelect(choices=BEDROOMS), choices=BEDROOMS, required=False)
-    #bedrooms = forms.IntegerField(required=True)
-    bedrooms = forms.ChoiceField(choices=BEDROOM_CHOICES, label='# of Bedrooms', required=True)
+    bedrooms = forms.IntegerField(widget=forms.TextInput(attrs={'class':'form-control', 'required': '', 'type':'number'}), required=True)
+    #bedrooms = forms.ChoiceField(choices=BEDROOM_CHOICES, label='# of Bedrooms', required=True)
 
-    electricity = forms.FloatField(widget=forms.TextInput(attrs={'size': '9'}), required=False)
+    electricity = forms.FloatField(widget=forms.TextInput(attrs={'class':'form-control', 'type':'number'}), required=False)
 
-    gas = forms.FloatField(label='Natural Gas', widget=forms.TextInput(attrs={'size': '9'}), required=False)
+    gas = forms.FloatField(label='Natural Gas', widget=forms.TextInput(attrs={'class':'form-control', 'type':'number'}), required=False)
 
 
 def share_data(request):
@@ -146,12 +166,15 @@ def share_data(request):
                 #although once this is on django 1.7:
                 #https://docs.djangoproject.com/en/dev/ref/forms/api/#django.forms.Form.add_error
                 for error in result.errors:
-                    print "Adding error: %s" % error
+                    #print "Adding error: %s" % error
                     errors.append(error)
 
             #should already be errors if not result.building, 
             #so this could just be else, but this is more clear:
             elif result.building and result.unit:
+                print
+                print "Found building!"
+                print
 
                 #TODO
                 #consider filling in any empty fields in the form
@@ -170,7 +193,17 @@ def share_data(request):
 
                     #now check if rental / rent combo is complete...
                     #custome validation check
-                    if shareform.cleaned_data['property_type'] == 'rental':
+                    ## if shareform.cleaned_data['property_type'] == 'rental':
+                    ##     result.unit.status = 'rented'
+                    ##     if not shareform.cleaned_data['rent']:
+                    ##         shareform.errors['rent'] = "Please specify the rent."
+                    ##         errors = True
+                    ##     else:
+                    ##         result.unit.rent = shareform.cleaned_data['rent']
+                    ## else:
+                    ##     result.unit.status = 'owner-occupied'
+
+                    if shareform.cleaned_data['is_rental'] == 'true':
                         result.unit.status = 'rented'
                         if not shareform.cleaned_data['rent']:
                             shareform.errors['rent'] = "Please specify the rent."
@@ -186,28 +219,25 @@ def share_data(request):
 
                     if not errors:
                         #save what ever we have
-                        result.unit.bedroom = shareform.cleaned_data['bedrooms']
+                        
+                        #also add these to the current month
+                        #for that utility type.
+                        #that way data will persist if other monthly data added
+                        result.unit.bedrooms = shareform.cleaned_data['bedrooms']
                         if not shareform.cleaned_data['electricity'] is None:
-                            result.unit.average_electricity = shareform.cleaned_data['electricity']
+                            #this won't track supplied averages over time:
+                            #result.unit.average_electricity = shareform.cleaned_data['electricity']
+                            add_utility_average_to_unit(result.unit, shareform.cleaned_data['electricity'], 'electricity')
                         if not shareform.cleaned_data['gas'] is None:
-                            result.unit.average_gas = shareform.cleaned_data['gas']
+                            #result.unit.average_gas = shareform.cleaned_data['gas']
+                            add_utility_average_to_unit(result.unit, shareform.cleaned_data['gas'], 'gas')
 
                         result.unit.save_and_update(request)
 
-                        #redirect to unit details page with an edit message
-                        #TODO:
-                        #redirect to thank you page instead!
-
                         messages.add_message(request, messages.INFO, 'Saved changes to unit.')
-                        if result.unit.tag:
-                            finished_url = reverse('building.views.unit_details', kwargs={'city_tag':result.building.city.tag, 'bldg_tag':result.building.tag, 'unit_tag':result.unit.tag})
-                        else:
-                            finished_url = reverse('building.views.unit_details', kwargs={'city_tag':result.building.city.tag, 'bldg_tag':result.building.tag})
-
-
-
-                        thank_you = "/simple-thankyou?next=%s" % quote(finished_url)
-
+                        
+                        thank_you = thankyou_url(request.unit)
+                        
                         #args=(updated.building.tag, city.tag, updated.tag)
                         #return redirect(finished_url)
                         return redirect(thank_you)
@@ -223,7 +253,9 @@ def share_data(request):
 
     else:
         bldgform = NewBuildingForm(prefix='building')
+        #shareform = ShareForm(prefix='share', initial={'is_rental': True})
         shareform = ShareForm(prefix='share')
+        
         
     #view_url = reverse('utility.views.upload_handler')
     view_url = request.path

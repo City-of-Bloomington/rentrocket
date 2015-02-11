@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "layout-padded.html" %}
 
 {% block title %}{{ unit.full_address }} {% endblock %}
 
@@ -8,13 +8,14 @@
 {% endblock %}
 
 
-{% block content %}
+{% block subcontent %}
 
-<div class="leftcolumn">
+<div id="building_details">
+  <div class="leftcolumn">
 
-  <h2 id="address">{{ unit.full_address_with_link|safe }}</h2> 
-
-  {% include "edit_unit.html" with building=building unit=units|first %}
+  <h2 id="address">{{ unit.full_address_with_link|safe }}
+    {% include "edit_unit.html" with building=building unit=units|first %}
+  </h2>
   
   <div class="details">
     <h4>Details</h4>
@@ -60,17 +61,11 @@
   
 </div>
 
-<div class="leftcolumn">
 </div>
-
-<div class="rightcolumn">
-</div>
-
 
 {% endblock %} {# content #}
     
 {% block script %}
-<script type="text/javascript">
-  require(['building'], function(building) {});
-</script>
+<script type="text/javascript" src="/static/js/lib/knockout-2.2.1.js"></script>
+<script type="text/javascript" src="/static/js/building.js"></script>
 {% endblock %}

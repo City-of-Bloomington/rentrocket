@@ -1,6 +1,7 @@
 @charset "UTF-8";
 @import 'globals.less';
 @import 'autocomplete.less';
+
 @import url(http://fonts.googleapis.com/css?family=Open+Sans:300,400,700);
 .formtainer {
   color: #7a7a7a; }
@@ -5689,5 +5690,23 @@ input[type="radio"]:checked {
     width: 43%;
     display: inline-block;
     vertical-align: top;
+}
+
+.error, .errorlist {
+    color: @red;
+    list-style-type: none; 
+    //display: inline-block;
+    //text-align: center;
+}
+
+.messages {
+    list-style: none;
+    padding-left: 0px;
+}
+
+.info {
+    list-style-type: none; 
+    color: #7DB018;
+    font-size: 20px;
 }
 

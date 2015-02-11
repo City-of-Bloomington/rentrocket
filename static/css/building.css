@@ -19,7 +19,7 @@ body:after {
   margin: 0px;
   margin-left: .5em;
   padding: 0px;
-  vertical-align: super;
+  vertical-align: middle;
 }
 #image_nav {
   float: left;
@@ -132,6 +132,9 @@ li.action {
   text-align: center;
   width: 100%;
 }
+.clear {
+  clear: both;
+}
 .threecolumn {
   display: inline;
   float: left;
@@ -148,6 +151,12 @@ li.action {
   display: inline;
   float: left;
   width: 47.91666666666667%;
+  margin: 0 1.0416666666666665%;
+}
+.onecolumn {
+  display: inline;
+  float: left;
+  width: 97.91666666666666%;
   margin: 0 1.0416666666666665%;
 }
 @media screen and (max-width: 720px) {

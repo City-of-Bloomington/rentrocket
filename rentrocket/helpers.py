@@ -1,12 +1,30 @@
 import re, copy
+from urllib import quote
 
 from django.core import exceptions
+from django.core.urlresolvers import reverse
 from django.db import models
 from django import forms
 from django.utils.text import capfirst
 from south.modelsinspector import add_introspection_rules
 
 from geopy.geocoders import GoogleV3
+
+
+def thankyou_url(unit):
+    """
+    make a url that shows a common thank you message
+    and provides links back to unit page
+    """
+    if unit.tag:
+        finished_url = reverse('building.views.unit_details', kwargs={'city_tag':unit.building.city.tag, 'bldg_tag':unit.building.tag, 'unit_tag':unit.tag})
+    else:
+        finished_url = reverse('building.views.unit_details', kwargs={'city_tag':unit.building.city.tag, 'bldg_tag':unit.building.tag})
+
+    thank_you_base = reverse('content.views.thankyou')
+    thank_you = "%s?next=%s" % (thank_you_base, quote(finished_url))
+
+    return thank_you
 
 
 #rentrocket/scripts 

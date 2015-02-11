@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 from building.models import Building, Unit, UTILITY_TYPES
 
@@ -13,6 +14,98 @@ from jsonfield import JSONField
 #water, sewer, storm water, gas, electricity, trash, recycling, compost, data, video, phone, data+video, video+phone, data+phone, data+video+phone, wifi
 
 #It would be nice to keep the nomenclature common across cities for analytical purposes.
+
+def add_utility_average_to_unit(unit, average, utility_type):
+    """
+    helper to add the average as this month's value
+    for the specified utility_type
+    to the specified unit
+
+    this way averages are tracked over time as a UtilitySummary
+    in case that is the only utility data supplied
+
+    otherwise, average would be updated and overwritten at the Unit level
+    every time it changes.
+    that seems lossy...
+    this is a way to track it.
+
+    if multiple average values are supplied in the same month
+    the last one will overwrite the previous one.
+
+    a lot of functional overlap with
+    utility.views.edit and utility.views.save_json
+
+    not seeing an easy way to abstract functionality from them yet. 
+    """
+    provider = None
+
+    city_provider_options = CityServiceProvider.objects.filter(city=unit.building.city)
+    matches = []
+    for cpo in city_provider_options:
+        for utility in cpo.provider.utilities.all():
+            if utility.type == utility_type:
+                matches.append(cpo.provider)
+
+    print "MATCHES: %s" % matches
+
+    if len(matches):
+        #first one should be default
+        provider = matches[0]
+    else:
+        #print "error finding utility_provider: %s matches" % len(provider_options)
+        pass
+
+    this_month = timezone.now().replace(day=1)
+
+    #look up the corresponding UtilitySummary model object
+    options = UtilitySummary.objects.filter(building=unit.building, unit=unit, type=utility_type, start_date=this_month)
+
+    updated = False
+    unit_updated = False
+
+    if options.count():
+        #"Updating existing entry:"
+        summary = subset[0]
+
+        #if different, apply and save changes
+        if summary.cost != average:
+            summary.cost = average
+            updated = True
+
+        if provider:
+            if summary.provider != provider:
+                summary.provider = provider
+                updated = True
+
+    else:
+        summary = UtilitySummary()
+        summary.building = unit.building
+        summary.unit = unit
+        summary.type = utility_type
+
+        #ideally, should set one of these
+        #we can only set here if we found a provider above
+        if provider:
+            summary.provider = provider
+
+        summary.start_date = this_month
+        summary.cost = average
+        updated = True
+
+    if updated:
+        #TODO:
+        #consider logging any changes to prevent data loss
+        summary.save()
+        #print "Changes saved"
+        unit_updated = True
+
+    #going to leave this up to caller:
+    ## if unit_updated:
+    ##     #this takes care of updating corresponding averages and scores
+    ##     unit.save_and_update(request)
+
+    return unit_updated
+
 
 
 class StatementUpload(models.Model):
@@ -97,14 +190,9 @@ class StatementUpload(models.Model):
 class ServiceProvider(models.Model):
     """
     AKA Vendor, Utility
-
-    If a ServiceProvider serves multiple utility types,
-    make separate entries for each...
-    seems cumbersome to do another relation for that
-    although... DRY...
     """
-    #gotta have this
     #TODO: name unique?
+    #gotta have a name:
     name = models.CharField(max_length=200)
     instructions = models.TextField(blank=True)
     website = models.TextField(blank=True)

@@ -60,3 +60,7 @@ ul {
 .radio {
   padding-right: .5em;
 }
+.radio input[type="radio"] {
+  position: relative;
+  margin-left: 0px;
+}

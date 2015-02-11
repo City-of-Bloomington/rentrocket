@@ -217,14 +217,14 @@ def search_geo(request, query=None, limit=100):
 ##     pass
 
 class ChooseUnitForm(forms.Form):
-    unit_text = forms.CharField(max_length=15, label='New Unit', required=False, widget=forms.TextInput(attrs={ 'placeholder': 'Apt #', 'size': '10' }))
+    unit_text = forms.CharField(max_length=15, label='New Unit', required=False, widget=forms.TextInput(attrs={ 'placeholder': 'Apt #', 'size': '10', 'class':'form-control' }))
 
     def __init__(self, *args, **kwargs):
         #extra = kwargs.pop('extra')
         choices = kwargs.pop('choices')
         super(ChooseUnitForm, self).__init__(*args, **kwargs)
         
-        self.fields['unit_select'] = forms.ChoiceField(choices, label='Available Units', required=False, widget=forms.Select(attrs={'onchange':"this.form.submit()"}))
+        self.fields['unit_select'] = forms.ChoiceField(choices, label='Available Units', required=False, widget=forms.Select(attrs={'onchange':"this.form.submit()", 'class':'form-control'}))
         
 
 class NewBuildingForm(forms.Form):
@@ -534,7 +534,7 @@ class BuildingForm(ModelForm):
             'bike_friendly': forms.RadioSelect(choices=YES_OR_NO),
             'walk_friendly': forms.RadioSelect(choices=YES_OR_NO),
             'transit_friendly': forms.RadioSelect(choices=YES_OR_NO),
-            'air_conditioning': forms.RadioSelect(choices=YES_OR_NO),
+            #'air_conditioning': forms.RadioSelect(choices=YES_OR_NO),
             'gym': forms.RadioSelect(choices=YES_OR_NO),
             'pool': forms.RadioSelect(choices=YES_OR_NO),
             'game_room': forms.RadioSelect(choices=YES_OR_NO),

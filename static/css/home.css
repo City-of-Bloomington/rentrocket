@@ -6813,3 +6813,17 @@ input[type="radio"]:checked {
   display: inline-block;
   vertical-align: top;
 }
+.error,
+.errorlist {
+  color: #dc322f;
+  list-style-type: none;
+}
+.messages {
+  list-style: none;
+  padding-left: 0px;
+}
+.info {
+  list-style-type: none;
+  color: #7DB018;
+  font-size: 20px;
+}

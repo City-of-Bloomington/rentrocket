@@ -1389,15 +1389,6 @@ class Unit(models.Model, ModelDiffMixin):
         if self.energy_score != original_energy_score:
             self.save()
 
-    def url_tag(self):
-        """
-        return tag encoded as a url string... often needed with '#' in tag
-
-        might be better to just get rid of '#' in tags,
-        since they cause such a mess in urls
-        """
-        return urlencode(self.tag)
-    
     def update_averages(self):
         """
         go through all associated utility statements
@@ -1471,6 +1462,15 @@ class Unit(models.Model, ModelDiffMixin):
             if updated:
                 self.save()
                 
+    def url_tag(self):
+        """
+        return tag encoded as a url string... often needed with '#' in tag
+
+        might be better to just get rid of '#' in tags,
+        since they cause such a mess in urls
+        """
+        return urlencode(self.tag)
+    
     def unit_address(self):
         """
         check if we have an address or number set
@@ -1535,7 +1535,8 @@ class Unit(models.Model, ModelDiffMixin):
             
         #either it exists or it won't
         return self.tag
-
+    
+        
     def save_and_update(self, request):
         """
         there are now many steps to saving a unit 
