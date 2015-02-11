@@ -67,6 +67,7 @@ def make_city_select(context):
     ## if stored:
     ##     select_form.fields['choice'].initial = stored['tag']
 
+    initial = ''
     if stored:
         initial = stored['tag']
 
