@@ -14,7 +14,9 @@ from django.forms.util import ErrorList
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 
-from models import Building, Unit, Listing, BuildingPerson, ChangeDetails, search_building, RentHistory, find_by_tags
+from models import Building, Unit, BuildingPerson, ChangeDetails, search_building, RentHistory, find_by_tags
+
+#from listing.models import Listing
 
 from city.models import City, to_tag, all_cities
 from rentrocket.helpers import get_client_ip, address_search
@@ -534,7 +536,6 @@ class BuildingForm(ModelForm):
             'bike_friendly': forms.RadioSelect(choices=YES_OR_NO),
             'walk_friendly': forms.RadioSelect(choices=YES_OR_NO),
             'transit_friendly': forms.RadioSelect(choices=YES_OR_NO),
-            #'air_conditioning': forms.RadioSelect(choices=YES_OR_NO),
             'gym': forms.RadioSelect(choices=YES_OR_NO),
             'pool': forms.RadioSelect(choices=YES_OR_NO),
             'game_room': forms.RadioSelect(choices=YES_OR_NO),

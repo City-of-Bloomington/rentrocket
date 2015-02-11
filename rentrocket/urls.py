@@ -19,6 +19,7 @@ urlpatterns = patterns(
     url(r'^building/', include('building.urls')),
     url(r'^utility/', include('utility.urls')),
     url(r'^city/', include('city.urls')),
+    url(r'^listing/', include('listing.urls')),
 
 
     url(r'^content/', include('content.urls')),
