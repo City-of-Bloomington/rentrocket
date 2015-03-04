@@ -507,6 +507,9 @@ def tally_energy_total(building, source):
     for opt in [ ('average_electricity', 'who_pays_electricity'),
                  ('average_gas', 'who_pays_gas'), ]:
 
+        #TODO:
+        #consider using building.heat_source_details
+        #instead of or in addition to who_pays_gas."service not available"
         who_pays = getattr(building, opt[1])
         value = getattr(source, opt[0])
         if (who_pays == 'not_available'):
@@ -1315,6 +1318,7 @@ class Unit(models.Model, ModelDiffMixin):
 
         two main ways to generate a score...
         based on number of bedrooms or the total squarefeet
+        
         it is important to be consistent in the system
         we're going with bedrooms in hopes that it is more intuitive and
         also easier to get that information

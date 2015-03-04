@@ -171,7 +171,7 @@ def match_existing(request, query=None, city_tag=None, limit=100):
             #all_bldgs.append(render_as_json(request, building))
             all_bldgs.append( { 'value': building.address, 'data': { 'building_tag': building.tag, 'city_tag': building.city.tag } } )
 
-    print all_bldgs
+    #print all_bldgs
     #this is the format required by jquery.autocomplete (devbridge) plugin:
     bldg_dict = {'suggestions': all_bldgs}
         
@@ -200,7 +200,7 @@ def search_geo(request, query=None, limit=100):
             if option.has_key('place_total'):
                 all_options.append( { 'value': option['place_total'], 'data': option['place_total'] } )
 
-    print all_options
+    #print all_options
     #this is the format required by jquery.autocomplete (devbridge) plugin:
     options_dict = {'suggestions': all_options}
         

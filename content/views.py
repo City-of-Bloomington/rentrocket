@@ -172,9 +172,9 @@ def share_data(request):
             #should already be errors if not result.building, 
             #so this could just be else, but this is more clear:
             elif result.building and result.unit:
-                print
-                print "Found building!"
-                print
+                ## print
+                ## print "Found building!"
+                ## print
 
                 #TODO
                 #consider filling in any empty fields in the form
@@ -185,10 +185,15 @@ def share_data(request):
                 #print request.POST
                 if 'calculator.x' in request.POST or 'calculator.y' in request.POST:
                     show_calculator = True
-                    print "SHOWING CALCULATOR!!"
+                    #print "SHOWING CALCULATOR!!"
 
-                if shareform.is_valid(): # All validation rules pass
-
+                    
+                if not shareform.is_valid(): # All validation rules pass
+                    #print "FORM WAS NOT VALID"
+                    pass
+                else:
+                    #print "FORM WAS VALID"
+                    
                     errors = False
 
                     #now check if rental / rent combo is complete...
@@ -218,6 +223,7 @@ def share_data(request):
                     #or natural gas average bill amounts
 
                     if not errors:
+                        #print "NO ERRORS WITH RENTAL / RENT"
                         #save what ever we have
                         
                         #also add these to the current month
@@ -236,7 +242,7 @@ def share_data(request):
 
                         messages.add_message(request, messages.INFO, 'Saved changes to unit.')
                         
-                        thank_you = thankyou_url(request.unit)
+                        thank_you = thankyou_url(result.unit)
                         
                         #args=(updated.building.tag, city.tag, updated.tag)
                         #return redirect(finished_url)
@@ -289,7 +295,7 @@ def welcome(request):
     """
     #form = ShareForm()
     bldgform = NewBuildingForm(prefix='building')
-    simpleform = ShareForm(prefix='simple')
+    shareform = ShareForm(prefix='share')
         
     #view_url = reverse('utility.views.upload_handler')
     #view_url = request.path
@@ -308,7 +314,7 @@ def welcome(request):
         #'city': city_name,
         #'state': state,
         #'bldg': bldg_tag,
-        'form': simpleform,
+        'form': shareform,
         'bldgform': bldgform,
         #'results': results,
         'action_url': action_url, 

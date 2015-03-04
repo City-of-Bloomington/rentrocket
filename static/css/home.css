@@ -294,8 +294,8 @@ th {
 }
 @font-face {
   font-family: 'Glyphicons Halflings';
-  src: url(/fonts/bootstrap/glyphicons-halflings-regular.eot?1420741444);
-  src: url(/fonts/bootstrap/glyphicons-halflings-regular.eot?&1420741444#iefix) format("embedded-opentype"), url(/fonts/bootstrap/glyphicons-halflings-regular.woff?1420741444) format("woff"), url(/fonts/bootstrap/glyphicons-halflings-regular.ttf?1420741444) format("truetype"), url(/fonts/bootstrap/glyphicons-halflings-regular.svg?1420741444#glyphicons_halflingsregular) format("svg");
+  src: url(/static/fonts/bootstrap/glyphicons-halflings-regular.eot?1420741444);
+  src: url(/static/fonts/bootstrap/glyphicons-halflings-regular.eot?&1420741444#iefix) format("embedded-opentype"), url(/static/fonts/bootstrap/glyphicons-halflings-regular.woff?1420741444) format("woff"), url(/static/fonts/bootstrap/glyphicons-halflings-regular.ttf?1420741444) format("truetype"), url(/static/fonts/bootstrap/glyphicons-halflings-regular.svg?1420741444#glyphicons_halflingsregular) format("svg");
 }
 .glyphicon {
   position: relative;
