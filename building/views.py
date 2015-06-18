@@ -112,7 +112,8 @@ def lookup(request, lat1, lng1, lat2, lng2, city_tag=None, type="rental", limit=
         #(subjectively, this seems slower, or the same)
         #bq = Building.objects.all().filter(city=city).filter(latitude__gte=float(lat1)).filter(longitude__gte=float(lng1)).filter(latitude__lte=float(lat2)).filter(longitude__lte=float(lng2)).order_by('-energy_score')
         
-        #it may be better to provide all parameters to on call to filter:
+        #it may be better to provide all parameters on call to filter:
+        #(or it may not make a difference... query is not executed 
         bq = Building.objects.all().filter(city=city, latitude__gte=float(lat1), longitude__gte=float(lng1), latitude__lte=float(lat2), longitude__lte=float(lng2)).order_by('-energy_score')
 
     else:
@@ -208,16 +209,6 @@ def search_geo(request, query=None, limit=100):
 
 
 
-
-
-
-## def send_json(request, bldg_tag, city_tag):
-##     pass
-
-#not sure that this is necessary... edit suffices
-## def update(request, bldg_tag, city_tag):
-##     pass
-
 class ChooseUnitForm(forms.Form):
     unit_text = forms.CharField(max_length=15, label='New Unit', required=False, widget=forms.TextInput(attrs={ 'placeholder': 'Apt #', 'size': '10', 'class':'form-control' }))
 
@@ -238,46 +229,6 @@ class NewBuildingForm(forms.Form):
     #search_options = False
 
     unit_select_visible = False
-
-    #moving this logic into the controller
-    #it would be nice to have access to the search result for later checks
-    ## def clean(self):
-    ##     print "cleaning called!"
-    ##     cleaned_data = super(NewBuildingForm, self).clean()
-
-    ##     result = search_building(cleaned_data.get("address"))
-    ##     #result = search_building(cleaned_data.get("address"))
-    ##     #print result
-
-    ##     if result.errors:
-    ##         for error in result.errors:
-    ##             raise forms.ValidationError(error)
-
-    ##     # wait on creating... handle this in view:
-    ##     ## elif not result.building:
-    ##     ##     #we don't have something that matches an existing building
-    ##     ##     #should be ok to make a new one!
-    ##     ##     result = search_building(cleaned_data.get("address"), make=True)
-    ##     ##     if result.errors:
-    ##     ##         for error in result.errors:
-    ##     ##             raise forms.ValidationError(error)
-
-    ##     elif (not result.unit) and (result.building.units.count() > 1):
-    ##         #what about one unit, but unit.number != ''?
-    ##         #also want to add then
-    ##         self.unit_select_visible = True
-
-    ##         #self.__init__()
-    ##         #print dir(self.fields['unit_select'])
-    ##         #self.fields['unit_select'].choices = choices
-    ##         #self.unit_options = False
-    ##         #print "UNIT TEXT: ", self.unit_text
-
-    ##         raise forms.ValidationError("Please specify a unit or apartment number")
-
-    ##     #http://stackoverflow.com/questions/15946979/django-form-cleaned-data-is-none
-    ##     #must return cleaned_data!!
-    ##     return cleaned_data
 
 
 def validate_building_and_unit(request):
@@ -494,7 +445,7 @@ class BuildingForm(ModelForm):
                    'transit_friendly_details',
                    'transit_friendly_other',
 
-                   'smart_living',
+                   #'smart_living',
 
                                       
                    #amenities

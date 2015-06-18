@@ -336,7 +336,7 @@ def find_building(result):
 
     return [building, error]
 
-def lookup_building_with_geo(search_results, make=False, request=None):
+def lookup_building_with_geo(search_results, make=False, request=None, parcel_id=None):
     """
     address_search should have already happened... pass those results in
 
@@ -366,7 +366,7 @@ def lookup_building_with_geo(search_results, make=False, request=None):
         #print "Error: ", error
         if not building and not error and make:
             #(building, error) = make_building(result, request=request)
-            make_building(search_results, request=request)
+            make_building(search_results, request=request, parcel_id=parcel_id)
             building = search_results.building
             
         if building:
@@ -475,16 +475,34 @@ def find_by_tags(city_tag, bldg_tag, unit_tag='', default_unit=True):
             unit.save()
 
         #this doesn't seem to match when unit_tag is none
-        units = building.units.filter(tag=unit_tag)
-        if units.count():
-            unit = units[0]
-        elif default_unit:
+        found = False
+        if unit_tag:
+            units = building.units.filter(tag=unit_tag)
+            if units.count():
+                unit = units[0]
+                found = True
+        elif not found and default_unit:
             for bldg_unit in building.units.all():
                 if not bldg_unit.number:
                     unit = bldg_unit
+                    found = True
+
+        #might be a case where there is only one unit
+        #but that unit has a name / apartment number associated with it
+        #in that case, blank won't match, but we still want to return it
+        if not found:
+            if building.units.count() == 1:
+                unit = building.units[0]
+                found = True
+
+        #however, other functions may not require a unit to be returned...
+        #and may not specify one... not necessarily an error then.
+        ## if not found:
+        ##     #This is probably an error...
+        ##     #should always return a unit, even if one is not specified
+        ##     raise ValueError, "No unit found"
             
-            #could raise 404 if desired
-            #pass
+            
         
         #TODO:
         #not sure that this will work with unit_tag yet...
@@ -1161,7 +1179,8 @@ class Building(models.Model, ModelDiffMixin):
                 usuffix = usuffix.replace('#', '')
             else:
                 usuffix = ''
-                
+
+            #print "Checking if ->%s<- == ->%s<-" % (usuffix, suffix)
             if usuffix == suffix:
                 matches.append(unit)
 
@@ -1180,6 +1199,14 @@ class Unit(models.Model, ModelDiffMixin):
     or a Building might only have one Unit (1 to 1)
     """
     building = models.ForeignKey(Building, related_name="units")
+
+    #these are duplicated on the building
+    #so not strictly D.R.Y.
+    #however, keeping a copy of this here will facilitate map searches
+    #especially with the filter...
+    #filtering should probably switch to showing results on map as units
+    latitude = models.FloatField(default=0)
+    longitude = models.FloatField(default=0)
 
     #isn't the version on building sufficient??
     #it's not, especially in the case of multiple units in one building
@@ -1235,8 +1262,14 @@ class Unit(models.Model, ModelDiffMixin):
     #aka current_rent
     rent = models.FloatField(default=0)
 
+    #keeping a copy of this here, to assist with filtering...
+    #don't want to need to join on listing objects when filtering...
+    #will already need to join for building details
+    listing_available = models.DateTimeField(blank=True, null=True)
+    listing_rent = models.FloatField(default=0)
+
     #this is duplicated in a Listing:
-    deposit = models.FloatField(default=0)
+    #deposit = models.FloatField(default=0)
     
     #allow photos *(more than 1)* to be submitted for the listing
     #photos and floor plans will be handled by:

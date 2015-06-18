@@ -2,10 +2,15 @@
 """
 #
 # By: Charles Brandt [code at charlesbrandt dot com]
-# On: *2014.09.09 18:31:31 
+# On: *2015.04.25 13:46:11 
 # License: GPLv3
 
-go through data and find all unique apartment identifiers
+take each address for columbia rentals
+
+use columbia's site to look up electrical data
+
+parse that
+store it in rentrocket database
 
 """
 

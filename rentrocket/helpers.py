@@ -30,8 +30,16 @@ def thankyou_url(unit):
 #rentrocket/scripts 
 #python columbia-find_apartment_keys.py
 #[u'APT', u'UNIT', u'HOUSE', u'RM', u'HM', u'BLDG', u'LOT', u'TRLR', u'STE', u'SPK', u'DUP', u'ROOM', u'SUITE', u'HM1', u'OFC', u'GAR', u'HMRM', u'SHOP']
-unit_prefixes = ['unit', 'apartment', 'apt.', 'apt', 'suite', 'ste.', 'ste', 'trlr.', 'trlr', 'trailer', 'room', 'rm.', 'rm', ]
-unit_substitutes = { 'unit':'Unit', 'apartment':'Apt', 'apt':'Apt', 'apt.':'Apt', 'suite':"Ste", 'ste':"Ste", 'ste.':"Ste", 'trlr':"Trlr", 'trlr.':"Trlr", 'trailer':"Trlr", 'room':"Rm", 'rm':"Rm", 'rm.':"Rm" }
+
+#including BLDG here will often lead to multiple unit identifiers (an error)
+#unit_prefixes = ['unit', 'apartment', 'apt.', 'apt', 'suite', 'ste.', 'ste', 'trlr.', 'trlr', 'trailer', 'room', 'rm.', 'rm', 'bldg']
+#unit_substitutes = { 'apartment':'Apt', 'apt':'Apt', 'apt.':'Apt', 'bldg':'Bldg', 'suite':"Ste", 'ste':"Ste", 'ste.':"Ste", 'trlr':"Trlr", 'trlr.':"Trlr", 'trailer':"Trlr", 'room':"Rm", 'rm':"Rm", 'rm.':"Rm", 'unit':'Unit',  }
+
+## unit_prefixes = ['unit', 'apartment', 'apt.', 'apt', 'suite', 'ste.', 'ste', 'trlr.', 'trlr', 'trailer', 'room', 'rm.', 'rm']
+## unit_substitutes = { 'apartment':'Apt', 'apt':'Apt', 'apt.':'Apt', 'suite':"Ste", 'ste':"Ste", 'ste.':"Ste", 'trlr':"Trlr", 'trlr.':"Trlr", 'trailer':"Trlr", 'room':"Rm", 'rm':"Rm", 'rm.':"Rm", 'unit':'Unit',  }
+
+unit_prefixes = ['unit', 'apartment', 'apt.', 'apt', 'dup', 'suite', 'ste.', 'ste', 'trlr.', 'trlr', 'trailer', 'room', 'rm.', 'rm']
+unit_substitutes = { 'apartment':'Apt', 'apt':'Apt', 'apt.':'Apt', 'dup':'Dup', 'suite':"Ste", 'ste':"Ste", 'ste.':"Ste", 'trlr':"Trlr", 'trlr.':"Trlr", 'trailer':"Trlr", 'room':"Rm", 'rm':"Rm", 'rm.':"Rm", 'unit':'Unit',  }
 
 class SearchResults(object):
     """
@@ -304,20 +312,22 @@ def address_search(query, unit=''):
             result.unit_text = found_unit
             
             #google = geocoders.GoogleV3(scheme="http")
-            google = GoogleV3(scheme="http")
+            #google = GoogleV3(scheme="http")
+            google = GoogleV3(scheme="http", api_key='AIzaSyA4IdfaMTubt_BwFSOZcof9j0kM8NaI8WA')
 
-            try:
-                options = google.geocode(query, exactly_one=False)
-                if options:
-                    if isinstance(options[0], unicode):
-                        #must only have one... different format:
-                        (place, (lat, lng)) = options
+            #try:
+            result.query = query
+            options = google.geocode(query, exactly_one=False)
+            if options:
+                if isinstance(options[0], unicode):
+                    #must only have one... different format:
+                    (place, (lat, lng)) = options
+                    handle_place(result, place, lat, lng, found_unit)
+                else:
+                    for place, (lat, lng) in options:
                         handle_place(result, place, lat, lng, found_unit)
-                    else:
-                        for place, (lat, lng) in options:
-                            handle_place(result, place, lat, lng, found_unit)
-            except:
-                result.errors.append("Could not look up address location. There was a problem contacting Google")
+            #except:
+            #    result.errors.append("Could not look up address location. There was a problem contacting Google")
     #return matches, error, unit
     return result
 

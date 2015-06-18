@@ -45,23 +45,32 @@ class Listing(models.Model):
 
     lease_term = models.CharField(max_length=200, default="12 Months")
 
+    active = models.BooleanField(default=True)
+
+
+
+    #duplicating available_start and rent on unit with current listing
+    #that will make database lookups simpler
+    #but it will require coordination when adding a new listing.
+
     #optional
     available_start = models.DateTimeField()
     #might be useful for subleases:
     available_end = models.DateTimeField()
 
-    active = models.BooleanField(default=True)
-
     #these may be duplicated at the unit level:
-    #aka rent?
-    cost = models.FloatField()
-    cost_cycle = models.CharField(max_length=10, choices=CYCLE_CHOICES, default="month")
+    #aka rent? (previously cost)
+    rent = models.FloatField()
+
+
+
+    rent_cycle = models.CharField(max_length=10, choices=CYCLE_CHOICES, default="month")
     deposit = models.FloatField()
 
     description = models.TextField()
 
     #are pets allowed? if so what kind?
-    pets = models.CharField(max_length=200)
+    #pets = models.CharField(max_length=200)
 
     #what utilities are included: (to help estimate total cost)
     #

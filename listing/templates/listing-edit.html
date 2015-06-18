@@ -1,0 +1,36 @@
+{% extends "layout-padded.html" %}
+
+{% block title %}{{ building.address }}: Add Rental Listing{% endblock %}
+
+{% block custom_css %}
+    <link rel="stylesheet" href="/static/css/wide_form.css" type="text/css" media="screen" />
+{% endblock %}
+
+{% block subcontent %}
+
+<div class="page">
+
+<h2>{{ building.address }}</h2> 
+
+<p>{{ results|safe }}</p>
+
+<form action="{{ upload_url }}" method="POST" enctype="multipart/form-data" class="form-horizontal">
+  {% csrf_token %}
+
+  {{ form.non_field_errors }}
+
+  <p>New Listing:</p>
+
+  {% include "form_template.html" with form=listingform%}
+
+  <div class="col-sm-offset-3 col-sm-9">
+    <button type="submit" class="btn btn-success">Save</button>
+  </div>
+
+</form>
+
+</div>
+{% endblock %} {# content #}
+    
+{% block script %}
+{% endblock %}

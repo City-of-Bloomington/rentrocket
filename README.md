@@ -119,6 +119,7 @@ field type reference:
 https://docs.djangoproject.com/en/1.5/ref/models/fields/#django.db.models.CharField
 
     ./manage.py schemamigration building --auto
+    ./manage.py schemamigration listing --auto
     ./manage.py schemamigration city --auto
     ./manage.py schemamigration content --auto
     ./manage.py schemamigration inspection --auto
@@ -128,9 +129,12 @@ https://docs.djangoproject.com/en/1.5/ref/models/fields/#django.db.models.CharFi
     ./manage.py schemamigration source --auto
 
 
-    ./manage.py migrate utility
+    python ./scripts/make_service_providers.py
 
     ./manage.py migrate building
+    ./manage.py migrate listing
+
+    ./manage.py migrate utility
     ./manage.py migrate city
     ./manage.py migrate person
     ./manage.py migrate content
@@ -139,7 +143,6 @@ https://docs.djangoproject.com/en/1.5/ref/models/fields/#django.db.models.CharFi
     ./manage.py migrate source
     ./manage.py migrate allauth.socialaccount
 
-    python ./scripts/make_service_providers.py
     python ./scripts/make_cities.py
 
     #if enabled: (not currently)

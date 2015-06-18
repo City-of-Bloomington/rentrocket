@@ -119,6 +119,9 @@ def parse_person(text):
 def make_building(location, bldg_id, city, feed_source, parcel_id=None, bldg_type=None, no_units=None, sqft=None):
     """
     add the building to the database
+
+    #*2015.03.07 14:04:37 
+    #see search_building(bldgform.cleaned_data.get("address"), unit=unit, make=True)
     """
 
     full_city = '%s, IN, USA' % city.name
