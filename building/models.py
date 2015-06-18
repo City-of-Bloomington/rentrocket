@@ -492,7 +492,7 @@ def find_by_tags(city_tag, bldg_tag, unit_tag='', default_unit=True):
         #in that case, blank won't match, but we still want to return it
         if not found:
             if building.units.count() == 1:
-                unit = building.units[0]
+                unit = building.units.all()[0]
                 found = True
 
         #however, other functions may not require a unit to be returned...

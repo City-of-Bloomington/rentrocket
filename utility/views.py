@@ -746,7 +746,7 @@ def upload_simple(request, city_tag=None, bldg_tag=None, unit_tag=None):
     (provider_names, utility_providers) = make_provider_names(city)
     
     if request.method == 'POST':
-        print "form posted"
+        #print "form posted"
         form = UploadShortForm(request.POST, request.FILES)
         form.fields['utility_provider'].choices = provider_names
 
@@ -817,9 +817,10 @@ def upload_simple(request, city_tag=None, bldg_tag=None, unit_tag=None):
                 print 
 
         else:
-            print dir(form)
-            print form.errors
-            print "form did not validate"
+            #print dir(form)
+            #print form.errors
+            #print "form did not validate"
+            pass
 
     else:
         #form = UploadShortForm()

@@ -15,7 +15,7 @@ Columbia provides lat/long coordinates with addresses, so import should be simpl
 
 """
 
-import os, sys, codecs, re
+import os, sys, codecs, re, time
 import csv
 #import unicodecsv
 
@@ -63,6 +63,7 @@ conversions = { '101 HOLLY RIDGE LN': '101 HOLLYRIDGE LN',
                 '8 N KEENE ST BLDG G&H': '8 N KEENE ST',
                 '1704 HIGHRIDGE DR': '',
                 '2211 LACLEDE DR': '', 
+                '2405 FLORIDA CT': '',
                 }
 
 def unicode_csv_reader(utf8_data, dialect=csv.excel, **kwargs):
@@ -169,7 +170,7 @@ def read_csv(source_csv, city_name, city_tag):
                 pass
 
             #if you want to skip ahead more quickly:
-            if count < 25300:
+            if count < 26299:
                 pass
             else:
 
@@ -300,6 +301,8 @@ def read_csv(source_csv, city_name, city_tag):
                 if address_main:
                     print "APT_MAIN: ", apt_main
                     address = ", ".join( [address_main, apt_main] )
+                else:
+                    address = ''
 
                 owner_address = ", ".join([owner_address1, owner_address2, owner_city, owner_state, owner_zip])
 
@@ -318,11 +321,11 @@ def read_csv(source_csv, city_name, city_tag):
                     print "SKIPPING ITEM: %s" % row[1]
                     skips += 1
 
-                    skips = codecs.open("skips.txt", 'a', encoding='utf-8')
+                    skipf = codecs.open("skips.txt", 'a', encoding='utf-8')
                     original = " ".join([street_num, street_dir, street_name, street_sfx, qualifier_pre])
-                    skips.write(original)
-                    skips.write('\n')
-                    skips.close()
+                    skipf.write(original)
+                    skipf.write('\n')
+                    skipf.close()
 
                 else:
                     #check if we've started processing any results for this row
@@ -410,6 +413,8 @@ def read_csv(source_csv, city_name, city_tag):
 
                         (person, bldg_person) = make_person(owner_name, bldg, "Agent", address=owner_address)
 
+                    time.sleep(1)
+            
 
             if any_updated:
                 #back it up for later
