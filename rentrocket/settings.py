@@ -10,7 +10,7 @@ if BASE_DIR not in sys.path:
     sys.path.append(BASE_DIR)
 
 ADMINS = (
-    ('Admin', 'admin@rentrocket.org'),
+    #('Admin', 'admin@rentrocket.org'),
 )
 
 MANAGERS = ADMINS

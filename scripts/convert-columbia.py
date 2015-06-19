@@ -170,7 +170,7 @@ def read_csv(source_csv, city_name, city_tag):
                 pass
 
             #if you want to skip ahead more quickly:
-            if count < 26299:
+            if count < 26799:
                 pass
             else:
 
