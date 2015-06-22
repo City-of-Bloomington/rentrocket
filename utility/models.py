@@ -46,7 +46,7 @@ def add_utility_average_to_unit(unit, average, utility_type):
             if utility.type == utility_type:
                 matches.append(cpo.provider)
 
-    print "MATCHES: %s" % matches
+    #print "MATCHES: %s" % matches
 
     if len(matches):
         #first one should be default

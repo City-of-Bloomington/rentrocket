@@ -1475,7 +1475,7 @@ class Unit(models.Model, ModelDiffMixin):
                 else:
                     average = 0
 
-                print "calculated average for %s to be: %s" % (utility_type[0], average)
+                #print "calculated average for %s to be: %s" % (utility_type[0], average)
                 #don't overwrite with 0?
                 if average:
                     if utility_type[0] == 'gas':

@@ -541,7 +541,7 @@ def edit(request, city_tag=None, bldg_tag=None, unit_tag=None):
     #view_url = reverse('utility.views.upload_handler')
     view_url = request.path
 
-    print unit
+    #print unit
     context = {
         'city': city.name,
         #'state': state,

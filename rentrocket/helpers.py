@@ -313,8 +313,8 @@ def address_search(query, unit=''):
             
             #google = geocoders.GoogleV3(scheme="http")
             #google = GoogleV3(scheme="http", timeout=10)
-            #google = GoogleV3(scheme="http", api_key='AIzaSyA4IdfaMTubt_BwFSOZcof9j0kM8NaI8WA')
-            google = GoogleV3(scheme="http")
+            google = GoogleV3(scheme="http", api_key='AIzaSyA4IdfaMTubt_BwFSOZcof9j0kM8NaI8WA')
+            #google = GoogleV3(scheme="http")
 
             #try:
             result.query = query

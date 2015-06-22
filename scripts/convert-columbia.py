@@ -45,25 +45,25 @@ def usage():
 #for storing fixes for addresses:
 conversions = { '101 HOLLY RIDGE LN': '101 HOLLYRIDGE LN',
                 '4200 MERCHANT ST': '4200 MERCHANT STREET',
-                '3603 BERKSHIRE CT': '',
+                #'3603 BERKSHIRE CT': '',
+                '2405 FLORIDA CT': '2405 FLORIDA',
                 #works in google maps, but not here
                 #'1012 COLBY DR': '1012 Colby Drive',
                 '1012 COLBY DR': '',
                 #'3905 ATHENS CT': '',
-                '5402 GEMSTONE WAY': '',
-                '4802 MONITEAU CT': '',
+                #'3901 ATHENS CT': '',
                 #'4000 LAMAR CT': '',
-                '5513 HUNLEY CT': '',
                 #'3902 CAMERON CT': '',
+                #'1708 PERKINS DR': '',
+                #'4802 MONITEAU CT': '',
                 '8 N KEENE ST BLDG E&F': '8 N KEENE ST',
                 '7000 N BUCKINGHAM SQ': '7000 N BUCKINGHAM SQUARE',
-                #'1708 PERKINS DR': '',
-                #'3901 ATHENS CT': '',
-                '1804 LIGHTVIEW DR': '',
                 '8 N KEENE ST BLDG G&H': '8 N KEENE ST',
+                '5513 HUNLEY CT': '5513 HUNLEY',
+                '1804 LIGHTVIEW DR': '',
                 '1704 HIGHRIDGE DR': '',
                 '2211 LACLEDE DR': '', 
-                '2405 FLORIDA CT': '',
+                '5402 GEMSTONE WAY': '',
                 }
 
 def unicode_csv_reader(utf8_data, dialect=csv.excel, **kwargs):
@@ -170,7 +170,7 @@ def read_csv(source_csv, city_name, city_tag):
                 pass
 
             #if you want to skip ahead more quickly:
-            if count < 26799:
+            if count < 27187:
                 pass
             else:
 
@@ -265,21 +265,26 @@ def read_csv(source_csv, city_name, city_tag):
                 #but there are too many of these to list there
                 if re.search('HOLLY RIDGE LN', address_main):
                     address_main = address_main.replace('HOLLY RIDGE LN', 'HOLLYRIDGE LN')
-                if re.search('BERKSHIRE', address_main):
-                    address_main = ''
-                if re.search('IMPERIAL CT', address_main):
-                    address_main = ''
-                if re.search('MONITEAU CT', address_main):
-                    address_main = ''
-                if re.search('LAMAR CT', address_main):
-                    address_main = ''
+                if re.search('BERKSHIRE CT', address_main):
+                    address_main = address_main.replace('BERKSHIRE CT', 'BERKSHIRE')
+                    #address_main = ''
                 if re.search('CAMERON CT', address_main):
+                    address_main = address_main.replace('CAMERON CT', 'CAMERON')
+                    #address_main = ''
+                if re.search('ATHENS CT', address_main):
+                    address_main = address_main.replace('ATHENS CT', 'ATHENS')
+                    #address_main = ''
+                if re.search('LAMAR CT', address_main):
+                    address_main = address_main.replace('LAMAR CT', 'LAMAR')
+                    #address_main = ''
+                if re.search('MONITEAU CT', address_main):
+                    address_main = address_main.replace('MONITEAU CT', 'MONITEAU')
+                    #address_main = ''
+                if re.search('IMPERIAL CT', address_main):
                     address_main = ''
                 if re.search('PERKINS DR', address_main):
                     address_main = ''
                 if re.search('GRANITE OAKS CT', address_main):
-                    address_main = ''
-                if re.search('ATHENS CT', address_main):
                     address_main = ''
                     
 
@@ -413,7 +418,7 @@ def read_csv(source_csv, city_name, city_tag):
 
                         (person, bldg_person) = make_person(owner_name, bldg, "Agent", address=owner_address)
 
-                    time.sleep(1)
+                    #time.sleep(1)
             
 
             if any_updated:
