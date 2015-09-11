@@ -14,3 +14,4 @@ content/templates/share.html.orig*
 rentrocket/settings.py
 geopy.orig
 geopy_full
+/google_appengine/
