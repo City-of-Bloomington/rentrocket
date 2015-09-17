@@ -1,0 +1,8 @@
+{% if "tenant" in who_pays or "tenant_via_landlord" in who_pays %}
+Separate
+{% elif "landlord" in who_pays %}
+Included
+{% elif "not_available" in who_pays  %}
+Service Not Available
+{% else %}
+{% endif %}

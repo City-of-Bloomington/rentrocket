@@ -15,6 +15,7 @@ from rentrocket.helpers import to_tag, MultiSelectField, check_result, address_s
 
 from urllib import urlencode
 
+
 #originally in utility/models.py
 #but they are needed here and this gets imported first
 UTILITY_TYPES = (
@@ -456,7 +457,7 @@ def find_by_tags(city_tag, bldg_tag, unit_tag='', default_unit=True):
     buildings = Building.objects.filter(city=city).filter(tag=bldg_tag)
     if buildings.count():
         building = buildings[0]
-        
+
         if not building.units.count():
             #temporary fix for incomplete buildings (no units)
             
@@ -952,7 +953,6 @@ class Building(models.Model, ModelDiffMixin):
             self.pets = False
 
         #saving is left to caller
-
     def update_rent_details(self):
         """
         call this after update utility averages
@@ -1328,6 +1328,15 @@ class Unit(models.Model, ModelDiffMixin):
         if total and self.sqft:
             cost_per_sqft = total * 1.0 / self.sqft
         return cost_per_sqft
+
+    def energy_total(self):
+        total, complete = tally_energy_total(self.building, self)
+
+        energy_total = 0
+        if total and self.rent:
+            energy_total = (total * 1.0) + (self.rent * 1.0)
+
+        return energy_total
 
     def cost_per_bedroom(self):
         total, complete = tally_energy_total(self.building, self)

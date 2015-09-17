@@ -1,0 +1,25 @@
+    <div class="panel panel-default" style="margin-top:20px;">
+      <!-- Default panel contents -->
+      <div class="panel-heading panel-det  text-center"><strong>Costs</strong></div>
+
+      <!-- Table -->
+      <table class="table">
+        <tbody><tr>
+          <td><strong>Current Rent</strong></td>
+          <td>${{ unit.rent|floatformat:2  }}</td>
+        </tr>
+        <tr>
+          <td><strong>Electricity</strong></td>
+          <td>${{building.average_electricity|floatformat:2}} <span class="badge pull-right">{% include "unit_who_pays.html" with who_pays=building.who_pays_electricity %}</span></td>
+        </tr>
+        <tr>
+          <td><strong>Natural Gas <span class="glyphicon glyphicon-fire" aria-hidden="true" data-toggle="tooltip" data-placement="top" title="" data-original-title="Gas Heat Source"></span></strong></td>
+          <td>${{building.average_gas|floatformat:2}} <span class="badge pull-right">{% include "unit_who_pays.html" with who_pays=building.who_pays_gas %}</span></td>
+        </tr>
+        <tr class="active">
+          <td><strong>Total</strong></td>
+          <td>${{unit.energy_totals|floatformat:2}} <small class="pull-right">(${{unit.cost_per_bedroom|floatformat:2}} per BR)</small></td>
+        </tr>
+
+      </tbody></table>
+    </div>
