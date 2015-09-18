@@ -1,0 +1,31 @@
+	<div class="panel panel-default">
+	<!-- Default panel contents -->
+	<div class="panel-heading panel-det  text-center"><strong>Contact</strong></div>
+
+	<!-- Table -->
+	<table class="table">
+	<tbody>
+    {% for bperson in building.people.all %}
+	<tr>
+		<td><strong>{{bperson.relation}}</strong></td>
+		<td>{{bperson.person.name}}</td>
+	</tr>
+	<tr>
+		<td><strong>Phone</strong></td>
+		<td>{{bperson.person.phone}}</td>
+	</tr>
+	<tr>
+		<td><strong>Email</strong></td>
+		<td>{{bperson.person.email}}</td>
+	</tr>
+	{% endfor %}
+	<tr>
+		<td><strong>Website </strong></td>
+		<td>
+			{% if building.website %}
+			<a href="{{ building.website }}" target="_blank">{{ building.website }}</a>
+			{% endif %}
+		</td>
+	</tr>
+	</tbody></table>
+	</div>

@@ -14,7 +14,7 @@
     <h4>{{units|length}} {% if units|length != 1 %}Units{% else %}Unit{% endif %} &#8226 {{building.sqft}} sq ft</h4>
       {% endif %}
 </center>
-<div id="building_details">
+<div class="container">
   <div class="leftcolumn">
     <div role="tabpanel text-center">
 
@@ -68,57 +68,22 @@
         </div>
     </div>
     {% include "unit_costs_snippet.html" with building=building unit=building.units.all|first %}
+    {% include "unit_contact_snippet.html" %}
+</div>
 
+<div class="rightcolumn tab-vert-offset">
+
+  {% include "unit_smartliving_snippet.html" %}
 
   {% include "amenities.html" %}
-
-</div>
-
-<div class="rightcolumn">
-
-  {% include "image_box.html" %}
-
-  {% include "smart_living.html" %}
-
-  {% include "contacts.html" %}
   
+  {% include "unit_edit_unit_snippet.html" %}
+
 </div>
 
 
-{% if units|length != 1 %}
-<div class="onecolumn">
-  <div class="details">
-    <h4>Units</h4>
 
-      {% for unit in units %}
-      <div class="{% cycle 'leftcolumn' 'rightcolumn' %}">
-	<h4 class="unit_number">
-	  <a href="{% url 'building.views.unit_details' city_tag=building.city.tag bldg_tag=building.tag unit_tag=unit.tag %}">
-	    {{ unit.unit_address }}
-	</a></h4> 
-
-	{% include "edit_unit.html" with building=building unit=unit %}
-
-	<div class="unit">
-	  {% if unit.rent %}
-	  Current rent: ${{ unit.rent|floatformat:2 }}<br>
-	  {% endif %}
-
-
-	  {% include "unit_snippet.html" with unit=unit %}
-	</div>
-	
-      </div>
-      {% endfor %}
-	
-    <div class="clear"></div>
-
-  </div>
-</div>
-
-{% endif %}
-
-</div> {# building-details #}
+</div> {# container #}
 
 
 {% endblock %} {# content #}
