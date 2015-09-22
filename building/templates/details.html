@@ -79,6 +79,16 @@
   
   {% include "unit_edit_unit_snippet.html" %}
 
+  {# this is different than edit_unit.html contents #}
+  <div class="edit">
+    {% if user.is_authenticated %}
+    <a href="/building/{{ building.tag }}/{{ building.city.tag }}/edit/">
+    {% else %}
+    <a href="/login/?{{ redirect_field }}=/building/{{ building.tag }}/{{ building.city.tag }}/edit/">
+    {% endif %}
+  
+
+  
 </div>
 
 

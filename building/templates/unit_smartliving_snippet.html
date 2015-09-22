@@ -5,30 +5,28 @@
   <!-- Table -->
   <table class="table">
     <tbody>
+
+    {% if building.recycling %}
     <tr>
     	<td><strong>Recycling</strong></td>
     	<td style="width: 75%;">{% if building.recycling %}Yes{% else %}No{% endif %}</td>
     </tr>
+    {% endif %}
+
+    {% if building.composting %}
     <tr>
     	<td><strong>Composting</strong></td>
     	<td>{% if building.composting %}Yes{% else %}No{% endif %}</td>
     </tr>
-    <tr>
-    	<td><strong>Yard/Garden</strong></td>
-    	<td>{% include "list_of_items.html" with options=building.garden_details name="Garden Options" other=building.garden_other %}</td>
-    </tr>
-    <tr>
-    	<td><strong>Walk Friendly</strong></td>
-    	<td>{% include "list_of_items.html" with options=building.walk_friendly_details name="Walk Friendly" other=building.walk_friendly_other %}</td>
-    </tr>
-    <tr>
-    	<td><strong>Bike Friendly</strong></td>
-    	<td>{% include "list_of_items.html" with options=building.bike_friendly_details name="Bike Friendly" other=building.bike_friendly_other %}</td>
-    </tr>
-    <tr>
-    	<td><strong>Transit Friendly</strong></td>
-    	<td>{% include "list_of_items.html" with options=building.transit_friendly_details name="Transit Friendly" other=building.transit_friendly_other %}</td>
-    </tr>
+    {% endif %}
+
+    {% include "list_of_items.html" with options=building.garden_details name="Yard/Garden" other=building.garden_other %}
+
+    {% include "list_of_items.html" with options=building.walk_friendly_details name="Walk Friendly" other=building.walk_friendly_other %}
+
+    {% include "list_of_items.html" with options=building.bike_friendly_details name="Bike Friendly" other=building.bike_friendly_other %}
+
+    {% include "list_of_items.html" with options=building.transit_friendly_details name="Transit Friendly" other=building.transit_friendly_other %}
 
   </tbody></table>
 </div>

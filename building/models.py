@@ -907,6 +907,27 @@ class Building(models.Model, ModelDiffMixin):
     tag = models.CharField(max_length=200, default='')
 
 
+    def amenities_other(self):
+        """
+        combine many amenities into a single list...
+        these are less common, so it makes sense to group them together
+        """
+        results = []
+        if self.gym:
+            results.append('Gym')
+
+        if self.pool:
+            results.append('Pool')
+
+        if self.game_room:
+            results.append('Game Room')
+
+        if self.amenities:
+            results.extend(self.amenities.split(','))
+
+        return results
+            
+
     def set_booleans(self):
         """
         #update any summary boolean fields here
@@ -1350,6 +1371,26 @@ class Unit(models.Model, ModelDiffMixin):
                 cost_per_bedroom = total * 1.0 / self.bedrooms
                 
         return cost_per_bedroom
+
+    def total_cost_per_bedroom(self):
+        """
+        include rent in this calculation
+        """
+        total, complete = tally_energy_total(self.building, self)
+
+        cost_per_bedroom = 0
+        if total and self.bedrooms:
+            if self.rent:
+                total += self.rent
+
+            #handle studios:
+            if self.bedrooms == -1:
+                cost_per_bedroom = total * 1.0 / (self.bedrooms * -1)
+            else:
+                cost_per_bedroom = total * 1.0 / self.bedrooms
+                
+        return cost_per_bedroom
+        
 
     def update_energy_score(self, bedrooms=True):
         """

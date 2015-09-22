@@ -1,5 +1,10 @@
     {% if options and options|first%}
-      {% for option in options %}
-      <span class="badge ">{{option}}</span>  
-      {% endfor %}
+    <tr>
+      <td><strong>{{ name }}</strong></td>
+      <td>
+        {% for option in options %}
+        <span class="badge ">{{option}}</span>  
+        {% endfor %}
+      </td>
+    </tr>
     {% endif %}

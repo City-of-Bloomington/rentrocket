@@ -4,17 +4,23 @@
 
 <!-- Table -->
 <table class="table">
-<tbody><tr>
-    <td><strong>A/C</strong></td>
-    <td style="width: 75%;">{% if building.air_conditioning %}Yes{% else %}No{% endif %}</td>
-</tr>
-<tr>
-    <td><strong>Laundry</strong></td>
-    <td>{% if building.laundry %}<span class="badge ">{{building.laundry}}</span>{% endif %}</td>
-</tr>
-<tr>
-    <td><strong>Parking</strong></td>
-    <td>{% include "list_of_items.html" with options=building.parking_options %}</td>
-</tr>
-</tbody></table>
+  <tbody>
+
+    <tr>
+      <td><strong>A/C</strong></td>
+      <td style="width: 75%;">{% if building.air_conditioning %}Yes{% else %}No{% endif %}</td>
+    </tr>
+
+    <tr>
+      <td><strong>Laundry</strong></td>
+      <td>{% if building.laundry %}<span class="badge ">{{building.laundry}}</span>{% else %}No{% endif %}</td>
+    </tr>
+
+     {% include "list_of_items.html" with options=building.parking_options name="Parking" other="" %}
+
+     {% include "list_of_items.html" with options=building.pets_options name="Pets" other=building.pets_other %}
+
+     {% include "list_of_items.html" with options=building.amenities_other name="Other" %}     
+    
+  </tbody></table>
 </div>

@@ -152,7 +152,8 @@ def match_existing(request, query=None, city_tag=None, limit=100):
 
     all_bldgs = []
     if not query:
-        print "Empty query... skipping"
+        #print "Empty query... skipping"
+        pass
         
     else:
         city = None
@@ -342,7 +343,7 @@ def new(request, query=None):
             if not result.city:
                 result.city = result.building.city
 
-            print result
+            #print result
             if (not result.unit) or (not result.unit.tag):
                 #redirect to building details with an edit message
                 if result.created:
@@ -358,7 +359,7 @@ def new(request, query=None):
                 else:
                     messages.add_message(request, messages.INFO, 'Located existing unit')
 
-                print "UNIT TAG: %s" % result.unit.tag
+                #print "UNIT TAG: %s" % result.unit.tag
                 finished_url = reverse('building.views.unit_details', args=(result.city.tag, result.building.tag, result.unit.tag))
 
             return redirect(finished_url)
@@ -610,7 +611,7 @@ def unit_edit(request, city_tag, bldg_tag, unit_tag=''):
             #args=(updated.building.tag, city.tag, updated.tag)
             return redirect(finished_url)
     else:
-        print unit
+        #print unit
         form = UnitForm(instance=unit)
         
     context = { 'building': building,
@@ -623,7 +624,7 @@ def unit_edit(request, city_tag, bldg_tag, unit_tag=''):
 def unit_details(request, city_tag, bldg_tag, unit_tag=''):
     (city, building, unit) = find_by_tags(city_tag, bldg_tag, unit_tag=unit_tag)
 
-    print unit.full_address()
+    #print unit.full_address()
     context = { 'building': building,
                 'units': [unit],
                 'unit': unit,

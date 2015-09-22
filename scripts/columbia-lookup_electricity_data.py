@@ -165,6 +165,9 @@ def read_csv(source_csv, city_name, city_tag, driver):
 
     print city
 
+    position_file = "position.json"
+    position = load_json(position_file, create=True)
+
     cache_file = "%s-20150525.json.bkup" % city.tag
     cache_destination = os.path.join(os.path.dirname(source_csv), cache_file)
     #keep a local copy of data we've processed...
@@ -212,7 +215,9 @@ def read_csv(source_csv, city_name, city_tag, driver):
         for row in reader:
             count += 1
             print "Looking at row: %s" % count
-
+            start = datetime.now()
+            print "Started: ", start
+            
             any_updated = False
             
             #could exit out early here, if needed
@@ -221,7 +226,8 @@ def read_csv(source_csv, city_name, city_tag, driver):
                 pass
 
             #if you want to skip ahead more quickly:
-            if count < 260:
+            #if count < 0:
+            if count < position:
                 pass
             else:
 
@@ -293,12 +299,12 @@ def read_csv(source_csv, city_name, city_tag, driver):
                 #skip row41, business name
 
                 #could be owner, could be agent
-                owner_name = row[42]
-                owner_address1 = row[43]
-                owner_address2 = row[44]
-                owner_city = row[45]
-                owner_state = row[46]
-                owner_zip = row[47]
+                ## owner_name = row[42]
+                ## owner_address1 = row[43]
+                ## owner_address2 = row[44]
+                ## owner_city = row[45]
+                ## owner_state = row[46]
+                ## owner_zip = row[47]
 
 
                 #address = " ".join([street_num, street_dir, street_name, street_sfx, qualifier_pre, qualifier_post, apt_num])
@@ -358,8 +364,6 @@ def read_csv(source_csv, city_name, city_tag, driver):
                 if address_main:
                     print "APT_MAIN: ", apt_main
                     address = ", ".join( [address_main, apt_main] )
-
-                owner_address = ", ".join([owner_address1, owner_address2, owner_city, owner_state, owner_zip])
 
 
                 ## if (not status in ['EXPIRED', 'CLOSED']) and (permit_type in ['RENTAL']):
@@ -545,6 +549,18 @@ def read_csv(source_csv, city_name, city_tag, driver):
                                     #    print item.text
 
 
+                            unit.update_averages()
+
+                            #see if we have enough info now to make a score:
+                            unit.update_energy_score()
+
+                            #now that we've saved the unit,
+                            #update the averages for the whole building:
+                            unit.building.update_utility_averages()
+                            unit.building.update_rent_details()
+
+
+
                         
             if any_updated:
                 #back it up for later
@@ -555,6 +571,15 @@ def read_csv(source_csv, city_name, city_tag, driver):
                     #search_results[key] = SearchResults().from_dict(value)
                     local_cache['buildings'][key] = value.to_dict()
                 save_json(cache_destination, local_cache)
+
+                position = count
+                save_json(position_file, position)
+                exit()
+
+            end = datetime.now()
+            print "finished: ", end
+            total_time = end - start
+            print total_time
 
             print
 
