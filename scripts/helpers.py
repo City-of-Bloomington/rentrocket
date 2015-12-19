@@ -545,7 +545,7 @@ class Geo(object):
         #self.geonames = geocoders.GeoNames()
         self.bing = geocoders.Bing('AnFGlcOgRppf5ZSLF8wxXXN2_E29P-W9CMssWafE1RC9K9eXhcAL7nqzTmjwzMQD')
         self.openmq = geocoders.OpenMapQuest()
-        self.mq = geocoders.MapQuest('Fmjtd%7Cluub2hu7nl%2C20%3Do5-9uzg14')
+        #self.mq = geocoders.MapQuest('Fmjtd%7Cluub2hu7nl%2C20%3Do5-9uzg14')
 
         #skipping mediawiki, seems less complete?
         #mediawiki = geocoders.MediaWiki("http://wiki.case.edu/%s")

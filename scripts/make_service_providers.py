@@ -143,4 +143,4 @@ def read_csv(source_csv):
             print            
 
 if __name__ == '__main__':
-    read_csv('/c/clients/rentrocket/cities/service_providers.csv')
+    read_csv('/home/rentrocket/cities/service_providers.csv')

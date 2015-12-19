@@ -167,6 +167,8 @@ def read_csv(source_csv, city_name, city_tag, driver):
 
     position_file = "position.json"
     position = load_json(position_file, create=True)
+    if not position:
+        position = 0
 
     cache_file = "%s-20150525.json.bkup" % city.tag
     cache_destination = os.path.join(os.path.dirname(source_csv), cache_file)
@@ -214,7 +216,7 @@ def read_csv(source_csv, city_name, city_tag, driver):
         #in order to randomize, should randomize the order in the csv
         for row in reader:
             count += 1
-            print "Looking at row: %s" % count
+            print "Looking at row: %s, position: %s" % (count, position)
             start = datetime.now()
             print "Started: ", start
             
@@ -559,9 +561,10 @@ def read_csv(source_csv, city_name, city_tag, driver):
                             unit.building.update_utility_averages()
                             unit.building.update_rent_details()
 
-
-
-                        
+                
+                position += 1
+                save_json(position_file, position)
+        
             if any_updated:
                 #back it up for later
                 #enable this when downloading GPS coordinates...
@@ -592,4 +595,4 @@ if __name__ == '__main__':
     driver = webdriver.Firefox()
     #driver = webdriver.Chrome()
 
-    read_csv('/c/clients/rentrocket/cities/columbia/rental/Columbia_data_20131016-randomized.csv', "Columbia", "columbia_mo", driver)
+    read_csv('/home/rentrocket/cities/columbia/rental/Columbia_data_20131016-randomized.csv', "Columbia", "columbia_mo", driver)

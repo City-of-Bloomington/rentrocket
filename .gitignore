@@ -4,6 +4,7 @@
 *.pyc
 local_settings.py
 *.py~
+*.zip
 *~
 .DS_Store
 configuration.inc

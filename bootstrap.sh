@@ -53,3 +53,12 @@ unzip -q google_appengine_1.9.22.zip -d /vagrant
 echo "vagrant environment has been provisioned"
 # http://stackoverflow.com/questions/2168409/can-access-appengine-sdk-sites-via-local-ip-address-when-localhost-works-just-fi
 #/home/vagrant/google_appengine/dev_appserver.py --host 0.0.0.0 /vagrant
+
+#Error encountered when running:
+#python manage.py syncdb
+#AttributeError: 'module' object has no attribute 'PROTOCOL_SSLv3'
+
+#this fixed it:
+sudo pip uninstall pyopenssl
+sudo pip install mozdownload
+#via https://github.com/mozilla/mozdownload/issues/268
