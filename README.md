@@ -33,6 +33,13 @@ vagrant ssh
 
 for now, create tables manually:
 
+    mysql -u root -p
+    CREATE USER 'rentrocket'@'localhost' IDENTIFIED BY 'changeme';
+    GRANT ALL PRIVILEGES ON * . * TO 'rentrocket'@'localhost';
+    FLUSH PRIVILEGES;
+
+    create database rentrocket;
+    
     cd /vagrant
     python manage.py syncdb
 

@@ -60,5 +60,6 @@ echo "vagrant environment has been provisioned"
 
 #this fixed it:
 sudo pip uninstall pyopenssl
+sudo apt-get remove python-openssl
 sudo pip install mozdownload
 #via https://github.com/mozilla/mozdownload/issues/268
