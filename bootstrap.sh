@@ -6,6 +6,11 @@ DBPASSWD=vagrant
 DBNAME=rentrocket
 DBUSER=rentrocket
 DBPASSWD2=greenrentals
+GOOGLE_APP_ENGINE_INSTALL_LOCATION=/vagrant
+GOOGLE_APP_ENGINE_BASE=google_appengine
+GOOGLE_APP_ENGINE_VERSIONED="${GOOGLE_APP_ENGINE_BASE}_1.9.22"
+GOOGLE_APP_ENGINE_ARCHIVE="${GOOGLE_APP_ENGINE_VERSIONED}.zip"
+GOOGLE_APP_ENGINE_ARCHIVE_URL="https://storage.googleapis.com/appengine-sdks/featured/${GOOGLE_APP_ENGINE_ARCHIVE}"
 
 sudo apt-get update
 #sudo apt-get -y upgrade
@@ -42,14 +47,39 @@ sudo apt-get install -y unzip
 echo "installing django 1.5.11"
 sudo pip install django==1.5.11
 
-#https://cloud.google.com/appengine/downloads
-echo "starting download of appengine zip"
-wget -q https://storage.googleapis.com/appengine-sdks/featured/google_appengine_1.9.22.zip
-echo "finished downloading appengine zip"
+if [ ! -d "${GOOGLE_APP_ENGINE_INSTALL_LOCATION}/${GOOGLE_APP_ENGINE_BASE}" ]; then
 
-echo "extracting appengine zip"
-unzip -q google_appengine_1.9.22.zip -d /vagrant
+    # echo "Clean up Google App Engine"
+    # rm -rf ${GOOGLE_APP_ENGINE_INSTALL_LOCATION}/${GOOGLE_APP_ENGINE_BASE}
+    # rm -rf ${GOOGLE_APP_ENGINE_INSTALL_LOCATION}/${GOOGLE_APP_ENGINE_ARCHIVE}
+
+    if [ ! -e "${GOOGLE_APP_ENGINE_ARCHIVE}"]; then
+        echo "starting download of appengine zip ${GOOGLE_APP_ENGINE_ARCHIVE}"
+        wget -q ${GOOGLE_APP_ENGINE_ARCHIVE_URL}
+        echo "finished downloading appengine zip"
+    fi
+
+    echo "extracting appengine zip ${GOOGLE_APP_ENGINE_ARCHIVE}"
+    unzip -q ${GOOGLE_APP_ENGINE_ARCHIVE} -d ${GOOGLE_APP_ENGINE_INSTALL_LOCATION}
+
+fi 
 
 echo "vagrant environment has been provisioned"
 # http://stackoverflow.com/questions/2168409/can-access-appengine-sdk-sites-via-local-ip-address-when-localhost-works-just-fi
 #/home/vagrant/google_appengine/dev_appserver.py --host 0.0.0.0 /vagrant
+
+python manage.py syncdb --noinput
+
+python manage.py migrate utility
+python manage.py migrate building
+python manage.py migrate person
+python manage.py migrate city
+python manage.py migrate content
+python manage.py migrate inspection
+python manage.py migrate manager
+python manage.py migrate source
+python manage.py migrate allauth.socialaccount
+
+pushd ./scripts
+python make_cities.py
+popd

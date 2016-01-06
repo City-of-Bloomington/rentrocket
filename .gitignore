@@ -15,3 +15,5 @@ rentrocket/settings.py
 geopy.orig
 geopy_full
 /google_appengine/
+bootstrap-mac.sh
+.zip
