@@ -35,6 +35,8 @@
         var formattedAddress = address + ' ' + city + ', ' + state + ' ' + zip;
         console.log(formattedAddress);
 
+        $scope.query = 'http://map-alpha.enerscore.com/#/map?q=' + encodeURI(formattedAddress);
+        $scope.placeholder = null;
 
         var onSuccess = function(properties) {
             if (properties.length < 1) {
@@ -45,7 +47,8 @@
             $scope.property = properties[0];
             $scope.propertyJson = JSON.stringify($scope.property, undefined, 4);
 
-
+            
+            console.log($scope.query);
 
         };
 
@@ -54,7 +57,8 @@
             console.log(err);
 
             $scope.property = null;
-            $scope.placeholder = 'Unsupported Property';
+            $scope.placeholder = 'unavailable';
+            
         };
 
         EnerscorePropertySearch.search({
@@ -65,7 +69,9 @@
 
     function link($scope, element, attrs) {
 
-        $scope.placeholder = null;
+        
+
+
 
     }
 
@@ -75,7 +81,9 @@
             restrict: 'A',
             templateUrl: '/static/js/vendor/enerscore/enerscore.tpl.html',
             scope: {
-                property: '='
+                property: '=',
+                query: '=',
+                placeholder: '=',
             },
             link: link
 

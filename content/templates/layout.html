@@ -26,12 +26,31 @@
     <link href="//code.ionicframework.com/nightly/css/ionic.css" rel="stylesheet">
     <script src="//code.ionicframework.com/nightly/js/ionic.bundle.js"></script>
 
-    <script data-require="angular.js@1.4.8" data-semver="1.4.8" src="https://code.angularjs.org/1.4.8/angular.js"></script>
     <script data-require="angular-resource@1.4.8" data-semver="1.4.8" src="https://code.angularjs.org/1.4.8/angular-resource.js"></script>
+
 
     <!-- Enerscore Script Contrib -->
     <script type="text/javascript" src="/static/js/vendor/enerscore/enerscore.directive.js"></script>
 
+    <script>
+        (function() {
+
+            'use strict';
+
+            // Define the Rentrocket Angular App 
+            document.rentrocketApp = angular.module('rentrocketApp', [ 
+            
+                // Ionic
+                'ionic',
+
+                // Directives
+                'enerscore.directive.enerscoreRentrocket',
+            ]);
+
+        }());
+            
+    </script>
+    
 
     {% block custom_css %}{% endblock %}    
     {#include javascript at the end of the page to improve loading #}
@@ -45,7 +64,7 @@
     <!--[if (gte IE 6)&(lte IE 8)]>
       <script type="text/javascript" src="/javascripts/selectivizr-min.js"></script>
     <![endif]-->
-  </head>  
+    </head>  
   <body>
     
     <!-- Header -->
@@ -97,10 +116,8 @@
 
     <script src="/static/js/retina.min.js"></script>
 
-    <script>
-    </script>
-
-
+    
+    
     
   </body>
 </html>

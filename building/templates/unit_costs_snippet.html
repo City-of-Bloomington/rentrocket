@@ -1,37 +1,3 @@
-<script>
-(function() {
-
-    'use strict';
-
-    var address = "{{building.address}}";
-    var city    = "{{building.city.name}}";
-    var state   = "{{building.state}}";
-    var zip     = "{{building.postal_code}}";
-
-    angular
-        .module('rentrocketApp', [ 
-
-            // Ionic
-            'ionic',
-            
-            // Directives
-            'enerscore.directive.enerscoreRentrocket',
-        ]).run(run);
-
-    
-    function run($rootScope) {
-
-        $rootScope.address  = address;
-        $rootScope.city     = city;
-        $rootScope.state    = state;
-        $rootScope.zip      = zip;
-    }
-
-}());
-        
-</script>
-
-
 <div class="panel panel-default" style="margin-top:20px;" ng-controller="EnerscoreCtrl">
     <!-- Default panel contents -->
     <div class="panel-heading panel-det  text-center"><strong>Costs</strong></div>
@@ -41,7 +7,7 @@
     <table class="table">
         <tbody>
             <tr>
-                <td><strong>Current Rent</strong></td>
+                <td width="40%"><strong>Current Rent</strong></td>
                 <td>${{ unit.rent|floatformat:2 }}</td>
             </tr>
             <tr>
@@ -56,8 +22,33 @@
                 <td><strong>Total</strong></td>
                 <td>${{unit.energy_total|floatformat:2}} <small class="pull-right">(${{unit.total_cost_per_bedroom|floatformat:2}} per BR)</small></td>
             </tr>
-            <tr enerscore-rentrocket property="property"></tr>
+            <tr enerscore-rentrocket property="property" query="query" placeholder="placeholder"></tr>
         </tbody>
     </table>
 </div>
 
+<script>
+    
+    (function() {
+
+        'use strict';
+
+        var address = "{{building.address}}";
+        var city    = "{{building.city.name}}";
+        var state   = "{{building.state}}";
+        var zip     = "{{building.postal_code}}";
+
+        document.rentrocketApp.run(run);
+
+        
+        function run($rootScope) {
+
+            $rootScope.address  = address;
+            $rootScope.city     = city;
+            $rootScope.state    = state;
+            $rootScope.zip      = zip;
+        }
+
+    }());
+        
+</script>
