@@ -32,6 +32,11 @@ sudo apt-get install -y python-mysqldb
 #https://gist.github.com/rrosiek/8190550
 echo -e "\n--- Setting up our MySQL user and db ---\n"
 #http://dev.mysql.com/doc/refman/5.0/en/create-user.html
+
+
+mysql -uroot -p$DBPASSWD -e "GRANT ALL PRIVILEGES ON *.* TO '$DBUSER'@'localhost' IDENTIFIED BY '$DBPASSWD2'"
+mysql -uroot -p$DBPASSWD -e "DROP USER '$DBUSER'@'localhost'"
+mysql -uroot -p$DBPASSWD -e "DROP DATABASE $DBNAME"
 mysql -uroot -p$DBPASSWD -e "CREATE USER '$DBUSER'@'localhost' IDENTIFIED BY '$DBPASSWD2'"
 
 mysql -uroot -p$DBPASSWD -e "CREATE DATABASE $DBNAME"
@@ -67,6 +72,8 @@ fi
 echo "vagrant environment has been provisioned"
 # http://stackoverflow.com/questions/2168409/can-access-appengine-sdk-sites-via-local-ip-address-when-localhost-works-just-fi
 #/home/vagrant/google_appengine/dev_appserver.py --host 0.0.0.0 /vagrant
+
+pushd /vagrant
 
 python manage.py syncdb --noinput
 

@@ -1,0 +1,34 @@
+<tr>
+    <td><strong>Enerscore</strong></td>
+    <td ng-if="property">
+        <div class="row" style="margin: 0; padding: 0"> 
+            <div class="col-xs-2">
+                <img src="http://assets.enerscore.com/assets/images/grades/{{property.score().toLowerCase()}}.png" width="25px" height="25px" />
+            </div>
+            <div class="col-xs-10">
+                <div class="row" style="margin: 0; padding: 0">
+                    <div class="col-xs-8">
+                        <strong>Enerscore Total (est.)</strong>
+                    </div>
+                    <div class="col-xs-4">
+                        $0
+                    </div>
+                </div>
+                <div class="row" style="margin: 0; padding: 0">
+                    <div class="col-xs-8">
+                        <strong>Enerscore Total (est.)</strong>
+                    </div>
+                    <div class="col-xs-4">
+                        $0
+                    </div>
+                </div>
+                
+            </div>
+
+        </div>
+    </td>
+    <td ng-if="!property">
+        <ion-spinner ng-if="!placeholder" icon="lines" class="spinner-calm"></ion-spinner>
+        <span ng-if="placeholder">{{placeholder}}</span>
+    </td>
+</tr>
