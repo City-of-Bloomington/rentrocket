@@ -85,7 +85,7 @@ else:
             'ENGINE': 'django.db.backends.mysql',
             'NAME': 'rentrocket',
             'USER': 'rentrocket',
-            'PASSWORD': 'greenrentals',
+            'PASSWORD': 'changeme',
             #'HOST': 'localhost',
         }
     }

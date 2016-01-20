@@ -9,7 +9,7 @@ To assist with getting a development environment set up quickly, Rent Rocket use
 
 Start with a copy of the source code repository:
 
-git clone https://github.com/City-of-Bloomington/green-rental.git rentrocket
+git clone https://github.com/City-of-Bloomington/rentrocket.git rentrocket
 
 Be sure to download and install the latest version of Vagrant:
 (apt-get versions can be out of date)
@@ -33,6 +33,13 @@ vagrant ssh
 
 for now, create tables manually:
 
+    mysql -u root -p
+    CREATE USER 'rentrocket'@'localhost' IDENTIFIED BY 'changeme';
+    GRANT ALL PRIVILEGES ON * . * TO 'rentrocket'@'localhost';
+    FLUSH PRIVILEGES;
+
+    create database rentrocket;
+    
     cd /vagrant
     python manage.py syncdb
 
@@ -48,6 +55,8 @@ for now, create tables manually:
 
     cd /vagrant/scripts
     python make_cities.py
+
+    python make_service_providers.py 
 
     /home/vagrant/google_appengine/dev_appserver.py --host 0.0.0.0 /vagrant
 
