@@ -7,7 +7,7 @@
     <table class="table">
         <tbody>
             <tr>
-                <td width="40%"><strong>Current Rent</strong></td>
+                <td width="35%"><strong>Current Rent</strong></td>
                 <td>${{ unit.rent|floatformat:2 }}</td>
             </tr>
             <tr>
@@ -38,7 +38,7 @@
         var state   = "{{building.state}}";
         var zip     = "{{building.postal_code}}";
 
-        document.rentrocketApp.run(run);
+        angular.module('rentrocketApp').run(run);
 
         
         function run($rootScope) {

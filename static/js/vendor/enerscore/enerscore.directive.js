@@ -25,6 +25,11 @@
         ])
         .directive('enerscoreRentrocket', enerscoreDirectiveRentRocket);
 
+    angular.module('rentrocketApp', [ 
+                // Directives
+                'enerscore.directive.enerscoreRentrocket',
+            ]);
+
     function EnerscoreCtrl($scope, EnerscorePropertySearch) {
         
         var address = $scope.address;
@@ -47,6 +52,7 @@
             $scope.property = properties[0];
             $scope.propertyJson = JSON.stringify($scope.property, undefined, 4);
 
+            $scope.totalColor = "{color: 'red'}";
             
             console.log($scope.query);
 
@@ -177,8 +183,13 @@
 
         resource.prototype.score = function() {
             var self = this;
-            return score(self.year());
-        };
+            if (!self.energyScore)  {
+                return 'U';
+            }
+            return self.energyScore.energyScore;
+        }
+
+        
 
         return resource;
 
@@ -211,27 +222,6 @@
         return address.address1 + ', ' + address.addressTown + ', ' + address.addressState + ' ' + address.addressPostalCode;
     }
 
-    function usage(yearBuilt, area) {
-
-        var k = (yearBuilt <= 1945) ? 1.284 :
-            (yearBuilt <= 1978) ? 1.073 :
-            (yearBuilt <= 2001) ? 0.922 :
-            (yearBuilt <= 2007) ? 0.859 :
-            (yearBuilt <= 2015) ? 0.737 : 0;
-
-        return k * area;
-    }
-
-    function score(yearBuilt) {
-
-        var es = (yearBuilt <= 1945) ? 'F' :
-            (yearBuilt <= 1978) ? 'D' :
-            (yearBuilt <= 2001) ? 'C' :
-            (yearBuilt <= 2007) ? 'B' :
-            (yearBuilt <= 2015) ? 'A' : 'N/A';
-
-        return es;
-    }
-
+    
 
 }())
