@@ -1,6 +1,6 @@
 {% load url from future %}
 <!DOCTYPE html>
-<html>
+<html ng-app="rentrocketApp">
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -22,6 +22,22 @@
     <link href="/static/css/home.css" rel="stylesheet" type="text/css">
     <link href="/static/css/font-awesome.min.css" rel="stylesheet">
 
+
+    <!-- Spinner -->
+    <link href="/static/js/vendor/enerscore/enerscore.tpl.css" rel="stylesheet">    
+    
+
+    <script data-require="angular.js@1.4.8" data-semver="1.4.8" src="https://code.angularjs.org/1.4.8/angular.js"></script>
+    <script data-require="angular-resource@1.4.8" data-semver="1.4.8" src="https://code.angularjs.org/1.4.8/angular-resource.js"></script>
+
+
+
+    <!-- Enerscore Script Contrib -->
+    <script type="text/javascript" src="/static/js/vendor/enerscore/enerscore.directive.js"></script>
+
+    
+    
+
     {% block custom_css %}{% endblock %}    
     {#include javascript at the end of the page to improve loading #}
     
@@ -34,7 +50,7 @@
     <!--[if (gte IE 6)&(lte IE 8)]>
       <script type="text/javascript" src="/javascripts/selectivizr-min.js"></script>
     <![endif]-->
-  </head>  
+    </head>  
   <body>
     
     <!-- Header -->
@@ -85,6 +101,9 @@
     {% endblock %}
 
     <script src="/static/js/retina.min.js"></script>
+
+    
+    
     
   </body>
 </html>

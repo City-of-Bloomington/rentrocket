@@ -73,12 +73,20 @@ echo "vagrant environment has been provisioned"
 # http://stackoverflow.com/questions/2168409/can-access-appengine-sdk-sites-via-local-ip-address-when-localhost-works-just-fi
 #/home/vagrant/google_appengine/dev_appserver.py --host 0.0.0.0 /vagrant
 
-#Error encountered when running:
-#python manage.py syncdb
-#AttributeError: 'module' object has no attribute 'PROTOCOL_SSLv3'
+pushd /vagrant
 
-#this fixed it:
-sudo pip uninstall pyopenssl
-sudo apt-get remove python-openssl
-sudo pip install mozdownload
-#via https://github.com/mozilla/mozdownload/issues/268
+python manage.py syncdb --noinput
+
+python manage.py migrate utility
+python manage.py migrate building
+python manage.py migrate person
+python manage.py migrate city
+python manage.py migrate content
+python manage.py migrate inspection
+python manage.py migrate manager
+python manage.py migrate source
+python manage.py migrate allauth.socialaccount
+
+pushd ./scripts
+python make_cities.py
+popd

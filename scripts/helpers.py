@@ -13,6 +13,11 @@ sys.path.append(os.path.dirname(os.getcwd()))
 
 from geopy import geocoders, distance
 
+# MapQuest no longer available in present api.  Work around
+# detailed here: http://stackoverflow.com/questions/30132636/geocoding-error-with-geopandas-and-geopy
+geocoders.MapQuest = geocoders.OpenMapQuest
+
+
 #http://stackoverflow.com/questions/8047204/django-script-to-access-model-objects-without-using-manage-py-shell
 #from rentrocket import settings
 #from django.core.management import setup_environ

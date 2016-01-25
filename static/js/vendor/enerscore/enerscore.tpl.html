@@ -1,0 +1,71 @@
+<tr>
+    <td>
+        <a ng-href="{{query}}" target="_blank">
+            <img src="http://cdn2.hubspot.net/hub/1570618/hubfs/Enerscore_Images/enerscore1.png" width="100px" />
+        </a>
+    </td>
+    <td ng-if="property">
+        <div class="row enerscore"> 
+            <div class="col-xs-2">
+                <img src="http://assets.enerscore.com/assets/images/grades/{{property.score().toLowerCase()}}.png" width="25px" height="25px" />
+            </div>
+            <div class="col-xs-10 breakdown">
+                <div class="row">
+                    <div class="col-xs-6">
+                        <strong>Total</strong>
+                    </div>
+                    <div class="col-xs-6">
+                        {{property.cost()}}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-6">
+                        <strong>Electrical</strong>
+                    </div>
+                    <div class="col-xs-6">
+                        {{property.electrical()}}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-6">
+                        <strong>Heating</strong>
+                    </div>
+                    <div class="col-xs-6">
+                        {{property.heating()}}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-6">
+                        <strong>Cooling</strong>
+                    </div>
+                    <div class="col-xs-6">
+                        {{property.cooling()}}
+                    </div>
+                </div>
+                <!-- <div class="row">
+                    <div class="col-xs-6">
+                        <strong>Water</strong>
+                    </div>
+                    <div class="col-xs-6">
+                        {{property.water()}}
+                    </div>
+                </div> -->
+                
+            </div>
+
+        </div>
+    </td>
+    <td ng-if="!property">
+        <div ng-if="!placeholder" class="spinner">
+          <div class="rect1"></div>
+          <div class="rect2"></div>
+          <div class="rect3"></div>
+          <div class="rect4"></div>
+          <div class="rect5"></div>
+        </div>
+        <span ng-if="placeholder === 'unavailable'">
+            Enerscore unavailable at this time.<br />
+            Click <a ng-href="{{query}}" target="_blank">here</a> for details.
+        </span>
+    </td>
+</tr>
