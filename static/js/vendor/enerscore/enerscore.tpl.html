@@ -1,3 +1,4 @@
+
 <tr>
     <td>
         <a ng-href="{{query}}" target="_blank">
@@ -6,19 +7,19 @@
     </td>
     <td ng-if="property">
         <div class="row enerscore"> 
-            <div class="col-xs-2">
-                <img src="http://assets.enerscore.com/assets/images/grades/{{property.score().toLowerCase()}}.png" width="25px" height="25px" />
+            <div class="col-md-2 col-xs-12" style="padding: 0; margin: 0; text-align: center;" ng-click="open('grade')">
+                <img ng-src="http://assets.enerscore.com/assets/images/grades/{{property.score().toLowerCase()}}.svg" width="50px" height="50px" />
             </div>
-            <div class="col-xs-10 breakdown">
+            <div class="col-md-10 hidden-xs breakdown" ng-click="open('cost')">
                 <div class="row">
-                    <div class="col-xs-6">
-                        <strong>Total</strong>
+                    <div class="col-md-8" style="text-align: left; margin: 0; padding: 0">
+                        <strong>Estimated Overall Annual Energy Cost</strong>
                     </div>
-                    <div class="col-xs-6">
+                    <div class="col-md-4" style="text-align: right; margin: 0; padding: 0">
                         {{property.cost()}}
                     </div>
                 </div>
-                <div class="row">
+                <!-- <div class="row">
                     <div class="col-xs-6">
                         <strong>Electrical</strong>
                     </div>
@@ -41,7 +42,7 @@
                     <div class="col-xs-6">
                         {{property.cooling()}}
                     </div>
-                </div>
+                </div> -->
                 <!-- <div class="row">
                     <div class="col-xs-6">
                         <strong>Water</strong>

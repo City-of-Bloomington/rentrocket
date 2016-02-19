@@ -11,27 +11,29 @@
     angular
         .module('enerscore.services.search.rentrocket.EnerscorePropertySearch', [])
         .factory('EnerscorePropertySearch', EnerscorePropertySearch)
-    
+
     angular
-        .module('enerscore.controllers.rentrocket.EnerscoreCtrl', [ 
+        .module('enerscore.controllers.rentrocket.EnerscoreCtrl', [
             'ngResource',
+            'ngAnimate',
+            'ui.bootstrap',
             'enerscore.services.search.rentrocket.EnerscorePropertySearch',
         ])
         .controller('EnerscoreCtrl', EnerscoreCtrl)
-        
+
     angular
         .module('enerscore.directive.enerscoreRentrocket', [
             'enerscore.controllers.rentrocket.EnerscoreCtrl',
         ])
         .directive('enerscoreRentrocket', enerscoreDirectiveRentRocket);
 
-    angular.module('rentrocketApp', [ 
-                // Directives
-                'enerscore.directive.enerscoreRentrocket',
-            ]);
+    angular.module('rentrocketApp', [
+        // Directives
+        'enerscore.directive.enerscoreRentrocket',
+    ]);
 
     function EnerscoreCtrl($scope, EnerscorePropertySearch) {
-        
+
         var address = $scope.address;
         var city = $scope.city;
         var state = $scope.state;
@@ -50,10 +52,15 @@
 
             console.log(properties);
             $scope.property = properties[0];
+
+            if ($scope.property.energyScore.energyScore === 'F-') {
+                $scope.property.energyScore.energyScore = 'F';
+            }
+
             $scope.propertyJson = JSON.stringify($scope.property, undefined, 4);
 
             $scope.totalColor = "{color: 'red'}";
-            
+
             console.log($scope.query);
 
         };
@@ -64,7 +71,7 @@
 
             $scope.property = null;
             $scope.placeholder = 'unavailable';
-            
+
         };
 
         EnerscorePropertySearch.search({
@@ -73,9 +80,60 @@
 
     }
 
+
+    function EnerscoreModalCtrl($scope, $uibModal, $log) {
+        $scope.items = ['item1', 'item2', 'item3'];
+
+        $scope.animationsEnabled = true;
+
+        $scope.open = function(template) {
+
+            var templateUrl = (template === 'grade') ? '/static/js/vendor/enerscore/enerscore.modal.grade.tpl.html' : '/static/js/vendor/enerscore/enerscore.modal.cost.tpl.html';
+            var modalInstance = $uibModal.open({
+                animation: $scope.animationsEnabled,
+                templateUrl: templateUrl,
+                controller: EnerscoreModalInstanceCtrl,
+                size: 'lg',
+                resolve: {
+                    items: function() {
+                        return $scope.items;
+                    }
+                }
+            });
+
+            modalInstance.result.then(function(selectedItem) {
+                $scope.selected = selectedItem;
+            }, function() {
+                $log.info('Modal dismissed at: ' + new Date());
+            });
+        };
+
+        $scope.toggleAnimation = function() {
+            $scope.animationsEnabled = !$scope.animationsEnabled;
+        };
+    }
+
+
+    function EnerscoreModalInstanceCtrl($scope, $uibModalInstance, items) {
+
+        $scope.items = items;
+        $scope.selected = {
+            item: $scope.items[0]
+        };
+
+        $scope.ok = function() {
+            $uibModalInstance.close($scope.selected.item);
+        };
+
+        $scope.cancel = function() {
+            $uibModalInstance.dismiss('cancel');
+        };
+
+    }
+
     function link($scope, element, attrs) {
 
-        
+
 
 
 
@@ -91,6 +149,7 @@
                 query: '=',
                 placeholder: '=',
             },
+            controller: EnerscoreModalCtrl,
             link: link
 
         };
@@ -183,13 +242,13 @@
 
         resource.prototype.score = function() {
             var self = this;
-            if (!self.energyScore)  {
+            if (!self.energyScore) {
                 return 'U';
             }
             return self.energyScore.energyScore;
         }
 
-        
+
 
         return resource;
 
@@ -222,6 +281,6 @@
         return address.address1 + ', ' + address.addressTown + ', ' + address.addressState + ' ' + address.addressPostalCode;
     }
 
-    
+
 
 }())
