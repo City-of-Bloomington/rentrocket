@@ -17,4 +17,5 @@ geopy.orig
 geopy_full
 /google_appengine/
 bootstrap-mac.sh
+initial_data.json
 .zip
