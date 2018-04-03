@@ -18,6 +18,7 @@ resource_data = {
 	<LI><P STYLE="margin-bottom: 0in"><FONT FACE="Arial, serif">Water
 	provider: <A HREF="http://bloomington.in.gov/sections/viewSection.php%3Fsection_id=281">City
 	of Bloomington Utilities</A></FONT></P>
+	<LI><P>Hello</P></LI>
 </UL>
 <P STYLE="margin-left: 1in; margin-bottom: 0in"><BR>
 </P>
