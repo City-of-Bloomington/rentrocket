@@ -2,6 +2,10 @@
 
 resource_data = {
     'bloomington_in': u"""
+
+<div style=''>
+<p>HELLO</P>
+
 <P STYLE="margin-bottom: 0in"><FONT FACE="Arial, serif"><U><B>Utilities</B></U></FONT></P>
 <UL>
 	<LI><P STYLE="margin-bottom: 0in"><FONT FACE="Arial, serif">Electricity
